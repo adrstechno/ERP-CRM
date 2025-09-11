@@ -1,19 +1,36 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { Button, Container, Box, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
 
-function App() {
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    fetch("http://localhost:8080/test").
-    then((res) => res.text()).
-    then((data)=> setMessage(data)).
-    catch((err) => console.log(err))
-  });
-      
+export default function App() {
   return (
-    <div>{message}</div>
-  )
-}
+    <Container maxWidth="sm">
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="h3" gutterBottom>
+          Welcome to ERP
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          Click below to enter the CRM module.
+        </Typography>
 
-export default App
+        <Button
+          variant="contained"
+          color="primary"
+          component={Link}
+          to="/crm/dashboard"
+          sx={{ mt: 2 }}
+        >
+          Go to CRM
+        </Button>
+      </Box>
+    </Container>
+  );
+}
