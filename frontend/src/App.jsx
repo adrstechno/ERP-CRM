@@ -11,8 +11,9 @@ function App() {
     catch((err) => console.log(err))
   });
       
-  return (
-    <div>{message}</div>
+  return (<>
+  <div> <h1>{message} </h1></div>
+  </>
   )
 }
 
