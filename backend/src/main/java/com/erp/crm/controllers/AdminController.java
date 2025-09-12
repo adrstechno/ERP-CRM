@@ -1,6 +1,7 @@
 package com.erp.crm.controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +22,8 @@ public class AdminController {
         this.userService = userService;
     }
 
-    @PostMapping("/users")
+    @PostMapping("/create-user")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> createUser(@RequestBody @Valid AdminCreateUserDTO dto) {
         User newUser = userService.createUser(dto);
         return ResponseEntity.ok(newUser);

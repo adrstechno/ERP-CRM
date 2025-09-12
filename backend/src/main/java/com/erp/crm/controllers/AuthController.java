@@ -27,11 +27,9 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
             );
 
-            // Login successful
             return ResponseEntity.ok("✅ Login successful!");
         } catch (AuthenticationException e) {
-            // Login failed
-            return ResponseEntity.status(401).body("❌ Invalid email or password");
+            return ResponseEntity.status(401).body("Invalid email or password");
         }
     }
 }
