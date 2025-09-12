@@ -13,7 +13,7 @@ const theme = (mode = "light") =>
         main: mode === "dark" ? "#B0B0B0" : "#757575", // lighter gray
       },
       background: {
-        default: mode === "dark" ? "#2A2A2A" : "#FFFFFF",
+        default: mode === "dark" ? "#2D3036" : "#FFFFFF",
         paper: mode === "dark" ? "#323232" : "#F9F9FA",
       },
       text: {
