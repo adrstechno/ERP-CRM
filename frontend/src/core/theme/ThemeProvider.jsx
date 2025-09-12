@@ -8,16 +8,16 @@ export const useThemeMode = () => useContext(ThemeModeContext);
 export { useTheme };
 
 export default function ThemeProvider({ children }) {
-  const [mode, setMode] = useState("light");
+  const [mode, setMode] = useState("dark");
 
   const toggleMode = () => {
-    setMode((prev) => (prev === "light" ? "dark" : "light"));
+    setMode((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
   const muiTheme = useMemo(() => theme(mode), [mode]);
 
   return (
-    <ThemeModeContext.Provider value={{ toggleMode }}>
+    <ThemeModeContext.Provider value={{ mode, toggleMode }}>
       <MuiThemeProvider theme={muiTheme}>
         <CssBaseline />
         {children}
