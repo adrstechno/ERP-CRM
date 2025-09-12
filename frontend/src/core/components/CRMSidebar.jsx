@@ -48,6 +48,9 @@ export default function CRMSidebar() {
         "& .MuiDrawer-paper": {
           width: drawerWidth,
           boxSizing: "border-box",
+           backgroundColor: theme.palette.custom.sidebarBg, // ✅ from theme
+            color: theme.palette.text.primary,              // ✅ from theme
+            borderRight: "1px solid rgba(255,255,255,0.12)", // ✅ matches theme.js
         },
       }}
     >
