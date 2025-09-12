@@ -13,7 +13,7 @@ return (
       <Route element={<CRMLayout />}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="contacts" element={<Contact />} />
-        <Route path="usermanagement" element={<UserManagement />} />
+ 
       </Route>
     </Routes>
   );
