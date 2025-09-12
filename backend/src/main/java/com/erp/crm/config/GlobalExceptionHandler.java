@@ -12,16 +12,16 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex){
-        Map<String, String> errors =  new HashMap<>();
-
-        ex.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
-            String message = error.getDefaultMessage();
-            errors.put(fieldName, message);
-        });
-
-        return new ResponseEntity<>(errors,HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        // Return first validation error message
+        String errorMessage = ex.getBindingResult()
+                                .getFieldErrors()
+                                .stream()
+                                .findFirst()
+                                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                                .orElse("Invalid input");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
 
     @ExceptionHandler(RuntimeException.class)
