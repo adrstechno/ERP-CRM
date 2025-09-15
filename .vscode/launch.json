@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-CrmApplication<crm>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.erp.crm.CrmApplication",
+            "projectName": "crm",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
