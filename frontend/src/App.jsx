@@ -1,7 +1,37 @@
-import { Button, Container, Box, Typography } from "@mui/material";
+import { Button, Container, Box, Typography, Stack } from "@mui/material";
 import { Link } from "react-router-dom";
+import { useCRMAuth } from "./modules/crm/context/CRMAuthContext";
 
 export default function App() {
+  const { crmUser } = useCRMAuth();
+
+  // CRM dashboard path based on role
+  let crmPath = "/login";
+  if (crmUser?.role) {
+    switch (crmUser.role) {
+      case "admin":
+        crmPath = "/crm/admin";
+        break;
+      case "dealer":
+        crmPath = "/crm/dealer";
+        break;
+      case "marketer":
+        crmPath = "/crm/marketer";
+        break;
+      case "subadmin":
+        crmPath = "/crm/subadmin";
+        break;
+      case "service engineer":
+        crmPath = "/crm/serviceengineer";
+        break;
+      default:
+        crmPath = "/login";
+    }
+  }
+
+  // Example HR path (extend as needed)
+  const hrPath = "/hr"; // Replace with your HR module route
+
   return (
     <Container maxWidth="sm">
       <Box
@@ -18,18 +48,26 @@ export default function App() {
           Welcome to ERP
         </Typography>
         <Typography variant="body1" gutterBottom>
-          Click below to enter the CRM module.
+          Choose a module to continue.
         </Typography>
-
-        <Button
-          variant="contained"
-          color="primary"
-          component={Link}
-          to="/crm/dashboard"
-          sx={{ mt: 2 }}
-        >
-          Go to CRM
-        </Button>
+        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            component={Link}
+            to={crmPath}
+          >
+            Go to CRM
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            component={Link}
+            to={hrPath}
+          >
+            Go to HR
+          </Button>
+        </Stack>
       </Box>
     </Container>
   );

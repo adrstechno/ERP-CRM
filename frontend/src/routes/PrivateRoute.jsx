@@ -1,10 +1,13 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../core/context/AuthContext";
+import { useCRMAuth } from "../modules/crm/context/CRMAuthContext";
 
 const PrivateRoute = ({ children }) => {
-  const { user } = useAuth();
-  return user ? children : <Navigate to="/login" replace />;
+  const { crmUser } = useCRMAuth();
+  if (!crmUser?.role) {
+    return <Navigate to="/login" />;
+  }
+  return children;
 };
 
 export default PrivateRoute;
