@@ -14,7 +14,7 @@ import com.erp.crm.services.UserService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/admin")
 public class AdminController {
     private final UserService userService;
 
@@ -28,5 +28,4 @@ public class AdminController {
         User newUser = userService.createUser(dto);
         return ResponseEntity.ok(newUser);
     }
-    
 }
