@@ -64,6 +64,7 @@ export default function Login() {
     if (user && user.password === form.password) {
       login({ email: form.email, role: user.role });
       // Redirect to role-specific dashboard
+      
       let dashboardPath = "";
       switch (user.role) {
         case "admin":
