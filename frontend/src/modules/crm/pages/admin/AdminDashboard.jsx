@@ -117,7 +117,7 @@ export default function AdminDashboard() {
       <Grid container spacing={3}>
         {/* Leaderboard */}
         <Grid item xs={12} md={6}>
-          <Card sx={cardStyle}>
+           <Card sx={{ ...cardStyle, height: 400, width:575, display: "flex", flexDirection: "column" }}>
             <CardContent>
               <Typography variant="h6" mb={2}>
                 Dealer Leaderboard
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
 
         {/* Activity Feed */}
         <Grid item xs={12} md={6}>
-          <Card sx={cardStyle}>
+          <Card sx={{ ...cardStyle, height: 400, width:575, display: "flex", flexDirection: "column" }}>
             <CardContent>
               <Typography variant="h6" mb={2}>
                 Activity Feed
