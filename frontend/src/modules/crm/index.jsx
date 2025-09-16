@@ -25,6 +25,7 @@ import Notices from "./pages/dealers/dealerNotice";
 //Subadmin
 import SubadminDashboard from "./pages/subadmin/SubadminDashboard";
 
+
 //ServiceEngg.
 import ServiceEngineerDashboard from "./pages/serviceengineer/ServiceEngineerDashboard";
 
@@ -87,7 +88,8 @@ export default function CRMModule() {
 
         {crmUser?.role === "subadmin" && (
           <>
-          <Route path="subadmin" element={<SubadminDashboard />} />
+          <Route path="dashboard" element={<SubadminDashboard />} />
+         
           </>       
         )}
 

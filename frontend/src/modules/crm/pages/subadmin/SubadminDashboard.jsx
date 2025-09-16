@@ -1,4 +1,11 @@
-import React from "react";
-export default function SubadminDashboard() {
-  return <div>Subadmin Dashboard</div>;
+import React from 'react'
+
+const SubadminDashboard = () => {
+  return (
+    <div>
+      SubadminDashboard
+    </div>
+  )
 }
+
+export default SubadminDashboard
