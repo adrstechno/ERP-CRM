@@ -1,20 +1,43 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import App from "../App"; // ERP Home
+import App from "../App";
 import CRMModule from "../modules/crm";
+import PrivateRoute from "./PrivateRoute";
+import Login from "../modules/crm/pages/Login";
+import { CRMAuthProvider } from "../modules/crm/context/CRMAuthContext";
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ERP Home */}
-        <Route path="/" element={<App />} />
+        <Route
+          path="/"
+          element={
+            <CRMAuthProvider>
+              <App />
+            </CRMAuthProvider>
+          }
+        />
 
-        {/* CRM has its own layout */}
-        <Route path="/crm/*" element={<CRMModule />} />
+        {/* Wrap Login with CRMAuthProvider */}
+        <Route
+          path="/login"
+          element={
+            <CRMAuthProvider>
+              <Login />
+            </CRMAuthProvider>
+          }
+        />
 
-        {/* Future modules (each will have their own layout later) */}
-        {/* <Route path="/hr/*" element={<HRModule />} /> */}
-        {/* <Route path="/finance/*" element={<FinanceModule />} /> */}
+        <Route
+          path="/crm/*"
+          element={
+            <CRMAuthProvider>
+              <PrivateRoute>
+                <CRMModule />
+              </PrivateRoute>
+            </CRMAuthProvider>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

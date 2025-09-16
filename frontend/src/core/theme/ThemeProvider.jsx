@@ -1,19 +1,30 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
-import { ThemeProvider as MuiThemeProvider, CssBaseline, useTheme } from "@mui/material";
-import theme from "./Theme";
+import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
+import { ThemeProvider as MuiThemeProvider, CssBaseline } from "@mui/material";
+import theme from "../theme/Theme"; // adjust path if needed
 
-
+// Create context
 const ThemeModeContext = createContext();
-export const useThemeMode = () => useContext(ThemeModeContext);
-export { useTheme };
+
+// Hook for consuming theme context
+export const useThemeContext = () => useContext(ThemeModeContext);
 
 export default function ThemeProvider({ children }) {
-  const [mode, setMode] = useState("dark");
+  // Load initial mode from localStorage or default to "light"
+  const [mode, setMode] = useState(() => {
+    return localStorage.getItem("themeMode") || "light";
+  });
 
+  // Toggle function
   const toggleMode = () => {
-    setMode((prev) => (prev === "dark" ? "light" : "dark"));
+    setMode((prev) => (prev === "light" ? "dark" : "light"));
   };
 
+  // Save mode to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("themeMode", mode);
+  }, [mode]);
+
+  // Build theme dynamically
   const muiTheme = useMemo(() => theme(mode), [mode]);
 
   return (
@@ -25,6 +36,7 @@ export default function ThemeProvider({ children }) {
     </ThemeModeContext.Provider>
   );
 }
+
 
 // import React, { createContext, useContext, useMemo, useState } from "react";
 // import { ThemeProvider as MuiThemeProvider, CssBaseline } from "@mui/material";

@@ -13,7 +13,7 @@ import MailIcon from "@mui/icons-material/Mail";
 
 export const crmMenuConfig = {
   admin: [
-    { label: "Dashboard", path: "/crm/dashboard", icon: <DashboardIcon /> },
+    { label: "Dashboard", path: "/crm/admin", icon: <DashboardIcon /> },
     { label: "User Management", path: "/crm/users", icon: <PeopleIcon /> },
     { label: "Dealers Management", path: "/crm/dealers", icon: <WorkIcon /> },
     { label: "Inventory", path: "/crm/inventory", icon: <InventoryIcon /> },
@@ -43,15 +43,15 @@ export const crmMenuConfig = {
   ],
 
   marketer: [
-    { label: "Dashboard", path: "/crm/dashboard", icon: <DashboardIcon /> },
-    { label: "New Sale", path: "/crm/sales/new", icon: <ShoppingCartIcon /> },
+    { label: "Dashboard", path: "/crm/marketer", icon: <DashboardIcon /> },
+    { label: "New Sale", path: "/crm/new-sales", icon: <ShoppingCartIcon /> },
     { label: "Customers", path: "/crm/customers", icon: <PeopleIcon /> },
     { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
-    { label: "My Sales", path: "/crm/sales", icon: <ShoppingCartIcon /> },
+    { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
     { label: "Free Service Tracker", path: "/crm/free-service", icon: <AssignmentIcon /> },
   ],
 
-  engineer: [
+  serviceengineer: [
     { label: "Dashboard", path: "/crm/dashboard", icon: <DashboardIcon /> },
     { label: "Assigned Tickets", path: "/crm/service/tickets", icon: <AssignmentIcon /> },
     { label: "Service Reports", path: "/crm/service/reports", icon: <WorkIcon /> },

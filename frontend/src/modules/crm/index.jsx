@@ -1,17 +1,92 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-
-// CRM Pages
-import Dashboard from "./pages/Dashboard";
 import CRMLayout from "./layouts/CRMLayout";
-import Contact from "./pages/Contact";
+import { useCRMAuth } from "./context/CRMAuthContext";
+import ErrorPage from "./pages/ErrorPage";
+
+//Admin
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import UserManagement from "./pages/admin/UserManagement"
+import DealerManagement from "./pages/admin/DealerManagement"
+import InventoryManagement from "./pages/admin/InventoryManagement"
+import Sales from "./pages/admin/Sales"
+import Service from "./pages/admin/Service"
+import BillingNInvoice from "./pages/admin/BillingNInvoice"
+import ReportsAnalytics from "./pages/admin/ReportsAnalytics"
+import Setting from "./pages/admin/Settings"
+import AuditLogs from "./pages/admin/AuditLogs"
+
+
+//Dealer
+import DealerDashboard from "./pages/dealers/DealerDashboard";
+
+//Subadmin
+import SubadminDashboard from "./pages/subadmin/SubadminDashboard";
+
+//ServiceEngg.
+import ServiceEngineerDashboard from "./pages/serviceengineer/ServiceEngineerDashboard";
+
+//Marketer
+import MarketerDashboard from "./pages/marketer/MarketerDashboard";
+import NewSales from "./pages/marketer/NewSales";
+import Customers from "./pages/marketer/Customers";
+import MySales from "./pages/marketer/MySales";
+import MarketerExpenses from "./pages/marketer/MarketerExpenses";
+import FreeServiceTracker from "./pages/marketer/FreeServiceTracker";
 
 export default function CRMModule() {
-return (
+  const { crmUser } = useCRMAuth();
+
+  return (
     <Routes>
       <Route element={<CRMLayout />}>
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="contacts" element={<Contact />} />
+      
+        {crmUser?.role === "admin" && (
+          <>
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="users" element ={<UserManagement />} />
+          <Route path="dealers" element ={<DealerManagement />} />
+          <Route path="inventory" element ={<InventoryManagement />} /> 
+          <Route path="sales" element ={<Sales />} />
+          <Route path="service" element = {<Service />} />
+          <Route path="invoices" element = {<BillingNInvoice />} />
+          <Route path="reports" element = {<ReportsAnalytics />} />
+         <Route path="settings" element  ={<Setting />} />
+          <Route path="audit-logs" element = {<AuditLogs />} />
+           </>
+
+        )}
+      
+        {crmUser?.role === "dealer" && (
+          <>
+          <Route path="dealer" element={<DealerDashboard />} />
+          </>
+        )}
+
+
+        {crmUser?.role === "marketer" && (
+          <>
+            <Route path="marketer" element={<MarketerDashboard />} />
+            <Route path="new-sales" element={<NewSales />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="mysales" element ={<MySales />} />
+            <Route path="expenses" element={<MarketerExpenses />} />
+            <Route path="free-service" element={<FreeServiceTracker />} />
+          </>
+        )}
+
+        {crmUser?.role === "subadmin" && (
+          <>
+          <Route path="subadmin" element={<SubadminDashboard />} />
+          </>       
+        )}
+
+        {crmUser?.role === "service engineer" && (
+          <>
+          <Route path="serviceengineer" element={<ServiceEngineerDashboard />}/>
+          </>
+        )}
+        {!crmUser?.role && <Route path="*" element={<ErrorPage />} />}
       </Route>
     </Routes>
   );
