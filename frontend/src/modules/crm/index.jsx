@@ -33,6 +33,7 @@ import Customers from "./pages/marketer/Customers";
 import MySales from "./pages/marketer/MySales";
 import MarketerExpenses from "./pages/marketer/MarketerExpenses";
 import FreeServiceTracker from "./pages/marketer/FreeServiceTracker";
+import PayStatus from "./pages/marketer/PayStatus";
 
 export default function CRMModule() {
   const { crmUser } = useCRMAuth();
@@ -68,10 +69,10 @@ export default function CRMModule() {
           <>
             <Route path="marketer" element={<MarketerDashboard />} />
             <Route path="new-sales" element={<NewSales />} />
-            <Route path="customers" element={<Customers />} />
             <Route path="mysales" element ={<MySales />} />
+            <Route path="customers" element={<Customers />} />
             <Route path="expenses" element={<MarketerExpenses />} />
-            <Route path="free-service" element={<FreeServiceTracker />} />
+            <Route path="paystatus" element={<PayStatus />} />
           </>
         )}
 

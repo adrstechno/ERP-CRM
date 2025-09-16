@@ -9,6 +9,8 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useCRMAuth } from "../context/CRMAuthContext";
+import { REACT_APP_BASE_URL } from "../utils/State";
+import axios from "axios";
 
 // Simulated credentials with roles
 const credentials = {
@@ -19,10 +21,13 @@ const credentials = {
   "service@crm.com": { password: "123456", role: "service engineer" },
 };
 
+const BASE_URL = REACT_APP_BASE_URL;
+
 export default function Login() {
   const theme = useTheme();
   const navigate = useNavigate();
   const { login, crmUser } = useCRMAuth();
+  const [user, setUser] = useState('')
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -58,13 +63,22 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const fetchApiLogin = async (email, password) => {
+    fetch(`${BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const user = credentials[form.email];
+    const { email, password } = fetchApiLogin();
+    console.log(form.email);
     if (user && user.password === form.password) {
       login({ email: form.email, role: user.role });
       // Redirect to role-specific dashboard
-      
+
       let dashboardPath = "";
       switch (user.role) {
         case "admin":
