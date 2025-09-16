@@ -19,6 +19,8 @@ import AuditLogs from "./pages/admin/AuditLogs"
 
 //Dealer
 import DealerDashboard from "./pages/dealers/DealerDashboard";
+import DealerStockRequests from "./pages/dealers/DealerStockRequest";
+import Notices from "./pages/dealers/dealerNotice";
 
 //Subadmin
 import SubadminDashboard from "./pages/subadmin/SubadminDashboard";
@@ -60,6 +62,8 @@ export default function CRMModule() {
         {crmUser?.role === "dealer" && (
           <>
           <Route path="dealer" element={<DealerDashboard />} />
+          <Route path="stock-requests" element={<DealerStockRequests />} />
+          <Route path="notices" element={<Notices />} />
           </>
         )}
 
