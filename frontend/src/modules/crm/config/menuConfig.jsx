@@ -1,3 +1,4 @@
+
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import InventoryIcon from "@mui/icons-material/Inventory";
@@ -35,12 +36,13 @@ export const crmMenuConfig = {
   ],
 
   dealer: [
-    { label: "Dashboard", path: "/crm/dashboard", icon: <DashboardIcon /> },
+    { label: "Dashboard", path: "/crm/dealer", icon: <DashboardIcon /> },
     { label: "Stock Requests", path: "/crm/stock-requests", icon: <InventoryIcon /> },
-    { label: "Sales Entry", path: "/crm/sales/entry", icon: <ShoppingCartIcon /> },
-    { label: "Invoices & Payments", path: "/crm/invoices", icon: <ReceiptIcon /> },
+    
     { label: "Notices", path: "/crm/notices", icon: <MailIcon /> },
-    { label: "Profile", path: "/crm/profile", icon: <PersonIcon /> },
+    {/* label: "Sales Entry", path: "/crm/sales/entry", icon: <ShoppingCartIcon /> */},
+    { /*label: "Invoices & Payments", path: "/crm/invoices", icon: <ReceiptIcon /> */},
+    {/* label: "Profile", path: "/crm/profile", icon: <PersonIcon /> */},
   ],
 
    marketer :[
