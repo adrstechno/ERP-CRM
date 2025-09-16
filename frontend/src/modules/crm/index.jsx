@@ -36,7 +36,7 @@ import MySales from "./pages/marketer/MySales";
 import MarketerExpenses from "./pages/marketer/MarketerExpenses";
 import FreeServiceTracker from "./pages/marketer/FreeServiceTracker";
 import PayStatus from "./pages/marketer/PayStatus";
-import StockEntry from "./pages/dealers/StockEntry";
+
 
 export default function CRMModule() {
   const { crmUser } = useCRMAuth();
@@ -64,6 +64,7 @@ export default function CRMModule() {
         {crmUser?.role === "dealer" && (
           <>
           <Route path="dealer" element={<DealerDashboard />} />
+
 
           <Route path="stock-requests" element={<DealerStockRequests />} />
           <Route path="notices" element={<Notices />} />
