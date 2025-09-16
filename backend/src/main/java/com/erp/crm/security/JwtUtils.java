@@ -1,14 +1,16 @@
 package com.erp.crm.security;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtils {
@@ -19,9 +21,13 @@ public class JwtUtils {
     @Value("${jwt.expiration}")
     private long jwtExpirationMs;
 
+    // Generate signing key from secret
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
+
     // Generate token with username + ROLE_*
     public String generateToken(String username, String role) {
-        // Ensure role always starts with ROLE_
         if (!role.startsWith("ROLE_")) {
             role = "ROLE_" + role;
         }
@@ -31,7 +37,7 @@ public class JwtUtils {
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(SignatureAlgorithm.HS256, jwtSecret)
+                .signWith(getSigningKey()) // modern method
                 .compact();
     }
 
@@ -53,8 +59,9 @@ public class JwtUtils {
     }
 
     private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(jwtSecret)
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey()) // modern method
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
