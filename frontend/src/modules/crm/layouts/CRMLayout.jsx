@@ -2,7 +2,6 @@ import React from "react";
 import { Box, AppBar, Toolbar, Typography } from "@mui/material";
 import { Outlet } from "react-router-dom";
 import CRMSidebar from "../components/CRMSidebar";
-import CRMNavbar from "../components/CRMNavbar";
 
 
 const drawerWidth = 240;
@@ -11,15 +10,13 @@ export default function CRMLayout() {
   return (
     <Box sx={{ display: "flex" }}>
       {/* Top Navbar */}
-      {/* Navbar */}
-      <CRMNavbar onToggleSidebar={() => setOpen(!open)} pageTitle="Admin" />
-      
+      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
           <Typography variant="h6" noWrap>
             CRM Module
           </Typography>
         </Toolbar>
-     
+      </AppBar>
 
       {/* Sidebar */}
       <CRMSidebar />
