@@ -11,6 +11,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import HistoryIcon from "@mui/icons-material/History";
 import WorkIcon from "@mui/icons-material/Work";
 import MailIcon from "@mui/icons-material/Mail";
+import PaymentIcon from "@mui/icons-material/Payment";
 
 export const crmMenuConfig = {
   admin: [
@@ -44,15 +45,13 @@ export const crmMenuConfig = {
     {/* label: "Profile", path: "/crm/profile", icon: <PersonIcon /> */},
   ],
 
-  marketer: [
-    { label: "Dashboard", path: "/crm/marketer", icon: <DashboardIcon /> },
-    { label: "New Sale", path: "/crm/new-sales", icon: <ShoppingCartIcon /> },
-    { label: "Customers", path: "/crm/customers", icon: <PeopleIcon /> },
-    { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
-    { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
-    { label: "Free Service Tracker", path: "/crm/free-service", icon: <AssignmentIcon /> },
-  ],
-
+   marketer :[
+  { label: "Dashboard", path: "/crm/marketer", icon: <DashboardIcon /> },
+  { label: "Add Customers", path: "/crm/customers", icon: <PeopleIcon /> },
+  { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
+  { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
+  { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, // ✅ Added new menu
+],
   serviceengineer: [
     { label: "Dashboard", path: "/crm/dashboard", icon: <DashboardIcon /> },
     { label: "Assigned Tickets", path: "/crm/service/tickets", icon: <AssignmentIcon /> },
