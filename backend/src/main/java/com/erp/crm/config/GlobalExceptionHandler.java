@@ -13,7 +13,6 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        // Return first validation error message
         String errorMessage = ex.getBindingResult()
                                 .getFieldErrors()
                                 .stream()
