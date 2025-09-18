@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import {
-  Box, Card, CardContent, Typography, TableContainer, Table, TableHead,
-  TableBody, TableRow, TableCell, Button, IconButton, Chip, useTheme,
-  Dialog, DialogTitle, DialogContent, DialogActions, TextField,
-  FormControl, InputLabel, Select, MenuItem, DialogContentText,
-  InputAdornment
+    Box, Card, CardContent, Typography, TableContainer, Table, TableHead,
+    TableBody, TableRow, TableCell, Button, IconButton, Chip, useTheme,
+    Dialog, DialogTitle, DialogContent, DialogActions, TextField,
+    FormControl, InputLabel, Select, MenuItem, DialogContentText,
+    InputAdornment
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -19,23 +19,119 @@ import Visibility from '@mui/icons-material/Visibility';
 
 // --- Mock Data ---
 const usersData = [
-    { id: 1, name: 'USER_1', role: 'Marketer', status: 'Active', email: 'user1@gmail.com', password: 'pass1' },
-    { id: 2, name: 'USER_2', role: 'Service Engg.', status: 'Deactivate', email: 'user2@gmail.com', password: 'pass2' },
-    { id: 3, name: 'USER_3', role: 'Marketer', status: 'Deactivate', email: 'user3@gmail.com', password: 'pass3' },
-    { id: 4, name: 'USER_4', role: 'Dealer', status: 'Active', email: 'user4@gmail.com', password: 'pass4' },
-    { id: 5, name: 'USER_5', role: 'Service Engg.', status: 'Deactivate', email: 'user5@gmail.com', password: 'pass5' },
-    { id: 6, name: 'USER_6', role: 'Sub-admin', status: 'Active', email: 'user6@gmail.com', password: 'pass6' },
+    {
+        id: 1,
+        name: 'USER_1',
+        role: 'Marketer',
+        status: 'Active',
+        email: 'user1@gmail.com',
+        password: 'pass1',
+        gstNumber: '27AAAPL1234C1ZV',
+        panNumber: 'AAAPL1234C',
+        address: '101, Market Road',
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        pincode: '400001',
+        accountNo: '1234567890',
+        bankName: 'HDFC Bank',
+        ifscCode: 'HDFC0001234'
+    },
+    {
+        id: 2,
+        name: 'USER_2',
+        role: 'Service Engg.',
+        status: 'Deactivate',
+        email: 'user2@gmail.com',
+        password: 'pass2',
+        gstNumber: '29AAAPL5678D1ZW',
+        panNumber: 'AAAPL5678D',
+        address: '202, Service Lane',
+        city: 'Bangalore',
+        state: 'Karnataka',
+        pincode: '560001',
+        accountNo: '2345678901',
+        bankName: 'ICICI Bank',
+        ifscCode: 'ICIC0002345'
+    },
+    {
+        id: 3,
+        name: 'USER_3',
+        role: 'Marketer',
+        status: 'Deactivate',
+        email: 'user3@gmail.com',
+        password: 'pass3',
+        gstNumber: '07AAAPL9101E1ZX',
+        panNumber: 'AAAPL9101E',
+        address: '303, Sales Street',
+        city: 'Delhi',
+        state: 'Delhi',
+        pincode: '110001',
+        accountNo: '3456789012',
+        bankName: 'Axis Bank',
+        ifscCode: 'UTIB0003456'
+    },
+    {
+        id: 4,
+        name: 'USER_4',
+        role: 'Dealer',
+        status: 'Active',
+        email: 'user4@gmail.com',
+        password: 'pass4',
+        gstNumber: '19AAAPL1122F1ZV',
+        panNumber: 'AAAPL1122F',
+        address: '404, Dealer Plaza',
+        city: 'Kolkata',
+        state: 'West Bengal',
+        pincode: '700001',
+        accountNo: '4567890123',
+        bankName: 'SBI',
+        ifscCode: 'SBIN0004567'
+    },
+    {
+        id: 5,
+        name: 'USER_5',
+        role: 'Service Engg.',
+        status: 'Deactivate',
+        email: 'user5@gmail.com',
+        password: 'pass5',
+        gstNumber: '24AAAPL3344G1ZW',
+        panNumber: 'AAAPL3344G',
+        address: '505, Service Avenue',
+        city: 'Ahmedabad',
+        state: 'Gujarat',
+        pincode: '380001',
+        accountNo: '5678901234',
+        bankName: 'Kotak Bank',
+        ifscCode: 'KKBK0005678'
+    },
+    {
+        id: 6,
+        name: 'USER_6',
+        role: 'Sub-admin',
+        status: 'Active',
+        email: 'user6@gmail.com',
+        password: 'pass6',
+        gstNumber: '32AAAPL5566H1ZV',
+        panNumber: 'AAAPL5566H',
+        address: '606, Admin Block',
+        city: 'Chennai',
+        state: 'Tamil Nadu',
+        pincode: '600001',
+        accountNo: '6789012345',
+        bankName: 'Yes Bank',
+        ifscCode: 'YESB0006789'
+    }
 ];
 
-const roleOptions = ['Marketer', 'Service Engg.', 'Dealer', 'Sub-admin'];
+const roleOptions = ['MARKETER', 'ENGINEER', 'DEALER', 'SUBADMIN'];
 
 // --- Helper Functions ---
 const getRoleIcon = (role) => {
     switch (role) {
-      case 'Marketer': return <MonetizationOnIcon fontSize="small" />;
-      case 'Dealer': return <StoreIcon fontSize="small" />;
-      case 'Sub-admin': return <GroupIcon fontSize="small" />;
-      default: return <AccountCircleIcon fontSize="small" />;
+        case 'Marketer': return <MonetizationOnIcon fontSize="small" />;
+        case 'Dealer': return <StoreIcon fontSize="small" />;
+        case 'Sub-admin': return <GroupIcon fontSize="small" />;
+        default: return <AccountCircleIcon fontSize="small" />;
     }
 };
 
@@ -48,7 +144,10 @@ export default function UserManagementMainContent() {
     const [open, setOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [editUser, setEditUser] = useState(null);
-
+    const [viewOpen, setViewOpen] = useState(false);
+    const [viewUser, setViewUser] = useState(null);
+    const [editExtraOpen, setEditExtraOpen] = useState(false);
+    const [editExtraUser, setEditExtraUser] = useState(null);
 
     // State to hold the form data
     const [formData, setFormData] = useState({
@@ -73,7 +172,7 @@ export default function UserManagementMainContent() {
         setEditOpen(true);
     };
 
-     const handleEditClose = () => {
+    const handleEditClose = () => {
         setEditOpen(false);
         setEditUser(null);
     };
@@ -104,6 +203,40 @@ export default function UserManagementMainContent() {
     const handleCreateUser = () => {
         console.log('New User Data:', formData);
         handleClose();
+    };
+
+    const handleViewOpen = (user) => {
+        setViewUser(user);
+        setViewOpen(true);
+    };
+    const handleViewClose = () => {
+        setViewOpen(false);
+        setViewUser(null);
+    };
+    const handleEditExtraOpen = () => {
+        setEditExtraUser(viewUser);
+        setEditExtraOpen(true);
+    };
+
+    const handleEditExtraClose = () => {
+        setEditExtraOpen(false);
+        setEditExtraUser(null);
+    };
+
+    const handleEditExtraChange = (event) => {
+        const { name, value } = event.target;
+        setEditExtraUser(prev => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleEditExtraSave = () => {
+        // Here you would update your usersData state if it was not mock data
+        console.log("Edited extra fields:", editExtraUser);
+        setEditExtraOpen(false);
+        setEditExtraUser(null);
+        setViewUser(editExtraUser); // Update the view dialog with new data
     };
 
     const getStatusChip = (status) => {
@@ -204,9 +337,9 @@ export default function UserManagementMainContent() {
                                             </Box>
                                         </TableCell>
                                         <TableCell sx={{ borderBottomColor: isDark ? '#4F5761' : '#E0E0E0' }}>
-                                            <IconButton size="small" sx={{ color: 'text.secondary' }}  onClick={() => handleEditOpen(user)} ><EditIcon fontSize="small" /></IconButton>
+                                            <IconButton size="small" sx={{ color: 'text.secondary' }} onClick={() => handleEditOpen(user)} ><EditIcon fontSize="small" /></IconButton>
                                             <IconButton size="small" sx={{ color: 'text.secondary' }}><DeleteIcon fontSize="small" /></IconButton>
-                                            <IconButton size="small" sx={{ color: 'text.secondary' }} ><VisibilityIcon fontSize="small" /></IconButton>
+                                            <IconButton size="small" sx={{ color: 'text.secondary' }} onClick={() => handleViewOpen(user)}><VisibilityIcon fontSize="small" /></IconButton>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -227,21 +360,29 @@ export default function UserManagementMainContent() {
                 </CardContent>
             </Card>
 
-        <Dialog
+            <Dialog
+
+
                 open={editOpen}
                 onClose={handleEditClose}
-                PaperProps={{ sx: { borderRadius: 4 } }}
+                PaperProps={{
+                    sx: {
+                        borderRadius: 4,
+                        minHeight: 400,
+                    }
+                }}
                 maxWidth="sm"
                 fullWidth
-                maxHeight="md"
-                fullHighth
+                Height="800px"
+
+
             >
                 <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
                     Edit User
                 </DialogTitle>
                 <DialogContent>
                     {editUser && (
-                        <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                        <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, padding: 2 }}>
                             <TextField
                                 name="name"
                                 label="Full Name"
@@ -315,6 +456,250 @@ export default function UserManagementMainContent() {
                 <DialogActions sx={{ p: '16px 24px' }}>
                     <Button onClick={handleEditClose} color="inherit">Cancel</Button>
                     <Button onClick={handleEditSave} variant="contained" size="large">Save Changes</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                PaperProps={{
+                    sx: {
+                        borderRadius: 4,
+                        minHeight: 400,
+                    }
+                }}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+                    Create User
+                </DialogTitle>
+                <DialogContent>
+                    <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, padding: 2 }}>
+                        <TextField
+                            name="name"
+                            label="Full Name"
+                            type="text"
+                            fullWidth
+                            variant="outlined"
+                            value={formData.name}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            name="email"
+                            label="Email Address"
+                            type="email"
+                            fullWidth
+                            variant="outlined"
+                            value={formData.email}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            name="Phone Number"
+                            label="Phone Number"
+                            type="text"
+                            fullWidth
+                            variant="outlined"
+                            value={formData.name}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            name="password"
+                            label="Password"
+                            type={showPassword['create'] ? "text" : "password"}
+                            fullWidth
+                            variant="outlined"
+                            value={formData.password}
+                            onChange={handleChange}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label={showPassword['create'] ? "Hide password" : "Show password"}
+                                            onClick={() => setShowPassword(prev => ({ ...prev, create: !prev.create }))}
+                                            edge="end"
+                                        >
+                                            {showPassword['create'] ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                        <FormControl fullWidth>
+                            <InputLabel id="role-create-select-label">Role</InputLabel>
+                            <Select
+                                labelId="role-create-select-label"
+                                name="role"
+                                value={formData.role}
+                                label="Role"
+                                onChange={handleChange}
+                            >
+                                {roleOptions.map((role) => (
+                                    <MenuItem key={role} value={role}>{role}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ p: '16px 24px' }}>
+                    <Button onClick={handleClose} color="inherit">Cancel</Button>
+                    <Button onClick={handleCreateUser} variant="contained" size="large">Create User</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={viewOpen}
+                onClose={handleViewClose}
+                PaperProps={{
+                    sx: {
+                        borderRadius: 4,
+                        minWidth: 400,
+                        minHeight: 400,
+                    }
+                }}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+                    User Details
+                </DialogTitle>
+                <DialogContent>
+                    {viewUser && (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                            <Typography><b>GST Number:</b> {viewUser.gstNumber}</Typography>
+                            <Typography><b>PAN Number:</b> {viewUser.panNumber}</Typography>
+                            <Typography><b>Address:</b> {viewUser.address}</Typography>
+                            <Typography><b>City:</b> {viewUser.city}</Typography>
+                            <Typography><b>State:</b> {viewUser.state}</Typography>
+                            <Typography><b>Pincode:</b> {viewUser.pincode}</Typography>
+                            <Typography><b>Account No:</b> {viewUser.accountNo}</Typography>
+                            <Typography><b>Bank Name:</b> {viewUser.bankName}</Typography>
+                            <Typography><b>IFSC Code:</b> {viewUser.ifscCode}</Typography>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleEditExtraOpen} variant="contained" color="primary">Edit</Button>
+
+                    <Button onClick={handleViewClose} color="primary">Close</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={editExtraOpen}
+                onClose={handleEditExtraClose}
+                PaperProps={{
+                    sx: {
+                        borderRadius: 4,
+                        minWidth: 400,
+                        minHeight: 400,
+                    }
+                }}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+                    Edit User Extra Details
+                </DialogTitle>
+                <DialogContent>
+                    {editExtraUser && (
+                        <Box
+                            component="form"
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 2.5,
+                                padding: 2,
+                                minWidth: 300,
+                                maxHeight: 400,
+                                overflowY: 'auto',
+                            }}
+                        >
+                            <TextField
+                                name="gstNumber"
+                                label="GST Number"
+                                type="text"
+                                fullWidth
+                                variant="outlined"
+                                value={editExtraUser.gstNumber}
+                                onChange={handleEditExtraChange}
+                            />
+                            <TextField
+                                name="panNumber"
+                                label="PAN Number"
+                                type="text"
+                                fullWidth
+                                variant="outlined"
+                                value={editExtraUser.panNumber}
+                                onChange={handleEditExtraChange}
+                            />
+                            <TextField
+                                name="address"
+                                label="Address"
+                                type="text"
+                                fullWidth
+                                variant="outlined"
+                                value={editExtraUser.address}
+                                onChange={handleEditExtraChange}
+                            />
+                            <TextField
+                                name="city"
+                                label="City"
+                                type="text"
+                                fullWidth
+                                variant="outlined"
+                                value={editExtraUser.city}
+                                onChange={handleEditExtraChange}
+                            />
+                            <TextField
+                                name="state"
+                                label="State"
+                                type="text"
+                                fullWidth
+                                variant="outlined"
+                                value={editExtraUser.state}
+                                onChange={handleEditExtraChange}
+                            />
+                            <TextField
+                                name="pincode"
+                                label="Pincode"
+                                type="text"
+                                fullWidth
+                                variant="outlined"
+                                value={editExtraUser.pincode}
+                                onChange={handleEditExtraChange}
+                            />
+                            <TextField
+                                name="accountNo"
+                                label="Account No"
+                                type="text"
+                                fullWidth
+                                variant="outlined"
+                                value={editExtraUser.accountNo}
+                                onChange={handleEditExtraChange}
+                            />
+                            <TextField
+                                name="bankName"
+                                label="Bank Name"
+                                type="text"
+                                fullWidth
+                                variant="outlined"
+                                value={editExtraUser.bankName}
+                                onChange={handleEditExtraChange}
+                            />
+                            <TextField
+                                name="ifscCode"
+                                label="IFSC Code"
+                                type="text"
+                                fullWidth
+                                variant="outlined"
+                                value={editExtraUser.ifscCode}
+                                onChange={handleEditExtraChange}
+                            />
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleEditExtraClose} color="inherit">Cancel</Button>
+                    <Button onClick={handleEditExtraSave} variant="contained" size="large">Save Changes</Button>
                 </DialogActions>
             </Dialog>
 
