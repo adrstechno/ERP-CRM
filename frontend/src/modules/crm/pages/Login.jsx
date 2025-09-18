@@ -17,7 +17,7 @@
 //   "dealer@crm.com": { password: "123456", role: "dealer" },
 //   "marketer@crm.com": { password: "123456", role: "marketer" },
 //   "subadmin@crm.com": { password: "123456", role: "subadmin" },
-//   "service@crm.com": { password: "123456", role: "service engineer" },
+//   "service@crm.com": { password: "123456", role: "serviceengineer" },
 // };
 
 // export default function Login() {
@@ -45,7 +45,7 @@
 //         case "subadmin":
 //           dashboardPath = "/crm/subadmin";
 //           break;
-//         case "service engineer":
+//         case "serviceengineer":
 //           dashboardPath = "/crm/serviceengineer";
 //           break;
 //         default:
@@ -80,7 +80,7 @@
 //         case "subadmin":
 //           dashboardPath = "/crm/subadmin";
 //           break;
-//         case "service engineer":
+//         case "serviceengineer":
 //           dashboardPath = "/crm/serviceengineer";
 //           break;
 //         default:
