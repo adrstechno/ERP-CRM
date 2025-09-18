@@ -27,7 +27,10 @@ import SubadminDashboard from "./pages/subadmin/SubadminDashboard";
 
 
 //ServiceEngg.
-import ServiceEngineerDashboard from "./pages/serviceengineer/ServiceEngineerDashboard";
+import ServiceEngineerDashboard from "./pages/serviceengineer/ServiceEngineerDashboard"
+import Reports from "./pages/serviceengineer/Reports";
+
+
 
 //Marketer
 import MarketerDashboard from "./pages/marketer/MarketerDashboard";
@@ -93,9 +96,10 @@ export default function CRMModule() {
           </>       
         )}
 
-        {crmUser?.role === "service engineer" && (
+        {crmUser?.role === "serviceengineer" && (
           <>
           <Route path="serviceengineer" element={<ServiceEngineerDashboard />}/>
+          <Route path="service/reports" element={<Reports />}/>
           </>
         )}
         {!crmUser?.role && <Route path="*" element={<ErrorPage />} />}

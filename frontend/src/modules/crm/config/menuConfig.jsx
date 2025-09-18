@@ -51,9 +51,9 @@ export const crmMenuConfig = {
   { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
   { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
   { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, // ✅ Added new menu
-],
+  ],
   serviceengineer: [
-    { label: "Dashboard", path: "/crm/dashboard", icon: <DashboardIcon /> },
+    { label: "Dashboard", path: "/crm/serviceengineer", icon: <DashboardIcon /> },
     { label: "Assigned Tickets", path: "/crm/service/tickets", icon: <AssignmentIcon /> },
     { label: "Service Reports", path: "/crm/service/reports", icon: <WorkIcon /> },
     { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
