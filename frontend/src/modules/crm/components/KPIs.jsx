@@ -96,7 +96,7 @@ export default function KPI({ title, value, change, trend, variant = 'blue' }) {
   // Gradient styles
   const gradients = {
     blue: 'linear-gradient(135deg, #0f356dff 0%, #1d51a5ff 100%)',
-    dark: 'linear-gradient(135deg, #292a2cff 0%, #c8cfd7ff 100%)',
+    dark: 'linear-gradient(135deg, #292a2cff 0%, #c3cfdcff 100%)',
   };
 
   const backgroundGradient = gradients[variant] || gradients.blue;
