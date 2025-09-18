@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "dealer_profiles")
+
 public class DealerProfile {
     @Id
     @Column(name = "dealer_id")
