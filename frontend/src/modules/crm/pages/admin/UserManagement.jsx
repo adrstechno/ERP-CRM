@@ -233,6 +233,8 @@ export default function UserManagementMainContent() {
                 PaperProps={{ sx: { borderRadius: 4 } }}
                 maxWidth="sm"
                 fullWidth
+                maxHeight="md"
+                fullHighth
             >
                 <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
                     Edit User
