@@ -5,7 +5,6 @@ import lombok.Data;
 @Data
 public class DealerProfileDto {
     private Long userId;
-    private String companyName;
     private String gstNumber;
     private String panNumber;
     private String address;
