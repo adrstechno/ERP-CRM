@@ -24,4 +24,7 @@ public class AdminCreateUserDTO {
     @NotBlank(message = "Role is required")
     private String role;
 
+    @NotBlank(message = "phone is required")
+    private String phone;
+
 }
