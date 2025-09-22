@@ -26,6 +26,7 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> createUser(@RequestBody @Valid AdminCreateUserDTO dto) {
         User newUser = userService.createUser(dto);
+        System.out.println(newUser.getPhone());
         return ResponseEntity.ok(newUser);
     }
 }
