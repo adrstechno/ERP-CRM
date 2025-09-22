@@ -34,6 +34,7 @@ import ApproveExpenses from "./pages/subadmin/ApproveExpenses";
 import ServiceEngineerDashboard from "./pages/serviceengineer/ServiceEngineerDashboard"
 import Reports from "./pages/serviceengineer/Reports";
 import AssignReport from "./pages/serviceengineer/AssignReport";
+import ServiceReport from "./pages/serviceengineer/ServiceReport";
 
 
 
@@ -108,6 +109,7 @@ export default function CRMModule() {
     <Route path="serviceengineer" element={<ServiceEngineerDashboard />}/>
     <Route path="service/reports" element={<Reports />}/>
     <Route path="service/assign-report" element={<AssignReport />}/>
+    <Route path="service/report" element={<ServiceReport />}/>
   </>
 )}
 
