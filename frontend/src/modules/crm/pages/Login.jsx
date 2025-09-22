@@ -193,10 +193,9 @@ export default function Login() {
         dashboardPath = "/crm/marketer";
         break;
       case "subadmin":
-        dashboardPath = "/crm/subadmin";
+        dashboardPath = "/crm/subadmindashboard";
         break;
-      case "service engineer":
-      case "service_engineer":
+      case "engineer":
         dashboardPath = "/crm/serviceengineer";
         break;
       default:

@@ -28,8 +28,8 @@ export const crmMenuConfig = {
   ],
 
   subadmin: [
-    { label: "Dashboard", path: "/crm/dashboard", icon: <DashboardIcon /> },
-    { label: "Dealers", path: "/crm/dealers", icon: <WorkIcon /> },
+    { label: "Dashboard", path: "/crm/subadmindashboard", icon: <DashboardIcon /> },
+    { label: "Dealers", path: "/crm/subadmin/dealers", icon: <WorkIcon /> },
     { label: "Approve Expenses", path: "/crm/expenses/approve", icon: <ReceiptIcon /> },
     { label: "Assign Service Tickets", path: "/crm/service/assign", icon: <AssignmentIcon /> },
     { label: "Reports", path: "/crm/reports", icon: <BarChartIcon /> },
@@ -52,7 +52,7 @@ export const crmMenuConfig = {
   { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
   { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, // ✅ Added new menu
   ],
-  serviceengineer: [
+  engineer: [
     { label: "Dashboard", path: "/crm/serviceengineer", icon: <DashboardIcon /> },
     { label: "Assigned Tickets", path: "/crm/service/tickets", icon: <AssignmentIcon /> },
     { label: "Service Reports", path: "/crm/service/reports", icon: <WorkIcon /> },
