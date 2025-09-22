@@ -39,7 +39,7 @@ public class DealerProfileService {
         profile.setPincode(dto.getPincode());
         profile.setBankName(dto.getBankName());
         profile.setIfscCode(dto.getIfscCode());
-
+    
         return dealerRepository.save(profile);
     }
 
