@@ -54,7 +54,7 @@ export const crmMenuConfig = {
   ],
   engineer: [
     { label: "Dashboard", path: "/crm/serviceengineer", icon: <DashboardIcon /> },
-    { label: "Assigned Tickets", path: "/crm/service/tickets", icon: <AssignmentIcon /> },
+    { label: "Assigned Tickets", path: "/crm/service/assign-report", icon: <AssignmentIcon /> },
     { label: "Service Reports", path: "/crm/service/reports", icon: <WorkIcon /> },
     { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
     { label: "Service History", path: "/crm/service/history", icon: <HistoryIcon /> },
