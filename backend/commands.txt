@@ -2,7 +2,8 @@
 
 docker-compose up
 
-.\mvnw spring-boot:run
+.\mvnw spring-boot:run 
+jklj
 
 
 dealer - 
