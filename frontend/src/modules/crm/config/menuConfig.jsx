@@ -32,7 +32,7 @@ export const crmMenuConfig = {
     { label: "Dealers", path: "/crm/subadmin/dealers", icon: <WorkIcon /> },
     { label: "Approve Expenses", path: "/crm/expenses/approve", icon: <ReceiptIcon /> },
     { label: "Assign Service Tickets", path: "/crm/service/assign", icon: <AssignmentIcon /> },
-    { label: "Reports", path: "/crm/reports", icon: <BarChartIcon /> },
+    { label: "Reports", path: "/crm/sub/reports", icon: <BarChartIcon /> },
   ],
 
   dealer: [
