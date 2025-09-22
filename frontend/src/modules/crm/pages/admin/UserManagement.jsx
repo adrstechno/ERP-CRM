@@ -179,7 +179,7 @@ export default function UserManagementMainContent() {
         email: '',
         password: '',
         role: '',
-        Phone: '',
+        phone: '',
     });
 
     const handleClickOpen = () => {
