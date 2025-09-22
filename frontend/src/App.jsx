@@ -19,9 +19,9 @@ export default function App() {
         crmPath = "/crm/marketer";
         break;
       case "subadmin":
-        crmPath = "/crm/subadmin";
+        crmPath = "/crm/subadmindashboard";
         break;
-      case "serviceengineer":
+      case "engineer":
         crmPath = "/crm/serviceengineer";
         break;
       default:
