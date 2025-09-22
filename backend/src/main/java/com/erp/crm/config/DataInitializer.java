@@ -24,14 +24,23 @@ public class DataInitializer {
     CommandLineRunner initDatabase(UserRepository userRepository,
                                    RoleRepository roleRepository,
                                    PasswordEncoder passwordEncoder) {
-        return args -> {
-            Role adminRole = roleRepository.findByName("ADMIN")
-                    .orElseGet(() -> roleRepository.save(new Role("ADMIN")));
+            return args -> {
+                String[] roles = {"ADMIN", "DEALER", "ENGINEER", "MARKETER", "SUBADMIN"};
+
+            for (String roleName : roles) {
+                // Check if role exists, else create
+                roleRepository.findByName(roleName)
+                            .orElseGet(() -> roleRepository.save(new Role(roleName)));
+            }
+
 
             if (userRepository.findByEmail(adminEmail).isEmpty()) {
                 if (adminPassword == null || adminPassword.isBlank()) {
                     throw new IllegalStateException("Admin password must not be null/blank.");
                 }
+   
+                Role adminRole = roleRepository.findByName("ADMIN").get();
+
 
                 User admin = new User();
                 admin.setEmail(adminEmail);
