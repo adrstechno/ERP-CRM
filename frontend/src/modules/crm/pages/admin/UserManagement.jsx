@@ -494,12 +494,12 @@ export default function UserManagementMainContent() {
                             onChange={handleChange}
                         />
                         <TextField
-                            name="Phone Number"
+                            name="phoneNumber"
                             label="Phone Number"
                             type="text"
                             fullWidth
                             variant="outlined"
-                            value={formData.name}
+                            value={formData.phoneNumber}
                             onChange={handleChange}
                         />
                         <TextField

@@ -24,7 +24,7 @@ public class DealerProfileService {
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found" + dto.getUserId()));
 
-        if (dealerRepository.findByUserId(user.getUserId()).isPresent()) {
+        if (dealerRepository.findByUserUserId(user.getUserId()).isPresent()) {
             throw new RuntimeException("Profile already exists for user id : " + dto.getUserId());
         }
 
@@ -44,7 +44,7 @@ public class DealerProfileService {
     }
 
     public DealerProfile getProfileByUserId(Long userId) {
-        return dealerRepository.findByUserId(userId)
+        return dealerRepository.findByUserUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Dealer profile not found for userId " + userId));
     }
 
