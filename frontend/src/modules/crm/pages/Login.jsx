@@ -223,7 +223,7 @@ export default function Login() {
     const { token, username, role } = response.data;
 
     const normalizedRole = role.toLowerCase();
-
+    localStorage.setItem("authKey", token); 
     login({ email: username, role: normalizedRole, token });
 
     redirectToDashboard(normalizedRole);

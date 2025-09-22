@@ -131,13 +131,19 @@ const roleOptions = ['MARKETER', 'ENGINEER', 'DEALER', 'SUBADMIN'];
 // --- Helper Functions ---
 async function createUserApi(userData) {
     try {
+        const authKey = localStorage.getItem("authKey");
         const response = await axios.post(
             "http://localhost:8080/api/admin/create-user?",
-            userData
+            userData,
+            {
+                headers: {
+                    Authorization: `Bearer ${authKey}`,
+                },
+            }
         );
-        const authKey = response.data.authKey || response.data.token;
-        if (authKey) {
-            localStorage.setItem("authKey", authKey);
+        const returnedAuthKey = response.data.authKey || response.data.token;
+        if (returnedAuthKey) {
+            localStorage.setItem("authKey", returnedAuthKey);
         }
         return response.data;
     } catch (error) {
@@ -520,7 +526,7 @@ export default function UserManagementMainContent() {
                             onChange={handleChange}
                         />
                         <TextField
-                            name="phoneNumber"
+                            name="phone"
                             label="Phone Number"
                             type="text"
                             fullWidth
