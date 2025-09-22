@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from "axios";
 import {
     Box, Card, CardContent, Typography, TableContainer, Table, TableHead,
     TableBody, TableRow, TableCell, Button, IconButton, Chip, useTheme,
@@ -16,6 +17,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Visibility from '@mui/icons-material/Visibility';
+import { Phone } from '@mui/icons-material';
 
 // --- Mock Data ---
 const usersData = [
@@ -125,7 +127,23 @@ const usersData = [
 
 const roleOptions = ['MARKETER', 'ENGINEER', 'DEALER', 'SUBADMIN'];
 
+
 // --- Helper Functions ---
+async function createUserApi(userData) {
+    try {
+        const response = await axios.post(
+            "http://localhost:8080/api/admin/create-user?",
+            userData
+        );
+        const authKey = response.data.authKey || response.data.token;
+        if (authKey) {
+            localStorage.setItem("authKey", authKey);
+        }
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
 const getRoleIcon = (role) => {
     switch (role) {
         case 'Marketer': return <MonetizationOnIcon fontSize="small" />;
@@ -155,6 +173,7 @@ export default function UserManagementMainContent() {
         email: '',
         password: '',
         role: '',
+        Phone: '',
     });
 
     const handleClickOpen = () => {
@@ -200,9 +219,16 @@ export default function UserManagementMainContent() {
         }));
     };
 
-    const handleCreateUser = () => {
-        console.log('New User Data:', formData);
-        handleClose();
+    const handleCreateUser = async () => {
+        try {
+            const result = await createUserApi(formData);
+            console.log('User created:', result);
+            handleClose();
+            // Optionally, refresh user list or show a success message
+        } catch (error) {
+            console.error('Create user failed:', error);
+            // Optionally, show error message to user
+        }
     };
 
     const handleViewOpen = (user) => {
@@ -494,12 +520,14 @@ export default function UserManagementMainContent() {
                             onChange={handleChange}
                         />
                         <TextField
-                            name="Phone Number"
+                            name="phoneNumber"
                             label="Phone Number"
                             type="text"
                             fullWidth
                             variant="outlined"
-                            value={formData.name}
+
+                            value={formData.phone}
+
                             onChange={handleChange}
                         />
                         <TextField

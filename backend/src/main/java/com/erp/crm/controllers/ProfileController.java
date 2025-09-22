@@ -43,6 +43,7 @@ public class ProfileController {
     @GetMapping("/dealer/all-dealers")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<DealerProfile>> getAllDealers() {
+
         return ResponseEntity.ok(dealerProfileService.getAllProfiles());
     }
 
