@@ -35,6 +35,7 @@ import ServiceEngineerDashboard from "./pages/serviceengineer/ServiceEngineerDas
 import Reports from "./pages/serviceengineer/Reports";
 import AssignReport from "./pages/serviceengineer/AssignReport";
 import ServiceReport from "./pages/serviceengineer/ServiceReport";
+import Rimburesement from "./pages/serviceengineer/Rimbersment";
 
 
 
@@ -109,6 +110,7 @@ export default function CRMModule() {
     <Route path="serviceengineer" element={<ServiceEngineerDashboard />}/>
     <Route path="service/reports" element={<Reports />}/>
     <Route path="service/assign-report" element={<AssignReport />}/>
+    <Route path="service/rimbursement" element={<Rimburesement/>}/>
     <Route path="service/report" element={<ServiceReport />}/>
   </>
 )}
