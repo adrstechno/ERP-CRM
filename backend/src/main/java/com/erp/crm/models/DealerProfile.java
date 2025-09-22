@@ -8,9 +8,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "dealer_profiles")
+@Getter
+@Setter
 public class DealerProfile {
     @Id
     @Column(name = "dealer_id")

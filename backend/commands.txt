@@ -9,3 +9,7 @@ dealer -
    "email": "dealer2@example.com",
   "password": "dealerpassword",
 
+
+
+
+model -> repo -> dto -> service -> 

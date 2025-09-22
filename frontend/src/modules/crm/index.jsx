@@ -24,6 +24,10 @@ import Notices from "./pages/dealers/dealerNotice";
 
 //Subadmin
 import SubadminDashboard from "./pages/subadmin/SubadminDashboard";
+import Dealers from "./pages/subadmin/Dealers";
+import ApproveExpenses from "./pages/subadmin/ApproveExpenses";
+
+
 
 
 //ServiceEngg.
@@ -40,6 +44,7 @@ import MySales from "./pages/marketer/MySales";
 import MarketerExpenses from "./pages/marketer/MarketerExpenses";
 import FreeServiceTracker from "./pages/marketer/FreeServiceTracker";
 import PayStatus from "./pages/marketer/PayStatus";
+import ServiceTicket from "./pages/subadmin/ApproveExpenses"
 
 
 export default function CRMModule() {
@@ -89,19 +94,21 @@ export default function CRMModule() {
           </>
         )}
 
-        {crmUser?.role === "subadmin" && (
-          <>
-          <Route path="dashboard" element={<SubadminDashboard />} />
-         
-          </>       
-        )}
+       {crmUser?.role === "subadmin" && (
+        <>
+  <Route path="subadmindashboard" element={<SubadminDashboard />} />
+<Route path ="subadmin/dealers" element ={<Dealers />} />
+<Route path = "expenses/approve" element ={<ApproveExpenses />} />
+<Route path="service/assign" element ={<ServiceTicket />}/>
+  </>
+)}
+        {crmUser?.role === "engineer" && (
+  <>
+    <Route path="serviceengineer" element={<ServiceEngineerDashboard />}/>
+    <Route path="service/reports" element={<Reports />}/>
+  </>
+)}
 
-        {crmUser?.role === "serviceengineer" && (
-          <>
-          <Route path="serviceengineer" element={<ServiceEngineerDashboard />}/>
-          <Route path="service/reports" element={<Reports />}/>
-          </>
-        )}
         {!crmUser?.role && <Route path="*" element={<ErrorPage />} />}
       </Route>
     </Routes>
