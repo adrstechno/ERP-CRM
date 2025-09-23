@@ -740,6 +740,8 @@
 //         </Box>
 //     );
 // }
+
+import axios from "axios";
 import React, { useState } from 'react';
 import {
     Box, Card, CardContent, Typography, TableContainer, Table, TableHead,
@@ -769,7 +771,27 @@ const usersData = [
     { id: 6, name: 'USER_6', role: 'Sub-admin', status: 'Active', email: 'user6@gmail.com', password: 'pass6', gstNumber: '32AAAPL5566H1ZV', panNumber: 'AAAPL5566H', address: '606, Admin Block', city: 'Chennai', state: 'Tamil Nadu', pincode: '600001', accountNo: '6789012345', bankName: 'Yes Bank', ifscCode: 'YESB0006789' },
     { id: 7, name: 'USER_7', role: 'Marketer', status: 'Active', email: 'user7@gmail.com', password: 'pass7', gstNumber: '22AAAPL7788I1ZY', panNumber: 'AAAPL7788I', address: '707, Commerce Tower', city: 'Pune', state: 'Maharashtra', pincode: '411001', accountNo: '7890123456', bankName: 'HDFC Bank', ifscCode: 'HDFC0007890' },
 ];
-
+async function createUserApi(userData) {
+    try {
+        const authKey = localStorage.getItem("authKey");
+        const response = await axios.post(
+            "http://localhost:8080/api/admin/create-user?",
+            userData,
+            {
+                headers: {
+                    Authorization: `Bearer ${authKey}`,
+                },
+            }
+        );
+        const returnedAuthKey = response.data.authKey || response.data.token;
+        if (returnedAuthKey) {
+            localStorage.setItem("authKey", returnedAuthKey);
+        }
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
 const roleOptions = ['MARKETER', 'ENGINEER', 'DEALER', 'SUBADMIN'];
 
 const getRoleIcon = (role) => {
@@ -823,9 +845,17 @@ export default function UserManagement() {
         const { name, value } = event.target;
         setFormData(prevState => ({ ...prevState, [name]: value }));
     };
-    const handleCreateUser = () => {
-        console.log("Creating user:", formData);
-        handleClose();
+    
+    const handleCreateUser = async () => {
+        try {
+            const result = await createUserApi(formData);
+            console.log('User created:', result);
+            handleClose();
+            // Optionally, refresh user list or show a success message
+        } catch (error) {
+            console.error('Create user failed:', error);
+            // Optionally, show error message to user
+        }
     };
 
     const handleViewOpen = (user) => {
