@@ -18,47 +18,49 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-
-@RequestMapping("/api/profiles")
 @RestController
+@RequestMapping("/api/profiles")
 public class UserProfileController {
-    private final UserProfileService UserProfileService;
 
-    public UserProfileController(UserProfileService UserProfileService) {
-        this.UserProfileService = UserProfileService;
+    private final UserProfileService userProfileService;
+
+    public UserProfileController(UserProfileService userProfileService) {
+        this.userProfileService = userProfileService;
     }
-    
-    @PostMapping("/dealer")
+
+    // ✅ Create profile (any role)
+    @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserProfile> createUserProfile(@RequestBody UserProfileDto dto) {
-        return ResponseEntity.ok(UserProfileService.createProfile(dto));
+    public ResponseEntity<UserProfile> createProfile(@RequestBody UserProfileDto dto) {
+        return ResponseEntity.ok(userProfileService.createProfile(dto));
     }
 
-    @GetMapping("/dealer/{userId}")
+    // ✅ Get profile by userId
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN','DEALER','MARKETER','ENGINEER')")
+    public ResponseEntity<UserProfile> getProfile(@PathVariable Long userId) {
+        return ResponseEntity.ok(userProfileService.getProfileByUserId(userId));
+    }
+
+    // ✅ Get all profiles (optionally filter by role)
+    @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserProfile> getDealer(@PathVariable Long userId) {
-        return ResponseEntity.ok(UserProfileService.getProfileByUserId(userId));
+    public ResponseEntity<List<UserProfile>> getAllProfiles() {
+        return ResponseEntity.ok(userProfileService.getAllProfiles());
     }
 
-    @GetMapping("/dealer/all-dealers")
+    // ✅ Update profile
+    @PutMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserProfile>> getAllDealers() {
-
-        return ResponseEntity.ok(UserProfileService.getAllProfiles());
+    public ResponseEntity<UserProfile> updateProfile(@PathVariable Long userId, @RequestBody UserProfileDto dto) {
+        return ResponseEntity.ok(userProfileService.updateProfile(userId, dto));
     }
 
-    @PutMapping("/dealer/{userId}")
+    // ✅ Delete profile
+    @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserProfile> updateUserProfile(@PathVariable Long userId, @RequestBody UserProfileDto dto) {
-        return ResponseEntity.ok(UserProfileService.updateProfile(userId, dto));
+    public ResponseEntity<Void> deleteProfile(@PathVariable Long userId) {
+        userProfileService.deleteProfile(userId);
+        return ResponseEntity.noContent().build();
     }
-
-
-    @DeleteMapping("/dealer/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserProfile> deleteUserProfile(@PathVariable Long userId) {
-        UserProfileService.deleteProfile(userId);
-        return ResponseEntity.ok().build();
-    }
-    
 }
