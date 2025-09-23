@@ -19,7 +19,6 @@ public class EngineerProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    
     private Long id;
 
     @OneToOne
