@@ -189,7 +189,7 @@ const theme = (mode = "light") =>
           body {
             font-family: 'Poppins', sans-serif;
           }
-          // A custom scrollbar that matches the dark theme aesthetic
+          // A custom scrollbar that matches the theme aesthetic
           ::-webkit-scrollbar {
             width: 8px;
           }
@@ -211,7 +211,7 @@ const theme = (mode = "light") =>
             backgroundColor: theme.palette.custom.topBarBg,
             color: theme.palette.text.primary,
             boxShadow: "none", // Flatter design without shadows
-            borderBottom: `1px solid ${mode === "dark" ? "#393E46" : "#E0E0E0"}`,
+            borderBottom: `1px solid ${theme.palette.divider}`,
           }),
         },
       },
@@ -231,7 +231,7 @@ const theme = (mode = "light") =>
             color: theme.palette.text.primary,
             borderRadius: 12,
             boxShadow: "none",
-            border: `1px solid ${mode === "dark" ? "#393E46" : "#E0E0E0"}`,
+            border: `1px solid ${theme.palette.divider}`,
           }),
         },
       },
@@ -240,16 +240,16 @@ const theme = (mode = "light") =>
           root: {
             borderRadius: 8,
           },
-          containedPrimary: {
-            color: mode === 'dark' ? '#222831' : '#FFFFFF', // Ensure high contrast text on buttons
-          },
+          containedPrimary: ({ theme }) => ({
+            color: theme.palette.getContrastText(theme.palette.primary.main),
+          }),
         },
       },
       MuiTableCell: {
         styleOverrides: {
-          root: {
-            borderBottom: `1px solid ${mode === "dark" ? "#393E46" : "#E0E0E0"}`,
-          },
+          root: ({ theme }) => ({
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          }),
           head: ({ theme }) => ({
             backgroundColor: theme.palette.custom.tableHeader,
             fontWeight: 600,
@@ -267,24 +267,24 @@ const theme = (mode = "light") =>
       },
       MuiListItemButton: {
         styleOverrides: {
-          root: {
+          root: ({ theme }) => ({
             margin: '0 8px',
             borderRadius: 8,
             '&.Mui-selected': {
-              backgroundColor: "rgba(0, 229, 255, 0.1)", // Primary color with opacity
-              color: '#00E5FF',
+              backgroundColor: theme.palette.action.selected, // Theme-aware background
+              color: theme.palette.primary.main, // Theme-aware text color
               '&:hover': {
-                backgroundColor: "rgba(0, 229, 255, 0.15)",
+                backgroundColor: theme.palette.action.hover,
               },
-              // The following styles ensure icons in selected items are also colored
               '.MuiListItemIcon-root': {
-                color: '#00E5FF',
+                color: theme.palette.primary.main, // Theme-aware icon color
               }
             },
-          },
+          }),
         },
       },
     },
   });
 
 export default theme;
+
