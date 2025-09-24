@@ -40,6 +40,7 @@ public class User {
 
     private String password;
     private String phone;
+    
     private Boolean isActive = true;
 
     @CreationTimestamp
@@ -49,10 +50,6 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;  
-
-    
-
-
 
 
 }
