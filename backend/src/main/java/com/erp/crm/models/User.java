@@ -41,6 +41,7 @@ public class User {
     private String password;
     private String phone;
     
+    @Column(columnDefinition = "BIT(1) DEFAULT b'0'")
     private Boolean isActive = true;
 
     @CreationTimestamp
