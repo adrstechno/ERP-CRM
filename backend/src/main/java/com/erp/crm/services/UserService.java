@@ -47,7 +47,7 @@ public class UserService {
     }
 
     public List<User> getAllUser(){
-        return userRepo.findAll();
+        return userRepo.findByUserIdGreaterThanEqualOrderByUserIdDesc(2L);
     }
 
     public String login(LoginRequestDTO dto) {
