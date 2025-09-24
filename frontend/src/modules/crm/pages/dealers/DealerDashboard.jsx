@@ -190,14 +190,14 @@ export default function DealerDashboard() {
         </Grid>
 
         {/* Bar Chart Traffic */}
-          <Grid item xs={12} md={8}>
-    <Card sx={{ ...cardStyle, p: 10, minHeight: 350 }}>
+          <Grid item xs={13} md={5}>
+    <Card sx={{ ...cardStyle, p: 2, minHeight: 350 , width: 700, }}>
       <CardContent sx={{ pt: 2 }}> 
         <Typography variant="h6" mb={2}>
           Traffic by Device
         </Typography>
-        <Divider sx={{ mb: 0}} />
-        <Box sx={{ width: "150%", height: 250 }}>
+        <Divider sx={{ mb: 0 }} />
+        <Box sx={{ width: 600, height: 250 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={trafficData}>
               <CartesianGrid

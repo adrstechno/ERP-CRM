@@ -19,7 +19,7 @@ public class UserProfile  {
     @Id
     @Column(name = "profile_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)

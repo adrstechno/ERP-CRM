@@ -46,6 +46,7 @@ public class Sale {
     @Column(nullable = false)
     private LocalDate saleDate;
 
+
     @Column(nullable = false)
     private Double totalAmount;
 

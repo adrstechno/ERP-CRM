@@ -29,9 +29,11 @@ public class SaleItem {
     @Column(nullable = false)
     private Integer quantity;
 
+
     @Column(nullable = false)
     private Double unitPrice;
 
+   
     private Double taxRate = 0.0;
 }
 
