@@ -29,7 +29,8 @@ public class Payment {
     @Column(nullable = false)
     private LocalDate paymentDate;
 
-    @Column(nullable = false, precision = 12, scale = 2)
+
+    @Column(nullable = false)
     private Double amount;
 
     @Enumerated(EnumType.STRING)

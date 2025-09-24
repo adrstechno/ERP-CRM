@@ -46,7 +46,8 @@ public class Sale {
     @Column(nullable = false)
     private LocalDate saleDate;
 
-    @Column(nullable = false, precision = 12, scale = 2)
+
+    @Column(nullable = false)
     private Double totalAmount;
 
     @Enumerated(EnumType.STRING)
