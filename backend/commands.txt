@@ -14,16 +14,15 @@ dealer -
 
 model -> repo -> dto -> service -> 
 
-
-INSERT INTO users (userId, role_id, name, email, password, phone, isActive, createdAt, updatedAt) VALUES
-(11, 2, 'Dragon', 'dear12@example.com', '123456', '9876543280', true, '2025-09-24 11:59:21', '2025-09-24 11:59:21'),
-(10, 4, 'Roshan Sachdev', 'manalks1805@gmail.com', '123456', '8887776419', true, '2025-09-24 11:41:18', '2025-09-24 11:41:18'),
-(9, 2, 'Dealer Name', 'dealer12@example.com', '123456', '9876543210', true, '2025-09-24 10:54:29', '2025-09-24 10:54:29'),
-(8, 5, 'Roshan Sachdev', 'j@gmail.com', '123456', '8887776319', true, '2025-09-24 10:45:41', '2025-09-24 10:45:41'),
-(7, 5, 'E', 'e@gmail.com', '123456', '9874569875', true, '2025-09-24 10:31:54', '2025-09-24 10:31:54'),
-(6, 2, 'dealer', 'd@gmail.com', '123456', '7418521478', true, '2025-09-24 10:31:24', '2025-09-24 10:31:24'),
-(5, 3, 'marketer', 'm@gmail.com', '123456', '8887776419', true, '2025-09-24 10:08:21', '2025-09-24 10:08:21'),
-(4, 4, 'Name', 'sub_admin@example.com', '123456', NULL, true, '2025-09-18 15:53:07', '2025-09-18 15:53:07'),
-(3, 2, 'Dealer Name', 'dealer2@example.com', '123456', NULL, true, '2025-09-18 12:11:06', '2025-09-18 12:11:06'),
-(2, 1, 'Dealer Name', 'dealer@example.com', '123456', NULL, true, '2025-09-18 12:05:43', '2025-09-18 12:05:43');
+INSERT INTO users (user_id, role_id, name, email, password, phone, is_active) VALUES
+(2, 1, 'Dealer Name', 'dealer@example.com', '123456', NULL, true),
+(3, 2, 'Dealer Name', 'dealer2@example.com', '123456', NULL, true),
+(4, 4, 'Name', 'sub_admin@example.com', '123456', NULL, true),
+(5, 3, 'marketer', 'm@gmail.com', '123456', '8887776419', true),
+(6, 2, 'dealer', 'd@gmail.com', '123456', '7418521478', true),
+(7, 5, 'E', 'e@gmail.com', '123456', '9874569875', true),
+(8, 5, 'Roshan Sachdev', 'j@gmail.com', '123456', '8887776319', true),
+(9, 2, 'Dealer Name', 'dealer12@example.com', '123456', '9876543210', true),
+(10, 4, 'Roshan Sachdev', 'manalks1805@gmail.com', '123456', '8887776419', true),
+(11, 2, 'Dragon', 'dear12@example.com', '123456', '9876543280', true);
 
