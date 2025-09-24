@@ -742,13 +742,14 @@
 // }
 
 import axios from "axios";
+
 import React, { useEffect, useState } from 'react';
 import {
     Box, Card, CardContent, Typography, TableContainer, Table, TableHead,
     TableBody, TableRow, TableCell, Button, IconButton, Chip,
     Dialog, DialogTitle, DialogContent, DialogActions, TextField,
     FormControl, InputLabel, Select, MenuItem, Stack,
-    InputAdornment
+    InputAdornment,CircularProgress
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -809,6 +810,7 @@ export default function UserManagement() {
 
     // Modals State
     const [usersData, setUsersData] = useState([]);
+    const [viewLoading, setViewLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
@@ -861,10 +863,44 @@ export default function UserManagement() {
         const { name, value } = event.target;
         setEditUser(prev => ({ ...prev, [name]: value }));
     };
-    const handleEditSave = () => {
-        console.log("Edited user:", editUser);
-        handleEditClose();
+     const handleEditSave = async () => {
+        if (!editUser) return;
+
+        // This payload sends the role name as a simple string to match the backend's expectation.
+        const payload = {
+            name: editUser.name,
+            email: editUser.email,
+            phone: editUser.phone,
+            password: editUser.password, // Only send password if it's being changed
+            role: editUser.role, // Sending the role name as a string
+            isActive: editUser.status === 'Active'
+        };
+
+        try {
+            const authKey = localStorage.getItem("authKey");
+            const response = await axios.put(
+                `http://localhost:8080/api/profiles/update/${user.userId}`,
+                payload, {
+                    headers: {
+                        Authorization: `Bearer ${authKey}`,
+                    },
+                }
+            );
+
+            // Update the user in the local state to reflect changes immediately
+            setUsersData(prevUsers =>
+                prevUsers.map(user =>
+                    user.userId === editUser.userId ? { ...user, ...editUser } : user
+                )
+            );
+            console.log("User updated successfully:", response.data);
+            handleEditClose(); // Close the dialog on success
+        } catch (error) {
+            console.error("Failed to update user:", error);
+            // Optionally, show an error message to the user here
+        }
     };
+
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -883,10 +919,41 @@ export default function UserManagement() {
         }
     };
 
-    const handleViewOpen = (user) => {
-        setViewUser(user);
+   const handleViewOpen = async (user) => {
+        // This console.log is the most important tool to debug this.
+        // Please check your browser's developer console to see what the 'user' object contains.
+        console.log("Inspecting user object on click:", user);
+
         setViewOpen(true);
+        setViewLoading(true);
+        setViewUser(null);
+
+        // Ensure we have a valid ID before making the call.
+        const userId = user.userId;
+        if (!userId) {
+            console.error("User ID is missing or invalid", user);
+            setViewLoading(false);
+            return;
+        }
+
+        try {
+            const authKey = localStorage.getItem("authKey");
+            const response = await axios.get(
+                `http://localhost:8080/api/profiles/${userId}`, {
+                    headers: {
+                        Authorization: `Bearer ${authKey}`,
+                    },
+                }
+            );
+            setViewUser(response.data);
+        } catch (error) {
+            console.error("Failed to fetch user profile:", error);
+            setViewUser(null);
+        } finally {
+            setViewLoading(false);
+        }
     };
+
     const handleViewClose = () => {
         setViewOpen(false);
         setViewUser(null);
@@ -1030,9 +1097,7 @@ export default function UserManagement() {
                     <Button onClick={handleCreateUser} variant="contained">Create User</Button>
                 </DialogActions>
             </Dialog>
-
-            {/* Edit User Dialog */}
-            {editUser && (
+{editUser && (
                 <Dialog open={editOpen} onClose={handleEditClose} maxWidth="sm" fullWidth>
                     <DialogTitle sx={{ fontWeight: 'bold' }}>Edit User</DialogTitle>
                     <DialogContent>
@@ -1073,25 +1138,33 @@ export default function UserManagement() {
             )}
 
             {/* View User Details Dialog */}
-            {viewUser && (
-                <Dialog open={viewOpen} onClose={handleViewClose} maxWidth="sm" fullWidth>
-                    <DialogTitle sx={{ fontWeight: 'bold' }}>User Details</DialogTitle>
-                    <DialogContent>
+            <Dialog open={viewOpen} onClose={handleViewClose} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ fontWeight: 'bold' }}>User Details</DialogTitle>
+                <DialogContent>
+                    {viewLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : viewUser ? (
                         <Stack spacing={1.5} sx={{ mt: 2 }}>
-                            <Typography><b>GST Number:</b> {viewUser.gstNumber}</Typography>
-                            <Typography><b>PAN Number:</b> {viewUser.panNumber}</Typography>
-                            <Typography><b>Address:</b> {`${viewUser.address}, ${viewUser.city}, ${viewUser.state} - ${viewUser.pincode}`}</Typography>
-                            <Typography><b>Account No:</b> {viewUser.accountNo}</Typography>
-                            <Typography><b>Bank Name:</b> {viewUser.bankName}</Typography>
-                            <Typography><b>IFSC Code:</b> {viewUser.ifscCode}</Typography>
+                            <Typography><b>GST Number:</b> {viewUser.gstNumber || 'N/A'}</Typography>
+                            <Typography><b>PAN Number:</b> {viewUser.panNumber || 'N/A'}</Typography>
+                            <Typography><b>Address:</b> {viewUser.address ? `${viewUser.address}, ${viewUser.city}, ${viewUser.state} - ${viewUser.pincode}` : 'N/A'}</Typography>
+                            <Typography><b>Account No:</b> {viewUser.accountNo || 'N/A'}</Typography>
+                            <Typography><b>Bank Name:</b> {viewUser.bankName || 'N/A'}</Typography>
+                            <Typography><b>IFSC Code:</b> {viewUser.ifscCode || 'N/A'}</Typography>
                         </Stack>
-                    </DialogContent>
-                    <DialogActions sx={{ p: '16px 24px' }}>
-                        <Button onClick={handleViewClose}>Close</Button>
-                        <Button onClick={handleEditExtraOpen} variant="contained">Edit Details</Button>
-                    </DialogActions>
-                </Dialog>
-            )}
+                    ) : (
+                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                            <Typography color="error">Could not load user details.</Typography>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ p: '16px 24px' }}>
+                    <Button onClick={handleViewClose}>Close</Button>
+                    <Button onClick={handleEditExtraOpen} variant="contained" disabled={!viewUser}>Edit Details</Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Edit Extra Details Dialog */}
             {editExtraUser && (
