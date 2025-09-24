@@ -352,7 +352,7 @@ export default function SalesManagement() {
               Sales Entry Table
             </Typography>
             <TableContainer sx={{ maxHeight: 280, overflowY: "auto" }}>
-              <Table stickyHeader size="small">
+              <Table stickyHeader size="large">
                 <TableHead>
                   <TableRow>
                     {[
