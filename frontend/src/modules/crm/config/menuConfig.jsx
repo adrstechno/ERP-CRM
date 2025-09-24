@@ -32,7 +32,7 @@ export const crmMenuConfig = {
     { label: "Dealers", path: "/crm/subadmin/dealers", icon: <WorkIcon /> },
     { label: "Approve Expenses", path: "/crm/expenses/approve", icon: <ReceiptIcon /> },
     { label: "Assign Service Tickets", path: "/crm/service/assign", icon: <AssignmentIcon /> },
-    { label: "Reports", path: "/crm/reports", icon: <BarChartIcon /> },
+    { label: "Reports", path: "/crm/sub/reports", icon: <BarChartIcon /> },
   ],
 
   dealer: [
@@ -56,8 +56,8 @@ export const crmMenuConfig = {
     { label: "Dashboard", path: "/crm/serviceengineer", icon: <DashboardIcon /> },
     { label: "Assigned Tickets", path: "/crm/service/assign-report", icon: <AssignmentIcon /> },
     { label: "Service Reports", path: "/crm/service/report", icon: <WorkIcon /> },
-    { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
-    { label: "Service History", path: "/crm/service/history", icon: <HistoryIcon /> },
+    { label: "Rimbursement", path: "/crm/service/rimbursement", icon: <ReceiptIcon /> },
+   
   ],
 
   // customers won’t log in → no sidebar needed

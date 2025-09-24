@@ -29,10 +29,9 @@ public class SaleItem {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false, precision = 12, scale = 2)
+    @Column(nullable = false)
     private Double unitPrice;
 
-    @Column(precision = 12, scale = 2)
     private Double taxRate = 0.0;
 }
 

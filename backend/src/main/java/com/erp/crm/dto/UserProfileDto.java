@@ -3,7 +3,7 @@ package com.erp.crm.dto;
 import lombok.Data;
 
 @Data
-public class DealerProfileDto {
+public class UserProfileDto {
     private Long userId;
     private String gstNumber;
     private String panNumber;
