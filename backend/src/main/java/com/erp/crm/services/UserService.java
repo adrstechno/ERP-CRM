@@ -52,7 +52,7 @@ public class UserService {
         return userRepo.findByEmail(email);
     }
 
-    public Optional<User> getUserByName(String name){
+    public List<User> getUserByName(String name){
         return userRepo.findByName(name);
     }
 

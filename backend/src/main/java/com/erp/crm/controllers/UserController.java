@@ -1,5 +1,7 @@
 package com.erp.crm.controllers;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,9 +40,15 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    // get By user id
+    // ✅ get By user id
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUser(@PathVariable Long userId){
         return ResponseEntity.ok( userService.getUserById(userId));
+    }
+
+    // ✅ get By user id
+    @GetMapping("name/{name}")
+    public ResponseEntity<List<User>> getUser(@PathVariable String name){
+        return ResponseEntity.ok( userService.getUserByName(name));
     }
 }
