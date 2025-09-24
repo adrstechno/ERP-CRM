@@ -10,10 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.erp.crm.dto.AdminCreateUserDTO;
-import com.erp.crm.dto.UserDTO;
 import com.erp.crm.dto.UserProfileDto;
-import com.erp.crm.models.User;
 import com.erp.crm.models.UserProfile;
 import com.erp.crm.services.UserProfileService;
 import com.erp.crm.services.UserService;
@@ -27,11 +24,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
-    private final UserService userService;
 
-    public UserProfileController(UserProfileService userProfileService,UserService userService) {
+    public UserProfileController(UserProfileService userProfileService) {
         this.userProfileService = userProfileService;
-        this.userService = userService;
     }
 
     // ✅ Create profile (any role)
@@ -70,11 +65,5 @@ public class UserProfileController {
         return ResponseEntity.noContent().build();
     }
 
-    //  ✅ Update User
-    @PutMapping("/update/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> updateUser(@PathVariable Long userId,@RequestBody UserDTO dto){
-         return ResponseEntity.ok(userService.updateUser(userId, dto));
-    }
 }
 
