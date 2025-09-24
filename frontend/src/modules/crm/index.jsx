@@ -1,8 +1,9 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import CRMLayout from "./layouts/CRMLayout";
 import { useCRMAuth } from "./context/CRMAuthContext";
 import ErrorPage from "./pages/ErrorPage";
+import Login from "./pages/Login";
 
 //Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -52,12 +53,16 @@ import PayStatus from "./pages/marketer/PayStatus";
 
 
 
+
 export default function CRMModule() {
   const { crmUser } = useCRMAuth();
 
   return (
     <Routes>
+              <Route path="/crm" element={<Navigate to="/login" replace />} />
       <Route element={<CRMLayout />}>
+      
+       
       
         {crmUser?.role === "admin" && (
           <>
@@ -118,7 +123,9 @@ export default function CRMModule() {
   </>
 )}
 
+
         {!crmUser?.role && <Route path="*" element={<ErrorPage />} />}
+       
       </Route>
     </Routes>
   );
