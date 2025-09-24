@@ -45,7 +45,6 @@ import Rimburesement from "./pages/serviceengineer/Rimbersment";
 //Marketer
 import MarketerDashboard from "./pages/marketer/MarketerDashboard";
 import NewSales from "./pages/marketer/NewSales";
-import Customers from "./pages/marketer/Customers";
 import MySales from "./pages/marketer/MySales";
 import MarketerExpenses from "./pages/marketer/MarketerExpenses";
 import FreeServiceTracker from "./pages/marketer/FreeServiceTracker";
@@ -98,7 +97,6 @@ export default function CRMModule() {
             <Route path="marketer" element={<MarketerDashboard />} />
             <Route path="new-sales" element={<NewSales />} />
             <Route path="mysales" element ={<MySales />} />
-            <Route path="customers" element={<Customers />} />
             <Route path="expenses" element={<MarketerExpenses />} />
             <Route path="paystatus" element={<PayStatus />} />
           </>
