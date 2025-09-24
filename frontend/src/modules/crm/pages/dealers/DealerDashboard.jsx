@@ -131,7 +131,7 @@ export default function DealerDashboard() {
       <Grid container spacing={3}>
         {/* Gauge-style (Sold vs Unsold) */}
         <Grid item xs={120} md={9}>
-          <Card sx={{ ...cardStyle, p: 4, minHeight: 350 }}>
+          <Card sx={{ ...cardStyle, p: 4, minHeight: 350 , width: 550,}}>
             <CardContent>
               <Typography variant="h6" mb={2}>
                 Stock Performance
@@ -191,13 +191,13 @@ export default function DealerDashboard() {
 
         {/* Bar Chart Traffic */}
           <Grid item xs={13} md={5}>
-    <Card sx={{ ...cardStyle, p: 2, minHeight: 350 , width: 700, }}>
+    <Card sx={{ ...cardStyle, p: 2, minHeight: 350, width: 576, }}>
       <CardContent sx={{ pt: 2 }}> 
         <Typography variant="h6" mb={2}>
           Traffic by Device
         </Typography>
-        <Divider sx={{ mb: 0 }} />
-        <Box sx={{ width: 600, height: 250 }}>
+        <Divider sx={{ mb: 4 }} />
+        <Box sx={{ width: 525, height: 350 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={trafficData}>
               <CartesianGrid

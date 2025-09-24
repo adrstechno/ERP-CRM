@@ -742,7 +742,7 @@
 // }
 
 import axios from "axios";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box, Card, CardContent, Typography, TableContainer, Table, TableHead,
     TableBody, TableRow, TableCell, Button, IconButton, Chip,
@@ -762,15 +762,15 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Visibility from '@mui/icons-material/Visibility';
 
 // --- Mock Data (Expanded for Scrolling) ---
-const usersData = [
-    { id: 1, name: 'USER_1', role: 'Marketer', status: 'Active', email: 'user1@gmail.com', password: 'pass1', gstNumber: '27AAAPL1234C1ZV', panNumber: 'AAAPL1234C', address: '101, Market Road', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', accountNo: '1234567890', bankName: 'HDFC Bank', ifscCode: 'HDFC0001234' },
-    { id: 2, name: 'USER_2', role: 'Service Engg.', status: 'Deactivate', email: 'user2@gmail.com', password: 'pass2', gstNumber: '29AAAPL5678D1ZW', panNumber: 'AAAPL5678D', address: '202, Service Lane', city: 'Bangalore', state: 'Karnataka', pincode: '560001', accountNo: '2345678901', bankName: 'ICICI Bank', ifscCode: 'ICIC0002345' },
-    { id: 3, name: 'USER_3', role: 'Marketer', status: 'Deactivate', email: 'user3@gmail.com', password: 'pass3', gstNumber: '07AAAPL9101E1ZX', panNumber: 'AAAPL9101E', address: '303, Sales Street', city: 'Delhi', state: 'Delhi', pincode: '110001', accountNo: '3456789012', bankName: 'Axis Bank', ifscCode: 'UTIB0003456' },
-    { id: 4, name: 'USER_4', role: 'Dealer', status: 'Active', email: 'user4@gmail.com', password: 'pass4', gstNumber: '19AAAPL1122F1ZV', panNumber: 'AAAPL1122F', address: '404, Dealer Plaza', city: 'Kolkata', state: 'West Bengal', pincode: '700001', accountNo: '4567890123', bankName: 'SBI', ifscCode: 'SBIN0004567' },
-    { id: 5, name: 'USER_5', role: 'Service Engg.', status: 'Deactivate', email: 'user5@gmail.com', password: 'pass5', gstNumber: '24AAAPL3344G1ZW', panNumber: 'AAAPL3344G', address: '505, Service Avenue', city: 'Ahmedabad', state: 'Gujarat', pincode: '380001', accountNo: '5678901234', bankName: 'Kotak Bank', ifscCode: 'KKBK0005678' },
-    { id: 6, name: 'USER_6', role: 'Sub-admin', status: 'Active', email: 'user6@gmail.com', password: 'pass6', gstNumber: '32AAAPL5566H1ZV', panNumber: 'AAAPL5566H', address: '606, Admin Block', city: 'Chennai', state: 'Tamil Nadu', pincode: '600001', accountNo: '6789012345', bankName: 'Yes Bank', ifscCode: 'YESB0006789' },
-    { id: 7, name: 'USER_7', role: 'Marketer', status: 'Active', email: 'user7@gmail.com', password: 'pass7', gstNumber: '22AAAPL7788I1ZY', panNumber: 'AAAPL7788I', address: '707, Commerce Tower', city: 'Pune', state: 'Maharashtra', pincode: '411001', accountNo: '7890123456', bankName: 'HDFC Bank', ifscCode: 'HDFC0007890' },
-];
+// const usersData = [
+//     { id: 1, name: 'USER_1', role: 'Marketer', status: 'Active', email: 'user1@gmail.com', password: 'pass1', gstNumber: '27AAAPL1234C1ZV', panNumber: 'AAAPL1234C', address: '101, Market Road', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', accountNo: '1234567890', bankName: 'HDFC Bank', ifscCode: 'HDFC0001234' },
+//     { id: 2, name: 'USER_2', role: 'Service Engg.', status: 'Deactivate', email: 'user2@gmail.com', password: 'pass2', gstNumber: '29AAAPL5678D1ZW', panNumber: 'AAAPL5678D', address: '202, Service Lane', city: 'Bangalore', state: 'Karnataka', pincode: '560001', accountNo: '2345678901', bankName: 'ICICI Bank', ifscCode: 'ICIC0002345' },
+//     { id: 3, name: 'USER_3', role: 'Marketer', status: 'Deactivate', email: 'user3@gmail.com', password: 'pass3', gstNumber: '07AAAPL9101E1ZX', panNumber: 'AAAPL9101E', address: '303, Sales Street', city: 'Delhi', state: 'Delhi', pincode: '110001', accountNo: '3456789012', bankName: 'Axis Bank', ifscCode: 'UTIB0003456' },
+//     { id: 4, name: 'USER_4', role: 'Dealer', status: 'Active', email: 'user4@gmail.com', password: 'pass4', gstNumber: '19AAAPL1122F1ZV', panNumber: 'AAAPL1122F', address: '404, Dealer Plaza', city: 'Kolkata', state: 'West Bengal', pincode: '700001', accountNo: '4567890123', bankName: 'SBI', ifscCode: 'SBIN0004567' },
+//     { id: 5, name: 'USER_5', role: 'Service Engg.', status: 'Deactivate', email: 'user5@gmail.com', password: 'pass5', gstNumber: '24AAAPL3344G1ZW', panNumber: 'AAAPL3344G', address: '505, Service Avenue', city: 'Ahmedabad', state: 'Gujarat', pincode: '380001', accountNo: '5678901234', bankName: 'Kotak Bank', ifscCode: 'KKBK0005678' },
+//     { id: 6, name: 'USER_6', role: 'Sub-admin', status: 'Active', email: 'user6@gmail.com', password: 'pass6', gstNumber: '32AAAPL5566H1ZV', panNumber: 'AAAPL5566H', address: '606, Admin Block', city: 'Chennai', state: 'Tamil Nadu', pincode: '600001', accountNo: '6789012345', bankName: 'Yes Bank', ifscCode: 'YESB0006789' },
+//     { id: 7, name: 'USER_7', role: 'Marketer', status: 'Active', email: 'user7@gmail.com', password: 'pass7', gstNumber: '22AAAPL7788I1ZY', panNumber: 'AAAPL7788I', address: '707, Commerce Tower', city: 'Pune', state: 'Maharashtra', pincode: '411001', accountNo: '7890123456', bankName: 'HDFC Bank', ifscCode: 'HDFC0007890' },
+// ];
 async function createUserApi(userData) {
     try {
         const authKey = localStorage.getItem("authKey");
@@ -792,6 +792,7 @@ async function createUserApi(userData) {
         throw error;
     }
 }
+
 const roleOptions = ['MARKETER', 'ENGINEER', 'DEALER', 'SUBADMIN'];
 
 const getRoleIcon = (role) => {
@@ -807,6 +808,8 @@ export default function UserManagement() {
     const [showPassword, setShowPassword] = useState({});
 
     // Modals State
+    const [usersData, setUsersData] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [editUser, setEditUser] = useState(null);
@@ -816,6 +819,28 @@ export default function UserManagement() {
     const [editExtraUser, setEditExtraUser] = useState(null);
 
     const [formData, setFormData] = useState({ name: '', email: '', password: '', role: '', phone: '' });
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const authKey = localStorage.getItem("authKey");
+                const response = await axios.get("http://localhost:8080/api/admin/users",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${authKey}`,
+                        },
+                    }
+                );
+                setUsersData(response.data);
+
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUsers();
+    }, []);
 
     const handleClickOpen = () => setOpen(true);
     const handleClose = () => {
@@ -845,7 +870,7 @@ export default function UserManagement() {
         const { name, value } = event.target;
         setFormData(prevState => ({ ...prevState, [name]: value }));
     };
-    
+
     const handleCreateUser = async () => {
         try {
             const result = await createUserApi(formData);
@@ -900,7 +925,7 @@ export default function UserManagement() {
     };
 
     return (
-        <Box>
+        <Box >
             <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
                 <CardContent>
                     <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2} mb={2}>
@@ -924,43 +949,60 @@ export default function UserManagement() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {usersData.map((user) => (
-                                <TableRow key={user.id} hover>
-                                    <TableCell>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                            {getRoleIcon(user.role)} {user.name}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell>{user.role}</TableCell>
-                                    <TableCell>{getStatusChip(user.status)}</TableCell>
-                                    <TableCell>{user.email}</TableCell>
-                                    <TableCell>
-                                        <TextField
-                                            type={showPassword[user.id] ? "text" : "password"}
-                                            value={user.password}
-                                            size="small"
-                                            variant="standard"
-                                            InputProps={{
-                                                readOnly: true,
-                                                endAdornment: (
-                                                    <InputAdornment position="end">
-                                                        <IconButton size="small" onClick={() => handleTogglePassword(user.id)} edge="end">
-                                                            {showPassword[user.id] ? <VisibilityOff /> : <Visibility />}
-                                                        </IconButton>
-                                                    </InputAdornment>
-                                                ),
-                                                disableUnderline: true,
-                                            }}
-                                            sx={{ width: 120 }}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <IconButton size="small" onClick={() => handleEditOpen(user)}><EditIcon fontSize="small" /></IconButton>
-                                        <IconButton size="small"><DeleteIcon fontSize="small" /></IconButton>
-                                        <IconButton size="small" onClick={() => handleViewOpen(user)}><VisibilityIcon fontSize="small" /></IconButton>
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} align="center">
+                                        Loading...
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : usersData.length > 0 ? (
+                                usersData.map((user) => (
+
+                                    <TableRow key={user.userid} hover>
+                                        <TableCell>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                {getRoleIcon(user.role.name)} {user.name}
+
+                                                {user.name.name}
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell>{user.role.name}</TableCell>
+                                        <TableCell>{getStatusChip(user.isActive ? 'Active' : 'Deactivate')}</TableCell>
+                                        <TableCell>{user.email}</TableCell>
+                                        <TableCell>
+                                            <TextField
+                                                type={showPassword[user.id] ? "text" : "password"}
+                                                value={user.password}
+                                                size="small"
+                                                variant="standard"
+                                                InputProps={{
+                                                    readOnly: true,
+                                                    endAdornment: (
+                                                        <InputAdornment position="end">
+                                                            <IconButton size="small" onClick={() => handleTogglePassword(user.userid)} edge="end">
+                                                                {showPassword[user.userid] ? <VisibilityOff /> : <Visibility />}
+                                                            </IconButton>
+                                                        </InputAdornment>
+                                                    ),
+                                                    disableUnderline: true,
+                                                }}
+                                                sx={{ width: 120 }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <IconButton size="small" onClick={() => handleEditOpen(user)}><EditIcon fontSize="small" /></IconButton>
+                                            <IconButton size="small"><DeleteIcon fontSize="small" /></IconButton>
+                                            <IconButton size="small" onClick={() => handleViewOpen(user)}><VisibilityIcon fontSize="small" /></IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={6} align="center">
+                                        No users found.
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>
@@ -1057,15 +1099,15 @@ export default function UserManagement() {
                     <DialogTitle sx={{ fontWeight: 'bold' }}>Edit Extra Details</DialogTitle>
                     <DialogContent>
                         <Stack spacing={2} sx={{ mt: 2 }}>
-                           <TextField name="gstNumber" label="GST Number" fullWidth variant="outlined" value={editExtraUser.gstNumber} onChange={handleEditExtraChange} />
-                           <TextField name="panNumber" label="PAN Number" fullWidth variant="outlined" value={editExtraUser.panNumber} onChange={handleEditExtraChange} />
-                           <TextField name="address" label="Address" fullWidth variant="outlined" value={editExtraUser.address} onChange={handleEditExtraChange} />
-                           <TextField name="city" label="City" fullWidth variant="outlined" value={editExtraUser.city} onChange={handleEditExtraChange} />
-                           <TextField name="state" label="State" fullWidth variant="outlined" value={editExtraUser.state} onChange={handleEditExtraChange} />
-                           <TextField name="pincode" label="Pincode" fullWidth variant="outlined" value={editExtraUser.pincode} onChange={handleEditExtraChange} />
-                           <TextField name="accountNo" label="Account No" fullWidth variant="outlined" value={editExtraUser.accountNo} onChange={handleEditExtraChange} />
-                           <TextField name="bankName" label="Bank Name" fullWidth variant="outlined" value={editExtraUser.bankName} onChange={handleEditExtraChange} />
-                           <TextField name="ifscCode" label="IFSC Code" fullWidth variant="outlined" value={editExtraUser.ifscCode} onChange={handleEditExtraChange} />
+                            <TextField name="gstNumber" label="GST Number" fullWidth variant="outlined" value={editExtraUser.gstNumber} onChange={handleEditExtraChange} />
+                            <TextField name="panNumber" label="PAN Number" fullWidth variant="outlined" value={editExtraUser.panNumber} onChange={handleEditExtraChange} />
+                            <TextField name="address" label="Address" fullWidth variant="outlined" value={editExtraUser.address} onChange={handleEditExtraChange} />
+                            <TextField name="city" label="City" fullWidth variant="outlined" value={editExtraUser.city} onChange={handleEditExtraChange} />
+                            <TextField name="state" label="State" fullWidth variant="outlined" value={editExtraUser.state} onChange={handleEditExtraChange} />
+                            <TextField name="pincode" label="Pincode" fullWidth variant="outlined" value={editExtraUser.pincode} onChange={handleEditExtraChange} />
+                            <TextField name="accountNo" label="Account No" fullWidth variant="outlined" value={editExtraUser.accountNo} onChange={handleEditExtraChange} />
+                            <TextField name="bankName" label="Bank Name" fullWidth variant="outlined" value={editExtraUser.bankName} onChange={handleEditExtraChange} />
+                            <TextField name="ifscCode" label="IFSC Code" fullWidth variant="outlined" value={editExtraUser.ifscCode} onChange={handleEditExtraChange} />
                         </Stack>
                     </DialogContent>
                     <DialogActions sx={{ p: '16px 24px' }}>
