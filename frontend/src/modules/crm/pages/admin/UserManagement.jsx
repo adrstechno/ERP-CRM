@@ -776,7 +776,7 @@ async function createUserApi(userData) {
     try {
         const authKey = localStorage.getItem("authKey");
         const response = await axios.post(
-            "http://localhost:8080/api/admin/create-user?",
+            `${base_url}/api/admin/create-user?`,
             userData,
             {
                 headers: {
@@ -825,7 +825,7 @@ export default function UserManagement() {
         const fetchUsers = async () => {
             try {
                 const authKey = localStorage.getItem("authKey");
-                const response = await axios.get("http://localhost:8080/api/admin/users",
+                const response = await axios.get(`${base_url}/api/admin/users`,
                     {
                         headers: {
                             Authorization: `Bearer ${authKey}`,
@@ -879,7 +879,7 @@ export default function UserManagement() {
         try {
             const authKey = localStorage.getItem("authKey");
             const response = await axios.put(
-                `http://localhost:8080/api/profiles/update/${user.userId}`,
+                `${base_url}/api/profiles/update/${user.userId}`,
                 payload, {
                     headers: {
                         Authorization: `Bearer ${authKey}`,
@@ -939,7 +939,7 @@ export default function UserManagement() {
         try {
             const authKey = localStorage.getItem("authKey");
             const response = await axios.get(
-                `http://localhost:8080/api/profiles/${userId}`, {
+                `${base_url}/api/profiles/${userId}`, {
                     headers: {
                         Authorization: `Bearer ${authKey}`,
                     },
