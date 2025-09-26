@@ -300,7 +300,7 @@ export default function ApproveExpenses() {
                 </CardContent>
 
                 <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
-                    <Table stickyHeader size="small">
+                    <Table stickyHeader size="medium">
                         <TableHead>
                             <TableRow>
                                 {['Expense ID', 'User Name', 'Role', 'Date', 'Category', 'Amount', 'Receipt', 'Remarks', 'Approval'].map(head => (
