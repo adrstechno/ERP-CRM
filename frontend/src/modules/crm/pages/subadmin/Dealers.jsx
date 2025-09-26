@@ -183,7 +183,7 @@ export default function SubadminDealersPage() {
                 </CardContent>
 
                 <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
-                    <Table stickyHeader size="small">
+                    <Table stickyHeader size="medium">
                         <TableHead>
                             <TableRow>
                                 {['Dealer ID', 'Dealer Name', 'Region', 'Stock Balance', 'Sales (MTD)', 'Requests Pending', 'Last Activity', 'Action'].map(head => (
