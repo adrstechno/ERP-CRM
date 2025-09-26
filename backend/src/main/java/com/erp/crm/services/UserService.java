@@ -40,29 +40,15 @@ public class UserService {
 
         return userRepo.save(user);
     }
-    // update user
-    // finsd by name
+    
+    public User updateUser(Long userId, UserDTO dto) {
+        User existingUser = getUserById(userId);
+        return userRepo.save(mapDtoToEntity(existingUser, dto));
+    } 
 
     public void deleteUser(Long userId){
         User user = getUserById(userId);
         userRepo.delete(user);
-    }
-
-    public Optional<User> getUserByEmail(String email) {
-        return userRepo.findByEmail(email);
-    }
-
-    public List<User> getUserByName(String name){
-        return userRepo.findByName(name);
-    }
-
-
-    public List<User> getAllUser(){
-        return userRepo.findByUserIdGreaterThanEqualOrderByUserIdDesc(2L);
-    }
-
-    public List<User> getAllUserByRole(String role){
-        return userRepo.findByRoleName(role);
     }
 
     public String login(LoginRequestDTO dto) {
@@ -80,13 +66,25 @@ public class UserService {
         return "Login successful for user: " + user.getEmail() + " with role: " + user.getRole().getName();
     }
 
+     public Optional<User> getUserByEmail(String email) {
+        return userRepo.findByEmail(email);
+    }
+
+    public List<User> getUserByName(String name){
+        return userRepo.findByName(name);
+    }
+
+
+    public List<User> getAllUser(){
+        return userRepo.findByUserIdGreaterThanEqualOrderByUserIdDesc(2L);
+    }
+
+    public List<User> getAllUserByRole(String role){
+        return userRepo.findByRoleName(role);
+    }
+
     public Optional<Role> getRoleByName(String roleName) {
         return roleRepo.findByName(roleName);
-    } 
-
-    public User updateUser(Long userId, UserDTO dto) {
-        User existingUser = getUserById(userId);
-        return userRepo.save(mapDtoToEntity(existingUser, dto));
     } 
 
     public User getUserById(Long userId) {
@@ -94,26 +92,26 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("❌ Profile not found for userId: " + userId));
     }
 
-   public User mapDtoToEntity(User user, UserDTO dto) {
-    user.setName(dto.getName());
-    user.setEmail(dto.getEmail());
+      public User mapDtoToEntity(User user, UserDTO dto) {
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
 
-    // Encode password only if provided
-    if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        // Encode password only if provided
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        user.setIsActive(dto.getIsActive());
+
+        // Fetch role from DB
+        if (dto.getRole() != null) {
+            Role role = getRoleByName(dto.getRole())
+                    .orElseThrow(() -> new RuntimeException("Role not found: " + dto.getRole()));
+            user.setRole(role);
+        }
+
+        user.setPhone(dto.getPhone());
+        return user;
     }
-
-    user.setIsActive(dto.getIsActive());
-
-    // Fetch role from DB
-    if (dto.getRole() != null) {
-        Role role = getRoleByName(dto.getRole())
-                .orElseThrow(() -> new RuntimeException("Role not found: " + dto.getRole()));
-        user.setRole(role);
-    }
-
-    user.setPhone(dto.getPhone());
-    return user;
-}
 
 }
