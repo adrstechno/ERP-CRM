@@ -3,6 +3,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -47,10 +48,11 @@ export const crmMenuConfig = {
 
    marketer :[
   { label: "Dashboard", path: "/crm/marketer", icon: <DashboardIcon /> },
-  { label: "Add Customers", path: "/crm/customers", icon: <PeopleIcon /> },
+  { label: "New Sales", path: "/crm/new-sales", icon: <AddShoppingCartIcon /> },
   { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
   { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
   { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, // ✅ Added new menu
+ 
   ],
   engineer: [
     { label: "Dashboard", path: "/crm/serviceengineer", icon: <DashboardIcon /> },

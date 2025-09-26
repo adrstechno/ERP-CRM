@@ -13,3 +13,16 @@ dealer -
 
 
 model -> repo -> dto -> service -> 
+
+INSERT INTO users (user_id, role_id, name, email, password, phone, is_active) VALUES
+(2, 1, 'Dealer Name', 'dealer@example.com', '123456', NULL, true),
+(3, 2, 'Dealer Name', 'dealer2@example.com', '123456', NULL, true),
+(4, 4, 'Name', 'sub_admin@example.com', '123456', NULL, true),
+(5, 3, 'marketer', 'm@gmail.com', '123456', '8887776419', true),
+(6, 2, 'dealer', 'd@gmail.com', '123456', '7418521478', true),
+(7, 5, 'E', 'e@gmail.com', '123456', '9874569875', true),
+(8, 5, 'Roshan Sachdev', 'j@gmail.com', '123456', '8887776319', true),
+(9, 2, 'Dealer Name', 'dealer12@example.com', '123456', '9876543210', true),
+(10, 4, 'Roshan Sachdev', 'manalks1805@gmail.com', '123456', '8887776419', true),
+(11, 2, 'Dragon', 'dear12@example.com', '123456', '9876543280', true);
+
