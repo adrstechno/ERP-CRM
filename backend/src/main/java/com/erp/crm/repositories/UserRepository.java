@@ -9,7 +9,7 @@ import com.erp.crm.models.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
-    Optional<User> findByName(String name);
+    List<User> findByName(String name);
     List<User> findByUserIdGreaterThanEqualOrderByUserIdDesc(Long id);
     List<User> findByRoleName(String roleName);
 }
