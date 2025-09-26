@@ -15,7 +15,7 @@ import Service from "./pages/admin/Service"
 import BillingNInvoice from "./pages/admin/BillingNInvoice"
 import ReportsAnalytics from "./pages/admin/ReportsAnalytics"
 import Setting from "./pages/admin/Settings"
-import AuditLogs from "./pages/admin/AuditLogs"
+
 
 
 //Dealer
@@ -74,7 +74,7 @@ export default function CRMModule() {
           <Route path="invoices" element = {<BillingNInvoice />} />
           <Route path="reports" element = {<ReportsAnalytics />} />
          <Route path="settings" element  ={<Setting />} />
-          <Route path="audit-logs" element = {<AuditLogs />} />
+       
            </>
 
         )}

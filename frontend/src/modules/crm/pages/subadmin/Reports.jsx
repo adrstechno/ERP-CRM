@@ -219,7 +219,7 @@ export default function ReportsPage() {
                             </FormControl>
                         </Stack>
                         <TableContainer sx={{ maxHeight: 'calc(50vh - 130px)', overflowY: 'auto' }}>
-                            <Table stickyHeader size="small">
+                            <Table stickyHeader size="medium">
                                 <TableHead>
                                     <TableRow>
                                         {['Dealer Name', 'Target', 'Actual Sales', 'Achieved %', 'Last Date'].map(head => (
@@ -266,7 +266,7 @@ export default function ReportsPage() {
                             </FormControl>
                         </Stack>
                         <TableContainer sx={{ maxHeight: 'calc(50vh - 130px)', overflowY: 'auto' }}>
-                            <Table stickyHeader size="small">
+                            <Table stickyHeader size="medium">
                                 <TableHead>
                                     <TableRow>
                                         {['Engineer Name', 'Assigned', 'Tickets', 'Completed', 'Pending', 'Achieved %'].map(head => (
