@@ -30,7 +30,7 @@ public class UserProfileController {
     }
 
     // ✅ Create profile (any role)
-    @PostMapping
+    @PostMapping("/create-profile")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserProfile> createProfile(@RequestBody UserProfileDto dto) {
         return ResponseEntity.ok(userProfileService.createProfile(dto));
