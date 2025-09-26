@@ -338,7 +338,7 @@ export default function ServiceManagement() {
                             <Button variant="contained" startIcon={<AddCircleOutlineIcon />}>Create New Ticket</Button>
                         </Stack>
                         <TableContainer sx={{ maxHeight: 'calc(100vh - 420px)', overflowY: 'auto' }}>
-                            <Table stickyHeader size="small">
+                            <Table stickyHeader size="medium">
                                 <TableHead>
                                     <TableRow>
                                         {['Ticket ID', 'Created Date', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date', 'Actions'].map(head => (

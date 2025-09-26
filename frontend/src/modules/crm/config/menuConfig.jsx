@@ -25,7 +25,6 @@ export const crmMenuConfig = {
     { label: "Billing & Invoices", path: "/crm/invoices", icon: <ReceiptIcon /> },
     { label: "Reports & Analytics", path: "/crm/reports", icon: <BarChartIcon /> },
     { label: "Settings", path: "/crm/settings", icon: <SettingsIcon /> },
-    { label: "Audit Logs", path: "/crm/audit-logs", icon: <HistoryIcon /> },
   ],
 
   subadmin: [
@@ -51,7 +50,7 @@ export const crmMenuConfig = {
   { label: "New Sales", path: "/crm/new-sales", icon: <AddShoppingCartIcon /> },
   { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
   { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
-  { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, // ✅ Added new menu
+  { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, 
  
   ],
   engineer: [

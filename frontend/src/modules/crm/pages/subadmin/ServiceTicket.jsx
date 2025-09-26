@@ -464,7 +464,7 @@ export default function AssignServiceTicket() {
                 </CardContent>
 
                 <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
-                    <Table stickyHeader size="small">
+                    <Table stickyHeader size="medium">
                         <TableHead>
                             <TableRow>
                                 {['Ticket ID', 'Created Date', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Actions'].map(head => (
