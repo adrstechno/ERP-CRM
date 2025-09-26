@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SaleDto {
-    private Long dealerLongId;
+    private Long dealerId;
     private Long customerId;
     private Long marketerId;
     private LocalDate saleDate;
