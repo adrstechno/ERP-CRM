@@ -1,9 +1,12 @@
 package com.erp.crm.models;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -14,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -31,7 +35,7 @@ public class User {
     private Long userId;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id",nullable = false)
+    @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
     private String name;
@@ -41,7 +45,7 @@ public class User {
 
     private String password;
     private String phone;
-    
+
     @Column(columnDefinition = "BIT(1) DEFAULT b'0'")
     private Boolean isActive = true;
 
@@ -51,9 +55,13 @@ public class User {
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;  
-    
-    @OneToOne (cascade = CascadeType.ALL, orphanRemoval = true)
+    private LocalDateTime updatedAt;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private UserProfile profile;
+
+    @OneToMany(mappedBy = "dealer", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Sale> dealerSales;
 
 }
