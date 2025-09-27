@@ -1,44 +1,34 @@
 package com.erp.crm.controllers;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.erp.crm.dto.SaleDto;
-import com.erp.crm.models.Sale;
+import com.erp.crm.dto.*;
 import com.erp.crm.services.SaleService;
-
-import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-
 @RestController
 @RequestMapping("/api/sales")
-@RequiredArgsConstructor
 public class SaleController {
+
     private final SaleService saleService;
-    
+
+    public SaleController(SaleService saleService) {
+        this.saleService = saleService;
+    }
+
     @PostMapping("/create-sale")
-    public ResponseEntity<Sale> createSale(@RequestBody SaleDto dto) {
-        Sale entity = saleService.createSale(dto);        
-        return ResponseEntity.ok(entity);
+    public ResponseEntity<SaleResponseDto> createSale(@RequestBody SaleRequestDto dto) {
+        return ResponseEntity.ok(saleService.createSale(dto));
     }
 
-    @GetMapping("/{saleId}")
-    public ResponseEntity<Sale> getSale(@PathVariable Long saleId) {
-        return ResponseEntity.ok(saleService.getSaleById(saleId));
+    @GetMapping("get-sale/{id}")
+    public ResponseEntity<SaleResponseDto> getSale(@PathVariable Long id) {
+        return ResponseEntity.ok(saleService.getSale(id));
     }
 
-    @GetMapping
-    public ResponseEntity<List<Sale>> getAllSales() {
+    @GetMapping("get-all-sales")
+    public ResponseEntity<List<SaleResponseDto>> getAllSales() {
         return ResponseEntity.ok(saleService.getAllSales());
     }
-    
-    
 }
