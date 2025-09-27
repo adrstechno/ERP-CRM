@@ -43,13 +43,13 @@ public class Sale {
 
     // Dealer as customer
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dealer_id")
+    @JoinColumn(name = "dealer_id", nullable = true , columnDefinition = "bigint DEFAULT 0")  // ✅ only JoinColumn
     private User dealer;
 
     // Retail customer
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "retail_customer_id")
-    private Customer retailCustomer;
+    @JoinColumn(name = "customer_id", nullable = true,columnDefinition = "bigint DEFAULT 0")  // ✅ only JoinColumn
+    private Customer customer;
 
     @Column(nullable = false)
     private LocalDate saleDate;
@@ -62,7 +62,7 @@ public class Sale {
 
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SaleItem> saleItems;
-    
+
     @OneToOne(mappedBy = "sale", cascade = CascadeType.ALL)
     private Invoice invoice;
 }

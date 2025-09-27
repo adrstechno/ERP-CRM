@@ -12,7 +12,7 @@ public class SaleRequestDto {
     private Long adminId;
     private Long marketerId;
     private Long dealerId;         // optional
-    private Long retailCustomerId; // optional
+    private Long customerId; // optional
     private LocalDate saleDate;
     private Double totalAmount;
     private List<SaleItemDto> items;
