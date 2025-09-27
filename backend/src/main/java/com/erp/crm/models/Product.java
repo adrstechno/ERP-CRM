@@ -15,16 +15,16 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Product {
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="product_id")
+    @Column(name = "product_id")
     private Long productId;
 
-     @Column(name="product_name")
+    @Column(name = "product_name")
     private String name;
     private String category;
     private Double price;
     private Integer warrantyMonths = 12;
+    private Integer stock;
 
-    private Integer stock; 
 }
