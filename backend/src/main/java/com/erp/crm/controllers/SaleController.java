@@ -31,4 +31,23 @@ public class SaleController {
     public ResponseEntity<List<SaleResponseDto>> getAllSales() {
         return ResponseEntity.ok(saleService.getAllSales());
     }
+
+    // ---------------- Dealer APIs ----------------
+
+    // Get all sales for a dealer
+    @GetMapping("/dealer/{dealerId}")
+    public ResponseEntity<List<SaleResponseDto>> getSalesByDealer(@PathVariable Long dealerId) {
+        return ResponseEntity.ok(saleService.getSalesByDealer(dealerId));
+    }
+
+    // Update sale status for any sale
+    // Update sale status for any sale
+    @PatchMapping("/{saleId}/status")
+    public ResponseEntity<SaleResponseDto> updateSaleStatus(
+            @PathVariable Long saleId,
+            @RequestBody SaleStatusDto statusDto) {
+        return ResponseEntity.ok(
+                saleService.updateSaleStatus(saleId, statusDto.getStatus()));
+    }
+
 }
