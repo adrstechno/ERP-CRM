@@ -47,8 +47,8 @@ import MarketerDashboard from "./pages/marketer/MarketerDashboard";
 import NewSales from "./pages/marketer/NewSales";
 import MySales from "./pages/marketer/MySales";
 import MarketerExpenses from "./pages/marketer/MarketerExpenses";
-import FreeServiceTracker from "./pages/marketer/FreeServiceTracker";
 import PayStatus from "./pages/marketer/PayStatus";
+import AddCustomer from "./pages/marketer/AddCustomer";
 
 
 
@@ -82,19 +82,16 @@ export default function CRMModule() {
         {crmUser?.role === "dealer" && (
           <>
           <Route path="dealer" element={<DealerDashboard />} />
-
-
           <Route path="stock-requests" element={<DealerStockRequests />} />
           <Route path="notices" element={<Notices />} />
 
-          
           </>
         )}
-
 
         {crmUser?.role === "marketer" && (
           <>
             <Route path="marketer" element={<MarketerDashboard />} />
+            <Route path="New-Customer" element={<AddCustomer />} />
             <Route path="new-sales" element={<NewSales />} />
             <Route path="mysales" element ={<MySales />} />
             <Route path="expenses" element={<MarketerExpenses />} />
