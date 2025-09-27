@@ -20,20 +20,20 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Customer {
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="customer_id")
+    @Column(name = "customer_id")
     private Long customerId;
 
-    @Column(name="customer_name",nullable = false, length = 150)
+    @Column(name = "customer_name", nullable = false, length = 150)
     private String customerName;
 
     private String phone;
     private String email;
     private String address;
 
-    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    // Map sales only for retail customers
+    @OneToMany(mappedBy = "retailCustomer", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Sale> sales;
 }
-
