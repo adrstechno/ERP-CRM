@@ -13,6 +13,7 @@ import HistoryIcon from "@mui/icons-material/History";
 import WorkIcon from "@mui/icons-material/Work";
 import MailIcon from "@mui/icons-material/Mail";
 import PaymentIcon from "@mui/icons-material/Payment";
+import PersonAddIcon from "@mui/icons-material/PersonAdd"; 
 
 export const crmMenuConfig = {
   admin: [
@@ -47,6 +48,7 @@ export const crmMenuConfig = {
 
    marketer :[
   { label: "Dashboard", path: "/crm/marketer", icon: <DashboardIcon /> },
+  { label: "New Customer", path: "/crm/New-Customer", icon: <PersonAddIcon /> },
   { label: "New Sales", path: "/crm/new-sales", icon: <AddShoppingCartIcon /> },
   { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
   { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
