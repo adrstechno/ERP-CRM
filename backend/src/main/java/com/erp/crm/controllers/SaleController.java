@@ -22,13 +22,27 @@ public class SaleController {
         return ResponseEntity.ok(saleService.createSale(dto));
     }
 
-    @GetMapping("get-sale/{id}")
+    @GetMapping("/get-sale/{id}")
     public ResponseEntity<SaleResponseDto> getSale(@PathVariable Long id) {
         return ResponseEntity.ok(saleService.getSale(id));
     }
 
-    @GetMapping("get-all-sales")
+    @GetMapping("/get-all-sales")
     public ResponseEntity<List<SaleResponseDto>> getAllSales() {
         return ResponseEntity.ok(saleService.getAllSales());
+    }
+
+    // Dealer-specific sales
+    @GetMapping("/dealer/{dealerId}")
+    public ResponseEntity<List<SaleResponseDto>> getSalesByDealer(@PathVariable Long dealerId) {
+        return ResponseEntity.ok(saleService.getSalesByDealer(dealerId));
+    }
+
+    // Global update sale status
+    @PatchMapping("/{saleId}/status")
+    public ResponseEntity<SaleResponseDto> updateSaleStatus(
+            @PathVariable Long saleId,
+            @RequestBody SaleStatusDto statusDto) {
+        return ResponseEntity.ok(saleService.updateSaleStatus(saleId, statusDto.getStatus()));
     }
 }
