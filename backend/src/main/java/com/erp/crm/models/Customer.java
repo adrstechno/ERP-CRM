@@ -33,7 +33,7 @@ public class Customer {
     private String address;
 
     // Map sales only for retail customers
-    @OneToMany(mappedBy = "retailCustomer", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Sale> sales;
 }
