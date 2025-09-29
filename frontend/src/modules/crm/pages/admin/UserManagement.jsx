@@ -762,6 +762,9 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Visibility from '@mui/icons-material/Visibility';
 
+
+const REACT_APP_BASE_URL =  "http://localhost:8080";
+
 // --- Mock Data (Expanded for Scrolling) ---
 // const usersData = [
 //     { id: 1, name: 'USER_1', role: 'Marketer', status: 'Active', email: 'user1@gmail.com', password: 'pass1', gstNumber: '27AAAPL1234C1ZV', panNumber: 'AAAPL1234C', address: '101, Market Road', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', accountNo: '1234567890', bankName: 'HDFC Bank', ifscCode: 'HDFC0001234' },
@@ -776,7 +779,7 @@ async function createUserApi(userData) {
     try {
         const authKey = localStorage.getItem("authKey");
         const response = await axios.post(
-            "http://localhost:8080/api/admin/create-user?",
+            `${REACT_APP_BASE_URL}/api/admin/create-user?`,
             userData,
             {
                 headers: {
@@ -825,7 +828,7 @@ export default function UserManagement() {
         const fetchUsers = async () => {
             try {
                 const authKey = localStorage.getItem("authKey");
-                const response = await axios.get("http://localhost:8080/api/admin/users",
+                const response = await axios.get(`${REACT_APP_BASE_URL}/api/admin/users`,
                     {
                         headers: {
                             Authorization: `Bearer ${authKey}`,
@@ -879,7 +882,7 @@ export default function UserManagement() {
         try {
             const authKey = localStorage.getItem("authKey");
             const response = await axios.put(
-                `http://localhost:8080/api/profiles/update/${user.userId}`,
+                `${REACT_APP_BASE_URL}/api/profiles/update/${user.userId}`,
                 payload, {
                     headers: {
                         Authorization: `Bearer ${authKey}`,
@@ -939,7 +942,7 @@ export default function UserManagement() {
         try {
             const authKey = localStorage.getItem("authKey");
             const response = await axios.get(
-                `http://localhost:8080/api/profiles/${userId}`, {
+                `${REACT_APP_BASE_URL}/api/profiles/${userId}`, {
                     headers: {
                         Authorization: `Bearer ${authKey}`,
                     },

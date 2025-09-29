@@ -32,6 +32,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    
 
     // Modern authentication manager configuration
     @Bean

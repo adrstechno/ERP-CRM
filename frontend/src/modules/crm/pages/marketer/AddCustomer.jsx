@@ -392,7 +392,13 @@ export default function Customers() {
     setIsSubmitting(true);
 
     try {
-        const authKey = localStorage.getItem("authkey")
+        
+        const authKey = localStorage.getItem("authKey");
+        if (!authKey) {
+    console.error("Authentication token not found in localStorage!");
+    // You should probably alert the user or redirect to login here.
+    return;
+  }
       const res = await fetch(`${BASE_URL}/customer/create-customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json',Authorization: `Bearer ${authKey}`,
