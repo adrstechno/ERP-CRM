@@ -18,9 +18,8 @@ import com.erp.crm.repositories.UserRepository;
 public class UserService {
     private final UserRepository userRepo;
     private final RoleRepository roleRepo;
-    private final PasswordEncoder passwordEncoder; 
+    private final PasswordEncoder passwordEncoder;
 
-   
     public UserService(UserRepository userRepo, RoleRepository roleRepo, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
@@ -28,7 +27,8 @@ public class UserService {
     }
 
     public User createUser(AdminCreateUserDTO dto) {
-        Role role = roleRepo.findByName(dto.getRole()).orElseThrow(()-> new RuntimeException("Role not found : " + dto.getRole()));
+        Role role = roleRepo.findByName(dto.getRole())
+                .orElseThrow(() -> new RuntimeException("Role not found : " + dto.getRole()));
 
         User user = new User();
         user.setName(dto.getName());
@@ -40,59 +40,62 @@ public class UserService {
 
         return userRepo.save(user);
     }
-    
+
     public User updateUser(Long userId, UserDTO dto) {
         User existingUser = getUserById(userId);
         return userRepo.save(mapDtoToEntity(existingUser, dto));
-    } 
+    }
 
-    public void deleteUser(Long userId){
+    public void deleteUser(Long userId) {
         User user = getUserById(userId);
-        userRepo.delete(user);
+        if (Boolean.FALSE.equals(user.getIsActive())) {
+            throw new RuntimeException("User is already inactive");
+        }
+        user.setIsActive(false);
+        userRepo.save(user);
     }
 
     public String login(LoginRequestDTO dto) {
-        User user = userRepo.findByEmail(dto.getEmail()).orElseThrow(() -> 
-            new RuntimeException("User not found by email : " + dto.getEmail()));
+        User user = userRepo.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found by email : " + dto.getEmail()));
 
-        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
-        if(!user.getIsActive()) {
+        if (!user.getIsActive()) {
             throw new RuntimeException("User account is deactivated");
         }
 
         return "Login successful for user: " + user.getEmail() + " with role: " + user.getRole().getName();
     }
 
-     public Optional<User> getUserByEmail(String email) {
+    public Optional<User> getUserByEmail(String email) {
         return userRepo.findByEmail(email);
     }
 
-    public List<User> getUserByName(String name){
+    public List<User> getUserByName(String name) {
         return userRepo.findByName(name);
     }
 
-
-    public List<User> getAllUser(){
+    public List<User> getAllUser() {
         return userRepo.findByUserIdGreaterThanEqualOrderByUserIdDesc(2L);
     }
 
-    public List<User> getAllUserByRole(String role){
+    public List<User> getAllUserByRole(String role) {
         return userRepo.findByRoleName(role);
     }
 
     public Optional<Role> getRoleByName(String roleName) {
         return roleRepo.findByName(roleName);
-    } 
+    }
 
     public User getUserById(Long userId) {
         return userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("❌ Profile not found for userId: " + userId));
     }
 
-      public User mapDtoToEntity(User user, UserDTO dto) {
+    public User mapDtoToEntity(User user, UserDTO dto) {
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
 
