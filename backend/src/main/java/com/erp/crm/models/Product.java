@@ -1,12 +1,6 @@
 package com.erp.crm.models;
 
-import jakarta.persistence.Table;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,16 +9,32 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Product {
-    @Id 
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="product_id")
+    @Column(name = "product_id")
     private Long productId;
 
-     @Column(name="product_name")
+    @Column(name = "product_name", nullable = false, length = 150)
     private String name;
+
+    @Column(nullable = false, length = 100)
     private String category;
+
+    @Column(nullable = false)
     private Double price;
+
+    @Column(name = "warranty_months")
     private Integer warrantyMonths = 12;
 
-    private Integer stock; 
+    @Column(nullable = false)
+    private Integer stock = 0;
+
+    // Optional: convenience method to update stock
+    public void adjustStock(int quantity) {
+        if (this.stock + quantity < 0) {
+            throw new RuntimeException("Insufficient stock for product: " + this.name);
+        }
+        this.stock += quantity;
+    }
 }

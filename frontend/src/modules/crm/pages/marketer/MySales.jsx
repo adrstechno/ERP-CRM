@@ -1,169 +1,245 @@
-import React, { useState } from 'react';
+// import React, { useState, useEffect, useCallback } from 'react';
+// import {
+//     Box, Card, CardContent, Typography, useTheme,
+//     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+//     Stack, Chip, IconButton, Skeleton
+// } from '@mui/material';
+// import { FileDownloadOutlined } from '@mui/icons-material';
+// import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+// import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+// import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+// import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+// import dayjs from 'dayjs';
+
+// // --- API Simulation ---
+// const mockOrdersData = [
+//     { id: '#1532', date: '2025-09-24T10:06:00Z', customer: 'Lal Singh Chaddha', status: 'Paid', total: 329.60 },
+//     { id: '#1531', date: '2025-09-23T14:39:00Z', customer: 'ACME Corp', status: 'Pending', total: 87.24 },
+//     { id: '#1530', date: '2025-09-23T12:54:00Z', customer: 'Global Tech', status: 'Pending', total: 52.16 },
+//     { id: '#1529', date: '2025-09-22T15:32:00Z', customer: 'Home Essentials', status: 'Paid', total: 350.12 },
+//     { id: '#1528', date: '2025-09-21T14:20:00Z', customer: 'Sunrise Apartments', status: 'Pending', total: 246.78 },
+//     { id: '#1527', date: '2025-09-20T09:48:00Z', customer: 'Lal Singh Chaddha', status: 'Paid', total: 64.00 },
+//     { id: '#1526', date: '2025-09-19T11:00:00Z', customer: 'ACME Corp', status: 'Paid', total: 1024.00 },
+// ];
+
+// // --- Helper Component ---
+// const StatusChip = ({ status }) => {
+//     const theme = useTheme();
+//     const isPaid = status.toLowerCase() === 'paid';
+    
+//     const chipColor = isPaid ? theme.palette.success : theme.palette.warning;
+
+//     return (
+//         <Chip 
+//             label={status} 
+//             size="large"
+//             sx={{
+//                 backgroundColor: chipColor.light + '30', // Adding opacity
+//                 color: chipColor.dark,
+//                 fontWeight: 600,
+//             }}
+//         />
+//     );
+// };
+
+
+// // --- Main Component ---
+// export default function MySalesPage() {
+//     const theme = useTheme();
+//     const [selectedDate, setSelectedDate] = useState(dayjs());
+//     const [orders, setOrders] = useState([]);
+//     const [isLoading, setIsLoading] = useState(true);
+
+//     const fetchOrders = useCallback(async () => {
+//         setIsLoading(true);
+//         // Simulate API call based on selectedDate
+//         console.log(`Fetching orders for ${selectedDate.format('YYYY-MM-DD')}...`);
+//         setTimeout(() => {
+//             setOrders(mockOrdersData);
+//             setIsLoading(false);
+//         }, 1500);
+//     }, [selectedDate]);
+
+//     useEffect(() => {
+//         fetchOrders();
+//     }, [fetchOrders]);
+
+//     return (
+//         <LocalizationProvider dateAdapter={AdapterDayjs}>
+//             <Box>
+//                  <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+//                     <CardContent>
+//                         {/* Page Header */}
+//                         <Stack direction={{xs: 'column', sm: 'row'}} justifyContent="space-between" alignItems="center" spacing={2} mb={2}>
+//                              <Stack direction="row" spacing={1.5} alignItems="center">
+//                                 <ReceiptLongIcon color="primary" />
+//                                 <Typography variant="h6" fontWeight="bold">My Sales</Typography>
+//                             </Stack>
+
+//                             <DatePicker
+//                                 value={selectedDate}
+//                                 onChange={(newValue) => setSelectedDate(newValue)}
+//                                 slotProps={{ textField: { size: 'large' } }}
+//                             />
+//                         </Stack>
+//                     </CardContent>
+
+//                     {/* Orders Table */}
+//                     <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
+//                         <Table stickyHeader size="large">
+//                             <TableHead>
+//                                 <TableRow>
+//                                     {['Order ID', 'Date', 'Customer Name', 'Status', 'Total', 'Invoice'].map(head => (
+//                                         <TableCell key={head} sx={{ whiteSpace: 'nowrap' }}>{head}</TableCell>
+//                                     ))}
+//                                 </TableRow>
+//                             </TableHead>
+//                             <TableBody>
+//                                 {isLoading ? (
+//                                     Array.from(new Array(6)).map((_, index) => (
+//                                         <TableRow key={index}><TableCell colSpan={6}><Skeleton animation="wave" /></TableCell></TableRow>
+//                                     ))
+//                                 ) : (
+//                                     orders.map((order) => (
+//                                         <TableRow key={order.id} hover>
+//                                             <TableCell sx={{ fontWeight: 'bold' }}>{order.id}</TableCell>
+//                                             <TableCell>{dayjs(order.date).format('DD MMM, hh:mm A')}</TableCell>
+//                                             <TableCell>{order.customer}</TableCell>
+//                                             <TableCell><StatusChip status={order.status} /></TableCell>
+//                                             <TableCell sx={{ fontWeight: 'bold' }}>₹{order.total.toLocaleString('en-IN')}</TableCell>
+//                                             <TableCell align="center">
+//                                                 <IconButton size="small">
+//                                                     <FileDownloadOutlined fontSize="small"/>
+//                                                 </IconButton>
+//                                             </TableCell>
+//                                         </TableRow>
+//                                     ))
+//                                 )}
+//                             </TableBody>
+//                         </Table>
+//                     </TableContainer>
+//                 </Card>
+//             </Box>
+//         </LocalizationProvider>
+//     );
+// }
+
+
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  IconButton,
-  useTheme,
+    Box, Card, CardContent, Typography,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    Stack, Chip, IconButton, Skeleton
 } from '@mui/material';
-import {
-  FileDownloadOutlined,
-  UnfoldMore,
-} from '@mui/icons-material';
+import { FileDownloadOutlined } from '@mui/icons-material';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
-// --- DATA ---
-const ordersData = [
-  { id: '#1532', date: 'Dec 30, 10:06 AM', customer: 'Lal Singh Chaddha', status: 'Paid', total: '$ 329.60' },
-  { id: '#1531', date: 'Dec 29, 2:39 AM', customer: 'Lal Singh Chaddha', status: 'Pending', total: '$ 87.24' },
-  { id: '#1530', date: 'Dec 29, 12:54 AM', customer: 'Lal Singh Chaddha', status: 'Pending', total: '$ 52.16' },
-  { id: '#1529', date: 'Dec 28, 3:32 PM', customer: 'Lal Singh Chaddha', status: 'Paid', total: '$ 350.12' },
-  { id: '#1528', date: 'Dec 27, 2:20 PM', customer: 'Lal Singh Chaddha', status: 'Pending', total: '$ 246.78' },
-  { id: '#1527', date: 'Dec 26, 9:48 AM', customer: 'Lal Singh Chaddha', status: 'Paid', total: '$ 64.00' },
+// --- API Simulation (Updated with Dealer and Marketer) ---
+const mockOrdersData = [
+    { id: '#1532', date: '2025-09-24T10:06:00Z', dealer: 'CoolAir Traders', customer: 'Lal Singh Chaddha', marketer: 'Rajesh Kumar', status: 'Paid', total: 329.60 },
+    { id: '#1531', date: '2025-09-23T14:39:00Z', dealer: 'Arctic Systems', customer: 'ACME Corp', marketer: 'Priya Singh', status: 'Pending', total: 87.24 },
+    { id: '#1530', date: '2025-09-23T12:54:00Z', dealer: 'Zenith Corp', customer: 'Global Tech', marketer: 'Rajesh Kumar', status: 'Pending', total: 52.16 },
+    { id: '#1529', date: '2025-09-22T15:32:00Z', dealer: 'CoolAir Traders', customer: 'Home Essentials', marketer: 'Anjali Mehta', status: 'Paid', total: 350.12 },
+    { id: '#1528', date: '2025-09-21T14:20:00Z', dealer: 'Evergreen Pvt.', customer: 'Sunrise Apartments', marketer: 'Priya Singh', status: 'Pending', total: 246.78 },
+    { id: '#1527', date: '2025-09-20T09:48:00Z', dealer: 'Arctic Systems', customer: 'Lal Singh Chaddha', marketer: 'Rajesh Kumar', status: 'Paid', total: 64.00 },
 ];
 
-// Status chip with theme aware colors
-const getStatusChip = (status, theme) => {
-  const styles = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '4px 8px',
-    borderRadius: '12px',
-    fontSize: '0.75rem',
-    fontWeight: 600,
-  };
+// --- Helper Component ---
+const StatusChip = React.memo(({ status }) => {
+    return (
+        <Chip
+            label={status}
+            size="small"
+            variant="outlined"
+            color={status === 'Paid' ? 'success' : 'warning'}
+            sx={{ fontWeight: 600 }}
+        />
+    );
+});
 
-  switch (status.toLowerCase()) {
-    case 'paid':
-      return (
-        <Box
-          sx={{
-            ...styles,
-            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.15)' : 'rgba(16, 185, 129, 0.1)',
-            color: '#10B981',
-          }}
-        >
-          <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#10B981', mr: 1 }} />
-          Paid
-        </Box>
-      );
-    case 'pending':
-      return (
-        <Box
-          sx={{
-            ...styles,
-            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.15)' : 'rgba(234, 179, 8, 0.1)',
-            color: '#EAB308',
-          }}
-        >
-          <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#EAB308', mr: 1 }} />
-          Pending
-        </Box>
-      );
-    default:
-      return null;
-  }
-};
 
+// --- Main Component ---
 export default function MySalesPage() {
-  const theme = useTheme();
-  const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [orders, setOrders] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-  const headerTextStyle = {
-    color: theme.palette.text.secondary,
-    fontSize: '0.8rem',
-    fontWeight: '600',
-    display: 'flex',
-    alignItems: 'center',
-  };
+    const fetchOrders = useCallback(async () => {
+        setIsLoading(true);
+        // Simulate API call based on selectedDate
+        console.log(`Fetching orders for ${selectedDate.format('YYYY-MM-DD')}...`);
+        setTimeout(() => {
+            setOrders(mockOrdersData);
+            setIsLoading(false);
+        }, 1500);
+    }, [selectedDate]);
 
-  return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box p={3} sx={{ backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
-        {/* Page Header */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5" fontWeight="bold">
-            Recent orders
-          </Typography>
+    useEffect(() => {
+        fetchOrders();
+    }, [fetchOrders]);
 
-          {/* Calendar Date Picker */}
-          <DatePicker
-            value={selectedDate}
-            onChange={(newValue) => setSelectedDate(newValue)}
-            slotProps={{
-              textField: {
-                size: 'small',
-                sx: {
-                  backgroundColor: theme.palette.background.paper,
-                  borderRadius: 1,
-                  input: { color: theme.palette.text.primary },
-                  svg: { color: theme.palette.text.secondary },
-                },
-              },
-            }}
-          />
-        </Box>
-
-        {/* Orders Table */}
-        <Card sx={{ backgroundColor: theme.palette.background.paper, borderRadius: 2 }}>
-          <CardContent sx={{ padding: '8px' }}>
-            {/* Table Header */}
-            <Box
-              display="flex"
-              alignItems="center"
-              p={2}
-              sx={{
-                borderBottom: `1px solid ${theme.palette.divider}`,
-              }}
-            >
-              <Typography sx={{ ...headerTextStyle, flexBasis: '15%' }}>Order id</Typography>
-              <Typography sx={{ ...headerTextStyle, flexBasis: '20%' }}>
-                Date <UnfoldMore sx={{ fontSize: '1rem', ml: 0.5 }} />
-              </Typography>
-              <Typography sx={{ ...headerTextStyle, flexBasis: '25%' }}>Customer Name</Typography>
-              <Typography sx={{ ...headerTextStyle, flexBasis: '15%' }}>
-                Status <UnfoldMore sx={{ fontSize: '1rem', ml: 0.5 }} />
-              </Typography>
-              <Typography sx={{ ...headerTextStyle, flexBasis: '15%' }}>Total</Typography>
-              <Typography sx={{ ...headerTextStyle, flexBasis: '10%', justifyContent: 'center' }}>
-                DOWNLOAD INVOICE
-              </Typography>
-            </Box>
-
-            {/* Table Body */}
+    return (
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box>
-              {ordersData.map((order, index) => (
-                <Box
-                  key={index}
-                  display="flex"
-                  alignItems="center"
-                  p={2}
-                  sx={{
-                    borderBottom: `1px solid ${theme.palette.divider}`,
-                    '&:last-child': { borderBottom: 'none' },
-                    fontSize: '0.85rem',
-                  }}
-                >
-                  <Typography sx={{ flexBasis: '15%', fontWeight: 'bold' }}>{order.id}</Typography>
-                  <Typography sx={{ flexBasis: '20%', color: theme.palette.text.secondary }}>{order.date}</Typography>
-                  <Typography sx={{ flexBasis: '25%' }}>{order.customer}</Typography>
-                  <Box sx={{ flexBasis: '15%' }}>{getStatusChip(order.status, theme)}</Box>
-                  <Typography sx={{ flexBasis: '15%', fontWeight: 'bold' }}>{order.total}</Typography>
-                  <Box sx={{ flexBasis: '10%', display: 'flex', justifyContent: 'center' }}>
-                    <IconButton sx={{ color: theme.palette.text.secondary }}>
-                      <FileDownloadOutlined />
-                    </IconButton>
-                  </Box>
-                </Box>
-              ))}
+                 <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+                    <CardContent>
+                        {/* Page Header */}
+                        <Stack direction={{xs: 'column', sm: 'row'}} justifyContent="space-between" alignItems="center" spacing={2} mb={2}>
+                             <Stack direction="row" spacing={1.5} alignItems="center">
+                                <ReceiptLongIcon color="primary" />
+                                <Typography variant="h6" fontWeight="bold">My Sales</Typography>
+                            </Stack>
+
+                            <DatePicker
+                                value={selectedDate}
+                                onChange={(newValue) => setSelectedDate(newValue)}
+                                slotProps={{ textField: { size: 'small' } }}
+                            />
+                        </Stack>
+                    </CardContent>
+
+                    {/* Orders Table */}
+                    <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
+                        <Table stickyHeader size="medium">
+                            <TableHead>
+                                <TableRow>
+                                    {['Order ID', 'Date', 'Dealer', 'Customer Name', 'Marketer', 'Status', 'Total', 'Invoice'].map(head => (
+                                        <TableCell key={head} sx={{ whiteSpace: 'nowrap' }}>{head}</TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {isLoading ? (
+                                    Array.from(new Array(6)).map((_, index) => (
+                                        <TableRow key={index}><TableCell colSpan={8}><Skeleton animation="wave" /></TableCell></TableRow>
+                                    ))
+                                ) : (
+                                    orders.map((order) => (
+                                        <TableRow key={order.id} hover>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>{order.id}</TableCell>
+                                            <TableCell>{dayjs(order.date).format('DD MMM, hh:mm A')}</TableCell>
+                                            <TableCell>{order.dealer}</TableCell>
+                                            <TableCell>{order.customer}</TableCell>
+                                            <TableCell>{order.marketer}</TableCell>
+                                            <TableCell><StatusChip status={order.status} /></TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>₹{order.total.toLocaleString('en-IN')}</TableCell>
+                                            <TableCell align="center">
+                                                <IconButton size="small">
+                                                    <FileDownloadOutlined fontSize="small"/>
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Card>
             </Box>
-          </CardContent>
-        </Card>
-      </Box>
-    </LocalizationProvider>
-  );
+        </LocalizationProvider>
+    );
 }

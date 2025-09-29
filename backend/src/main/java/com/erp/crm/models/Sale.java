@@ -28,24 +28,31 @@ import lombok.Setter;
 public class Sale {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="sale_id")
+    @Column(name = "sale_id")
     private Long saleId;
 
+    // Admin (super stockist)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dealer_id", nullable = false)
-    private User dealer;
+    @JoinColumn(name = "admin_id", nullable = false)
+    private User admin;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer;
-
+    // Created by marketer
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "marketer_id", nullable = false)
-    private User marketer; 
+    private User marketer;
+
+    // Dealer as customer
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dealer_id", nullable = true , columnDefinition = "bigint DEFAULT 0")  // ✅ only JoinColumn
+    private User dealer;
+
+    // Retail customer
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = true,columnDefinition = "bigint DEFAULT 0")  // ✅ only JoinColumn
+    private Customer customer;
 
     @Column(nullable = false)
     private LocalDate saleDate;
-
 
     @Column(nullable = false)
     private Double totalAmount;
@@ -53,15 +60,9 @@ public class Sale {
     @Enumerated(EnumType.STRING)
     private SaleStatus saleStatus = SaleStatus.PENDING;
 
-    
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SaleItem> saleItems;
 
     @OneToOne(mappedBy = "sale", cascade = CascadeType.ALL)
     private Invoice invoice;
 }
-
-
-
-
-

@@ -2,8 +2,11 @@ package com.erp.crm.models;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,20 +20,20 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Customer {
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="customer_id")
+    @Column(name = "customer_id")
     private Long customerId;
 
-    @Column(name="customer_name",nullable = false, length = 150)
+    @Column(name = "customer_name", nullable = false, length = 150)
     private String customerName;
 
     private String phone;
     private String email;
     private String address;
 
-
-    @OneToMany(mappedBy = "customer")
+    // Map sales only for retail customers
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Sale> sales;
 }
-

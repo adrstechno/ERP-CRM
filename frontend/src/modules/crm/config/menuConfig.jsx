@@ -3,6 +3,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -12,6 +13,7 @@ import HistoryIcon from "@mui/icons-material/History";
 import WorkIcon from "@mui/icons-material/Work";
 import MailIcon from "@mui/icons-material/Mail";
 import PaymentIcon from "@mui/icons-material/Payment";
+import PersonAddIcon from "@mui/icons-material/PersonAdd"; 
 
 export const crmMenuConfig = {
   admin: [
@@ -24,7 +26,6 @@ export const crmMenuConfig = {
     { label: "Billing & Invoices", path: "/crm/invoices", icon: <ReceiptIcon /> },
     { label: "Reports & Analytics", path: "/crm/reports", icon: <BarChartIcon /> },
     { label: "Settings", path: "/crm/settings", icon: <SettingsIcon /> },
-    { label: "Audit Logs", path: "/crm/audit-logs", icon: <HistoryIcon /> },
   ],
 
   subadmin: [
@@ -47,10 +48,12 @@ export const crmMenuConfig = {
 
    marketer :[
   { label: "Dashboard", path: "/crm/marketer", icon: <DashboardIcon /> },
-  { label: "Add Customers", path: "/crm/customers", icon: <PeopleIcon /> },
+  { label: "New Customer", path: "/crm/New-Customer", icon: <PersonAddIcon /> },
+  { label: "New Sales", path: "/crm/new-sales", icon: <AddShoppingCartIcon /> },
   { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
   { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
-  { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, // ✅ Added new menu
+  { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, 
+ 
   ],
   engineer: [
     { label: "Dashboard", path: "/crm/serviceengineer", icon: <DashboardIcon /> },

@@ -15,7 +15,7 @@ import Service from "./pages/admin/Service"
 import BillingNInvoice from "./pages/admin/BillingNInvoice"
 import ReportsAnalytics from "./pages/admin/ReportsAnalytics"
 import Setting from "./pages/admin/Settings"
-import AuditLogs from "./pages/admin/AuditLogs"
+
 
 
 //Dealer
@@ -35,7 +35,6 @@ import Reports from "./pages/subadmin/Reports";
 
 //ServiceEngg.
 import ServiceEngineerDashboard from "./pages/serviceengineer/ServiceEngineerDashboard"
-// import Reports from "./pages/serviceengineer/Reports";
 import AssignReport from "./pages/serviceengineer/AssignReport";
 import ServiceReport from "./pages/serviceengineer/ServiceReport";
 import Rimburesement from "./pages/serviceengineer/Rimbersment";
@@ -45,11 +44,10 @@ import Rimburesement from "./pages/serviceengineer/Rimbersment";
 //Marketer
 import MarketerDashboard from "./pages/marketer/MarketerDashboard";
 import NewSales from "./pages/marketer/NewSales";
-import Customers from "./pages/marketer/Customers";
 import MySales from "./pages/marketer/MySales";
 import MarketerExpenses from "./pages/marketer/MarketerExpenses";
-import FreeServiceTracker from "./pages/marketer/FreeServiceTracker";
 import PayStatus from "./pages/marketer/PayStatus";
+import AddCustomer from "./pages/marketer/AddCustomer";
 
 
 
@@ -75,7 +73,7 @@ export default function CRMModule() {
           <Route path="invoices" element = {<BillingNInvoice />} />
           <Route path="reports" element = {<ReportsAnalytics />} />
          <Route path="settings" element  ={<Setting />} />
-          <Route path="audit-logs" element = {<AuditLogs />} />
+       
            </>
 
         )}
@@ -83,22 +81,18 @@ export default function CRMModule() {
         {crmUser?.role === "dealer" && (
           <>
           <Route path="dealer" element={<DealerDashboard />} />
-
-
           <Route path="stock-requests" element={<DealerStockRequests />} />
           <Route path="notices" element={<Notices />} />
 
-          
           </>
         )}
-
 
         {crmUser?.role === "marketer" && (
           <>
             <Route path="marketer" element={<MarketerDashboard />} />
+            <Route path="New-Customer" element={<AddCustomer />} />
             <Route path="new-sales" element={<NewSales />} />
             <Route path="mysales" element ={<MySales />} />
-            <Route path="customers" element={<Customers />} />
             <Route path="expenses" element={<MarketerExpenses />} />
             <Route path="paystatus" element={<PayStatus />} />
           </>

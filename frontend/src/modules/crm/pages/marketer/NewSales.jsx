@@ -1,169 +1,301 @@
-import React, { useState } from 'react';
+
+// import React, { useState, useMemo, useCallback } from 'react';
+// import {
+//     Box, Card, CardContent, Typography,
+//     TextField, Button, Stack, CircularProgress, Grid, InputLabel, Select, MenuItem, FormControl, InputAdornment
+// } from '@mui/material';
+// import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
+// import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
+// import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
+// import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
+// import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+// import NumbersOutlinedIcon from '@mui/icons-material/NumbersOutlined';
+// import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
+// import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+// import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+// import dayjs from 'dayjs';
+
+// // --- API Simulation & Mock Data ---
+// const mockDealers = ['CoolAir Traders', 'Arctic Systems', 'Zenith Corp'];
+// const mockCustomers = ['Lal Singh Chaddha', 'ACME Corp', 'Global Tech'];
+// const mockMarketers = ['Rajesh Kumar', 'Priya Singh', 'Anjali Mehta'];
+// const mockProducts = [
+//     { name: '1.5 Ton 5 Star AC', price: 38000 },
+//     { name: 'Cooling Coils (Set)', price: 4500 },
+//     { name: 'Digital Thermostat', price: 1200 },
+// ];
+
+// // --- Main Component ---
+// export default function NewSales() {
+//     const [isSubmitting, setIsSubmitting] = useState(false);
+//     const [form, setForm] = useState({
+//         dealer: '',
+//         customer: '',
+//         marketer: '',
+//         salesItem: '',
+//         date: dayjs(),
+//         quantity: 1,
+//         perUnit: 0,
+//     });
+
+//     const handleChange = (e) => {
+//         const { name, value } = e.target;
+        
+//         let processedValue = value;
+//         // Ensure quantity is a positive number (at least 1)
+//         if (name === 'quantity' && value !== '' && Number(value) < 1) {
+//             processedValue = 1;
+//         }
+//         // Ensure per unit price is not negative
+//         if (name === 'perUnit' && value !== '' && Number(value) < 0) {
+//             processedValue = 0;
+//         }
+
+//         const newForm = { ...form, [name]: processedValue };
+
+//         if (name === 'salesItem') {
+//             const product = mockProducts.find(p => p.name === value);
+//             newForm.perUnit = product ? product.price : 0;
+//         }
+
+//         setForm(newForm);
+//     };
+
+//     const handleDateChange = (newDate) => {
+//         setForm({ ...form, date: newDate });
+//     };
+
+//     const amount = useMemo(() => {
+//         const qty = parseFloat(form.quantity);
+//         const price = parseFloat(form.perUnit);
+//         return isNaN(qty) || isNaN(price) ? 0 : qty * price;
+//     }, [form.quantity, form.perUnit]);
+
+
+//     const handleSubmit = useCallback(async (e) => {
+//         e.preventDefault();
+//         setIsSubmitting(true);
+//         const finalData = { ...form, amount, date: form.date.format('YYYY-MM-DD') };
+//         console.log("Submitting New Sale:", finalData);
+//         // Simulate API call
+//         await new Promise(resolve => setTimeout(resolve, 2000));
+//         setIsSubmitting(false);
+//         // Reset form or show success message
+//     }, [form, amount]);
+
+//     return (
+//         <LocalizationProvider dateAdapter={AdapterDayjs}>
+//             <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+//                 <Card sx={{ maxWidth: '600px', width: '100%' }}>
+//                     <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
+//                         <Stack direction="row" spacing={1.5} alignItems="center" mb={1}>
+//                             <PointOfSaleIcon color="primary" />
+//                             <Typography variant="h5" fontWeight="bold">New Sale Entry</Typography>
+//                         </Stack>
+//                         <Typography variant="body2" color="text.secondary" mb={3}>
+//                             Enter the details for the new sales transaction.
+//                         </Typography>
+
+//                         <Box component="form" onSubmit={handleSubmit}>
+//                             <Stack spacing={2.5}>
+//                                 <FormControl fullWidth><InputLabel>Dealer</InputLabel><Select name="dealer" label="Dealer" value={form.dealer} onChange={handleChange}>{mockDealers.map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)}</Select></FormControl>
+//                                 <FormControl fullWidth><InputLabel>Customer</InputLabel><Select name="customer" label="Customer" value={form.customer} onChange={handleChange}>{mockCustomers.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}</Select></FormControl>
+//                                 <FormControl fullWidth><InputLabel>Marketer</InputLabel><Select name="marketer" label="Marketer" value={form.marketer} onChange={handleChange}>{mockMarketers.map(m => <MenuItem key={m} value={m}>{m}</MenuItem>)}</Select></FormControl>
+//                                 <FormControl fullWidth><InputLabel>Sales Item</InputLabel><Select name="salesItem" label="Sales Item" value={form.salesItem} onChange={handleChange}>{mockProducts.map(p => <MenuItem key={p.name} value={p.name}>{p.name}</MenuItem>)}</Select></FormControl>
+                                
+//                                 <DatePicker label="Sale Date" value={form.date} onChange={handleDateChange} sx={{ width: '100%' }} />
+
+//                                 <Grid container spacing={2}>
+//                                     <Grid item xs={6}><TextField fullWidth name="quantity" label="Quantity" type="number" value={form.quantity} onChange={handleChange} inputProps={{ min: 1 }} /></Grid>
+//                                     <Grid item xs={6}><TextField fullWidth name="perUnit" label="Per Unit (₹)" type="number" value={form.perUnit} onChange={handleChange} inputProps={{ min: 0 }} /></Grid>
+//                                 </Grid>
+                                
+//                                 <TextField fullWidth name="amount" label="Total Amount (₹)" value={amount.toLocaleString('en-IN')} InputProps={{ readOnly: true, startAdornment: <InputAdornment position="start"><Typography fontWeight="bold">₹</Typography></InputAdornment> }} variant="filled" />
+                                
+//                                 <Button
+//                                     type="submit"
+//                                     variant="contained"
+//                                     size="large"
+//                                     fullWidth
+//                                     disabled={isSubmitting}
+//                                     startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
+//                                     sx={{ py: 1.5, mt: 2 }}
+//                                 >
+//                                     {isSubmitting ? 'Submitting...' : 'Submit Sale'}
+//                                 </Button>
+//                             </Stack>
+//                         </Box>
+//                     </CardContent>
+//                 </Card>
+//             </Box>
+//         </LocalizationProvider>
+//     );
+// }
+
+
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  IconButton,
-  useTheme,
+    Box, Card, CardContent, Typography,
+    TextField, Button, Stack, CircularProgress, Grid, InputLabel, Select, MenuItem, FormControl, InputAdornment,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Chip
 } from '@mui/material';
-import {
-  FileDownloadOutlined,
-  UnfoldMore,
-} from '@mui/icons-material';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'; // Corrected Import
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
-// --- DATA ---
-const ordersData = [
-  { id: '#1532', date: 'Dec 30, 10:06 AM', customer: 'Lal Singh Chaddha', status: 'Paid', total: '$ 329.60' },
-  { id: '#1531', date: 'Dec 29, 2:39 AM', customer: 'Lal Singh Chaddha', status: 'Pending', total: '$ 87.24' },
-  { id: '#1530', date: 'Dec 29, 12:54 AM', customer: 'Lal Singh Chaddha', status: 'Pending', total: '$ 52.16' },
-  { id: '#1529', date: 'Dec 28, 3:32 PM', customer: 'Lal Singh Chaddha', status: 'Paid', total: '$ 350.12' },
-  { id: '#1528', date: 'Dec 27, 2:20 PM', customer: 'Lal Singh Chaddha', status: 'Pending', total: '$ 246.78' },
-  { id: '#1527', date: 'Dec 26, 9:48 AM', customer: 'Lal Singh Chaddha', status: 'Paid', total: '$ 64.00' },
+// --- API Simulation & Mock Data ---
+const mockSalesData = [
+    { id: '#S001', date: '2025-09-26', dealer: 'CoolAir Traders', customer: 'Lal Singh Chaddha', marketer: 'Rajesh Kumar', amount: 38000, status: 'Completed' },
+    { id: '#S002', date: '2025-09-25', dealer: 'Arctic Systems', customer: 'ACME Corp', marketer: 'Priya Singh', amount: 4500, status: 'Pending' },
+];
+const mockDealers = ['CoolAir Traders', 'Arctic Systems', 'Zenith Corp'];
+const mockCustomers = ['Lal Singh Chaddha', 'ACME Corp', 'Global Tech'];
+const mockMarketers = ['Rajesh Kumar', 'Priya Singh', 'Anjali Mehta'];
+const mockProducts = [
+    { name: '1.5 Ton 5 Star AC', price: 38000 },
+    { name: 'Cooling Coils (Set)', price: 4500 },
+    { name: 'Digital Thermostat', price: 1200 },
 ];
 
-// Status chip with theme aware colors
-const getStatusChip = (status, theme) => {
-  const styles = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '4px 8px',
-    borderRadius: '12px',
-    fontSize: '0.75rem',
-    fontWeight: 600,
-  };
-
-  switch (status.toLowerCase()) {
-    case 'paid':
-      return (
-        <Box
-          sx={{
-            ...styles,
-            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.15)' : 'rgba(16, 185, 129, 0.1)',
-            color: '#10B981',
-          }}
-        >
-          <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#10B981', mr: 1 }} />
-          Paid
-        </Box>
-      );
-    case 'pending':
-      return (
-        <Box
-          sx={{
-            ...styles,
-            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.15)' : 'rgba(234, 179, 8, 0.1)',
-            color: '#EAB308',
-          }}
-        >
-          <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#EAB308', mr: 1 }} />
-          Pending
-        </Box>
-      );
-    default:
-      return null;
-  }
+// --- Helper Component ---
+const StatusChip = ({ status }) => {
+    let color;
+    if (status === 'Completed') color = 'success';
+    else if (status === 'Pending') color = 'warning';
+    else color = 'error';
+    return <Chip label={status} color={color} size="small" variant="outlined" sx={{ fontWeight: 'bold' }} />;
 };
 
-export default function MySalesPage() {
-  const theme = useTheme();
-  const [selectedDate, setSelectedDate] = useState(dayjs());
+// --- Main Component ---
+export default function NewSales() {
+    const [sales, setSales] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [form, setForm] = useState({
+        dealer: '', customer: '', marketer: '', salesItem: '',
+        date: dayjs(), quantity: 1, perUnit: 0,
+    });
 
-  const headerTextStyle = {
-    color: theme.palette.text.secondary,
-    fontSize: '0.8rem',
-    fontWeight: '600',
-    display: 'flex',
-    alignItems: 'center',
-  };
+    const fetchSales = useCallback(async () => {
+        setIsLoading(true);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setSales(mockSalesData);
+        setIsLoading(false);
+    }, []);
 
-  return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box p={3} sx={{ backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
-        {/* Page Header */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5" fontWeight="bold">
-            Recent orders
-          </Typography>
+    useEffect(() => {
+        fetchSales();
+    }, [fetchSales]);
 
-          {/* Calendar Date Picker */}
-          <DatePicker
-            value={selectedDate}
-            onChange={(newValue) => setSelectedDate(newValue)}
-            slotProps={{
-              textField: {
-                size: 'small',
-                sx: {
-                  backgroundColor: theme.palette.background.paper,
-                  borderRadius: 1,
-                  input: { color: theme.palette.text.primary },
-                  svg: { color: theme.palette.text.secondary },
-                },
-              },
-            }}
-          />
-        </Box>
+    const handleOpenDialog = () => setIsDialogOpen(true);
+    const handleCloseDialog = () => {
+        setIsDialogOpen(false);
+        setForm({ dealer: '', customer: '', marketer: '', salesItem: '', date: dayjs(), quantity: 1, perUnit: 0 });
+    };
 
-        {/* Orders Table */}
-        <Card sx={{ backgroundColor: theme.palette.background.paper, borderRadius: 2 }}>
-          <CardContent sx={{ padding: '8px' }}>
-            {/* Table Header */}
-            <Box
-              display="flex"
-              alignItems="center"
-              p={2}
-              sx={{
-                borderBottom: `1px solid ${theme.palette.divider}`,
-              }}
-            >
-              <Typography sx={{ ...headerTextStyle, flexBasis: '15%' }}>Order id</Typography>
-              <Typography sx={{ ...headerTextStyle, flexBasis: '20%' }}>
-                Date <UnfoldMore sx={{ fontSize: '1rem', ml: 0.5 }} />
-              </Typography>
-              <Typography sx={{ ...headerTextStyle, flexBasis: '25%' }}>Customer Name</Typography>
-              <Typography sx={{ ...headerTextStyle, flexBasis: '15%' }}>
-                Status <UnfoldMore sx={{ fontSize: '1rem', ml: 0.5 }} />
-              </Typography>
-              <Typography sx={{ ...headerTextStyle, flexBasis: '15%' }}>Total</Typography>
-              <Typography sx={{ ...headerTextStyle, flexBasis: '10%', justifyContent: 'center' }}>
-                DOWNLOAD INVOICE
-              </Typography>
-            </Box>
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        const newForm = { ...form, [name]: value };
+        if (name === 'salesItem') {
+            const product = mockProducts.find(p => p.name === value);
+            newForm.perUnit = product ? product.price : 0;
+        }
+        if (name === 'quantity' && value !== '' && Number(value) < 1) newForm.quantity = 1;
+        setForm(newForm);
+    };
+    
+    const handleDateChange = (d) => {
+        setForm({...form, date: d});
+    };
 
-            {/* Table Body */}
+    const amount = useMemo(() => {
+        const qty = parseFloat(form.quantity);
+        const price = parseFloat(form.perUnit);
+        return isNaN(qty) || isNaN(price) ? 0 : qty * price;
+    }, [form.quantity, form.perUnit]);
+
+    const handleSubmit = useCallback(async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        const finalData = { ...form, amount, date: form.date.format('YYYY-MM-DD'), id: `#S00${mockSalesData.length + 1}`, status: 'Pending' };
+        console.log("Submitting New Sale:", finalData);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        mockSalesData.unshift(finalData);
+        setIsSubmitting(false);
+        handleCloseDialog();
+        fetchSales();
+    }, [form, amount, fetchSales]);
+
+    return (
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box>
-              {ordersData.map((order, index) => (
-                <Box
-                  key={index}
-                  display="flex"
-                  alignItems="center"
-                  p={2}
-                  sx={{
-                    borderBottom: `1px solid ${theme.palette.divider}`,
-                    '&:last-child': { borderBottom: 'none' },
-                    fontSize: '0.85rem',
-                  }}
-                >
-                  <Typography sx={{ flexBasis: '15%', fontWeight: 'bold' }}>{order.id}</Typography>
-                  <Typography sx={{ flexBasis: '20%', color: theme.palette.text.secondary }}>{order.date}</Typography>
-                  <Typography sx={{ flexBasis: '25%' }}>{order.customer}</Typography>
-                  <Box sx={{ flexBasis: '15%' }}>{getStatusChip(order.status, theme)}</Box>
-                  <Typography sx={{ flexBasis: '15%', fontWeight: 'bold' }}>{order.total}</Typography>
-                  <Box sx={{ flexBasis: '10%', display: 'flex', justifyContent: 'center' }}>
-                    <IconButton sx={{ color: theme.palette.text.secondary }}>
-                      <FileDownloadOutlined />
-                    </IconButton>
-                  </Box>
-                </Box>
-              ))}
+                <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+                    <CardContent>
+                        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={2} mb={2}>
+                            <Stack direction="row" spacing={1.5} alignItems="center">
+                                <PointOfSaleIcon color="primary" />
+                                <Typography variant="h6" fontWeight="bold">Sales Entries</Typography>
+                            </Stack>
+                            <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenDialog}>
+                                Create New Sale
+                            </Button>
+                        </Stack>
+                    </CardContent>
+                    <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
+                        <Table stickyHeader size="small">
+                            <TableHead>
+                                <TableRow>{['Sale ID', 'Date', 'Dealer', 'Customer', 'Marketer', 'Amount', 'Status'].map(h => <TableCell key={h}>{h}</TableCell>)}</TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {isLoading ?
+                                    Array.from(new Array(5)).map((_, i) => <TableRow key={i}><TableCell colSpan={7}><Skeleton /></TableCell></TableRow>) :
+                                    sales.map((sale) => (
+                                        <TableRow key={sale.id} hover>
+                                            <TableCell sx={{ fontWeight: 500 }}>{sale.id}</TableCell>
+                                            <TableCell>{dayjs(sale.date).format('DD MMM YYYY')}</TableCell>
+                                            <TableCell>{sale.dealer}</TableCell>
+                                            <TableCell>{sale.customer}</TableCell>
+                                            <TableCell>{sale.marketer}</TableCell>
+                                            <TableCell>₹{sale.amount.toLocaleString('en-IN')}</TableCell>
+                                            <TableCell><StatusChip status={sale.status} /></TableCell>
+                                        </TableRow>
+                                    ))
+                                }
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Card>
+
+                <Dialog open={isDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+                    <DialogTitle>New Sale Entry</DialogTitle>
+                    <DialogContent>
+                        <Box component="form" id="new-sale-form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+                            <Stack spacing={2.5}>
+                                <FormControl fullWidth><InputLabel>Dealer</InputLabel><Select name="dealer" label="Dealer" value={form.dealer} onChange={handleChange}>{mockDealers.map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)}</Select></FormControl>
+                                <FormControl fullWidth><InputLabel>Customer</InputLabel><Select name="customer" label="Customer" value={form.customer} onChange={handleChange}>{mockCustomers.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}</Select></FormControl>
+                                <FormControl fullWidth><InputLabel>Marketer</InputLabel><Select name="marketer" label="Marketer" value={form.marketer} onChange={handleChange}>{mockMarketers.map(m => <MenuItem key={m} value={m}>{m}</MenuItem>)}</Select></FormControl>
+                                <FormControl fullWidth><InputLabel>Sales Item</InputLabel><Select name="salesItem" label="Sales Item" value={form.salesItem} onChange={handleChange}>{mockProducts.map(p => <MenuItem key={p.name} value={p.name}>{p.name}</MenuItem>)}</Select></FormControl>
+                                <DatePicker label="Sale Date" value={form.date} onChange={handleDateChange} sx={{ width: '100%' }} />
+                                <Grid container spacing={2}>
+                                    <Grid item xs={6}><TextField fullWidth name="quantity" label="Quantity" type="number" value={form.quantity} onChange={handleChange} inputProps={{ min: 1 }} /></Grid>
+                                    <Grid item xs={6}><TextField fullWidth name="perUnit" label="Per Unit (₹)" type="number" value={form.perUnit} onChange={handleChange} inputProps={{ min: 0 }} /></Grid>
+                                </Grid>
+                                <TextField fullWidth name="amount" label="Total Amount (₹)" value={amount.toLocaleString('en-IN')} InputProps={{ readOnly: true, startAdornment: <InputAdornment position="start"><Typography fontWeight="bold">₹</Typography></InputAdornment> }} variant="filled" />
+                            </Stack>
+                        </Box>
+                    </DialogContent>
+                    <DialogActions sx={{ p: '16px 24px' }}>
+                        <Button onClick={handleCloseDialog} disabled={isSubmitting}>Cancel</Button>
+                        <Button type="submit" form="new-sale-form" variant="contained" disabled={isSubmitting}>
+                            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Sale'}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </Box>
-          </CardContent>
-        </Card>
-      </Box>
-    </LocalizationProvider>
-  );
+        </LocalizationProvider>
+    );
 }
+
