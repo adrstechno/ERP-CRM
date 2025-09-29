@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.erp.crm.config.ApiResponse;
 import com.erp.crm.dto.CustomerDTO;
 import com.erp.crm.models.Customer;
 import com.erp.crm.services.CustomerService;
@@ -54,8 +55,9 @@ public class CustomerController {
 
     @DeleteMapping("/{customerId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long customerId) {
+    public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable Long customerId) {
         customerService.deleteCustomer(customerId);
-        return ResponseEntity.noContent().build();
+        ApiResponse<Void> response = new ApiResponse<Void>(true, "Customer deleted successfully", null);
+        return ResponseEntity.ok(response);
     } 
 }
