@@ -16,8 +16,6 @@ import com.erp.crm.models.User;
 import com.erp.crm.services.UserService;
 
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.RequestParam;
-
 
 @RestController
 @RequestMapping("/api/admin")
