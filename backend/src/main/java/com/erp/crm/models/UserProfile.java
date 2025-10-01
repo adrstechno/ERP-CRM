@@ -1,5 +1,7 @@
 package com.erp.crm.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,12 +11,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import jakarta.persistence.ForeignKey;
 
 @Entity
 @Table(name = "user_profiles")
 @Getter
 @Setter
+@NoArgsConstructor
 public class UserProfile  {
     @Id
     @Column(name = "profile_id")
@@ -22,7 +27,8 @@ public class UserProfile  {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JoinColumn( name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     private String address;

@@ -61,10 +61,9 @@ public class UserProfileService {
     /**
      * Delete profile by user id.
      */
-    @Transactional
+   @Transactional
     public void deleteProfile(Long userId) {
-        UserProfile profile = getProfileByUserId(userId);
-        userProfileRepository.delete(profile);
+        userProfileRepository.deleteByUserId(userId);
     }
 
     /**
