@@ -4,12 +4,14 @@ import com.erp.crm.dto.ProductRequestDto;
 import com.erp.crm.dto.ProductResponseDto;
 import com.erp.crm.services.ProductService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
+@PreAuthorize("hasAnyRole('ADMIN','SUBADMIN')")
 public class ProductController {
 
     private final ProductService productService;
