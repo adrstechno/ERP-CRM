@@ -1,7 +1,7 @@
 package com.erp.crm.services;
 
-import com.erp.crm.dto.ProductRequestDto;
-import com.erp.crm.dto.ProductResponseDto;
+import com.erp.crm.dto.ProductRequestDTO;
+import com.erp.crm.dto.ProductResponseDTO;
 import com.erp.crm.models.Product;
 import com.erp.crm.repositories.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ public class ProductService {
         this.productRepo = productRepo;
     }
 
-    public ProductResponseDto createProduct(ProductRequestDto dto) {
+    public ProductResponseDTO createProduct(ProductRequestDTO dto) {
         Product product = new Product();
         product.setName(dto.getName());
         product.setCategory(dto.getCategory());
@@ -31,19 +31,19 @@ public class ProductService {
         return mapToDto(saved);
     }
 
-    public ProductResponseDto getProduct(Long productId) {
+    public ProductResponseDTO getProduct(Long productId) {
         Product product = productRepo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
         return mapToDto(product);
     }
 
-    public List<ProductResponseDto> getAllProducts() {
+    public List<ProductResponseDTO> getAllProducts() {
         return productRepo.findAll().stream()
                 .map(this::mapToDto)
                 .toList();
     }
 
-    public ProductResponseDto updateProduct(Long productId, ProductRequestDto dto) {
+    public ProductResponseDTO updateProduct(Long productId, ProductRequestDTO dto) {
         Product product = productRepo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
 
@@ -63,8 +63,8 @@ public class ProductService {
         productRepo.delete(product);
     }
 
-    private ProductResponseDto mapToDto(Product product) {
-        ProductResponseDto dto = new ProductResponseDto();
+    private ProductResponseDTO mapToDto(Product product) {
+        ProductResponseDTO dto = new ProductResponseDTO();
         dto.setProductId(product.getProductId());
         dto.setName(product.getName());
         dto.setCategory(product.getCategory());
