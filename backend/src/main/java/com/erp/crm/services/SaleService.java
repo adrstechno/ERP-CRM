@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -26,27 +27,22 @@ public class SaleService {
         this.productRepo = productRepo;
     }
 
-    public SaleResponseDto createSale(SaleRequestDto dto) {
+    public SaleResponseDTO createSale(SaleRequestDTO dto) {
         Sale sale = new Sale();
-        sale.setSaleDate(dto.getSaleDate() != null ? dto.getSaleDate() : LocalDate.now());
-
-        // Set admin and marketer
-        sale.setAdmin(findUserById(dto.getAdminId(), "Admin"));
-        sale.setMarketer(findUserById(dto.getMarketerId(), "Marketer"));
+        sale.setSaleDate(LocalDate.now());
+        sale.setAdmin(findUserById(dto.getAdminId(), "ADMIN"));
+        sale.setMarketer(findUserById(dto.getMarketerId(), "MARKETER"));
+        sale.setTotalAmount(dto.getTotalAmount());
 
         // Set customer or dealer
         if (dto.getDealerId() != null) {
-            sale.setDealer(findUserById(dto.getDealerId(), "Dealer"));
+            sale.setDealer(findUserById(dto.getDealerId(), "DEALER"));
         } else if (dto.getCustomerId() != null) {
-            sale.setCustomer(customerRepo.findById(dto.getCustomerId())
-                    .orElseThrow(() -> new RuntimeException("Customer not found with id: " + dto.getCustomerId())));
+            sale.setCustomer(customerRepo.findById(dto.getCustomerId()).orElseThrow(() -> new RuntimeException("Customer not found with id: " + dto.getCustomerId())));
         } else {
             throw new RuntimeException("Either dealerId or customerId must be provided");
         }
 
-        sale.setTotalAmount(dto.getTotalAmount());
-
-        // Map sale items if any
         if (dto.getItems() != null && !dto.getItems().isEmpty()) {
             List<SaleItem> items = dto.getItems().stream().map(i -> {
                 SaleItem item = new SaleItem();
@@ -59,40 +55,42 @@ public class SaleService {
                 return item;
             }).toList();
             sale.setSaleItems(items);
+        }else {
+            throw new RuntimeException("Sale Items cannot be null , Atleast select 1 product");
         }
 
         Sale saved = saleRepo.save(sale);
         return mapToDto(saved);
     }
 
-    public SaleResponseDto getSale(Long saleId) {
+    public SaleResponseDTO getSale(Long saleId) {
         return saleRepo.findById(saleId)
                 .map(this::mapToDto)
                 .orElseThrow(() -> new RuntimeException("Sale not found with id: " + saleId));
     }
 
-    public List<SaleResponseDto> getAllSales() {
+    public List<SaleResponseDTO> getAllSales() {
         return saleRepo.findAll().stream()
                 .map(this::mapToDto)
                 .toList();
     }
 
-    public List<SaleResponseDto> getSalesByDealer(Long dealerId) {
+    public List<SaleResponseDTO> getSalesByDealer(Long dealerId) {
         User dealer = findUserById(dealerId, "Dealer");
         return saleRepo.findAllByDealer(dealer).stream()
                 .map(this::mapToDto)
                 .toList();
     }
 
-    public SaleResponseDto updateSaleStatus(Long saleId, SaleStatus status) {
+    public SaleResponseDTO updateSaleStatus(Long saleId, SaleStatus status) {
         Sale sale = saleRepo.findById(saleId)
                 .orElseThrow(() -> new RuntimeException("Sale not found with id: " + saleId));
         sale.setSaleStatus(status);
         return mapToDto(saleRepo.save(sale));
     }
 
-    private SaleResponseDto mapToDto(Sale sale) {
-        SaleResponseDto dto = new SaleResponseDto();
+    private SaleResponseDTO mapToDto(Sale sale) {
+        SaleResponseDTO dto = new SaleResponseDTO();
         dto.setSaleId(sale.getSaleId());
         dto.setAdminName(sale.getAdmin().getName());
         dto.setMarketerName(sale.getMarketer().getName());
@@ -111,7 +109,7 @@ public class SaleService {
 
         if (sale.getSaleItems() != null && !sale.getSaleItems().isEmpty()) {
             dto.setItems(sale.getSaleItems().stream()
-                    .map(i -> new SaleItemDto(
+                    .map(i -> new SaleItemDTO(
                             i.getProduct().getProductId(),
                             i.getProduct().getName(),
                             i.getQuantity(),

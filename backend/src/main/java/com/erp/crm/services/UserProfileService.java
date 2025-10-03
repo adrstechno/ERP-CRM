@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.erp.crm.dto.UserProfileDto;
+import com.erp.crm.dto.UserProfileDTO;
 import com.erp.crm.models.User;
 import com.erp.crm.models.UserProfile;
 import com.erp.crm.repositories.UserProfileRepository;
@@ -23,7 +23,7 @@ public class UserProfileService {
     // Create a profile for a user (only once).
 
     @Transactional
-    public UserProfile createProfile(UserProfileDto dto) {
+    public UserProfile createProfile(UserProfileDTO dto) {
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new RuntimeException("❌ User not found with id: " + dto.getUserId()));
 
@@ -53,7 +53,7 @@ public class UserProfileService {
     // Update an existing profile by user id.
 
     @Transactional
-    public UserProfile updateProfile(Long userId, UserProfileDto dto) {
+    public UserProfile updateProfile(Long userId, UserProfileDTO dto) {
         UserProfile existingProfile = getProfileByUserId(userId);
         return userProfileRepository.save(mapDtoToEntity(existingProfile, dto));
     }
@@ -69,7 +69,7 @@ public class UserProfileService {
     /**
      * Utility: Map DTO fields to entity (centralized mapping logic).
      */
-    private UserProfile mapDtoToEntity(UserProfile profile, UserProfileDto dto) {
+    private UserProfile mapDtoToEntity(UserProfile profile, UserProfileDTO dto) {
         profile.setAddress(dto.getAddress());
         profile.setCity(dto.getCity());
         profile.setState(dto.getState());
