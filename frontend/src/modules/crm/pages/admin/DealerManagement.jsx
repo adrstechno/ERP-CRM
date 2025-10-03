@@ -234,7 +234,8 @@
 //     );
 // }
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import axios from "axios";
 import {
     Box, Grid, Card, CardContent, Typography, List, ListItem, ListItemButton,
     ListItemAvatar, Avatar, ListItemText, Table, TableBody, TableCell,
@@ -246,6 +247,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import SearchIcon from '@mui/icons-material/Search';
 
 // --- Mock Data ---
+/** 
 const dealersData = [
     { id: 1, name: 'Sophie Moore', handle: '@sophiemoore', time: '10 min ago', status: 'Active', mobile: '8787878787', email: 'sophie@example.com', address: 'Jabalpur, India', accNo: 'XXX-XXX-123', gstNo: 'ABCDI23HG', companyName: 'Moore Enterprises', panNo: 'ABCDE1234F', joinedDate: '15 Aug 2023' },
     { id: 2, name: 'Patrick Meyer', handle: '@patrickmeyer', time: '5 min ago', status: 'Active', mobile: '9898989898', email: 'patrick@example.com', address: 'Bhopal, India', accNo: 'YYY-YYY-456', gstNo: 'EFGHK45LM', companyName: 'Meyer Solutions', panNo: 'FGHIJ5678K', joinedDate: '22 Sep 2023' },
@@ -253,6 +255,7 @@ const dealersData = [
     { id: 4, name: 'Sandy Houston', handle: '@sandyhouston', time: '25 min ago', status: 'Active', mobile: '8989898989', email: 'sandy@example.com', address: 'Vidisha, India', accNo: 'AAA-AAA-012', gstNo: 'WXYZA90BC', companyName: 'Houston Supplies', panNo: 'PQRST3456M', joinedDate: '11 Jun 2023' },
     { id: 5, name: 'John Doe', handle: '@johndoe', time: '30 min ago', status: 'Active', mobile: '8888888888', email: 'john@example.com', address: 'Sagar, India', accNo: 'BBB-BBB-345', gstNo: 'CDEFG12HI', companyName: 'Doe & Co.', panNo: 'UVWXY7890N', joinedDate: '19 May 2023' },
 ];
+*/
 
 const initialRequests = [
     { id: 1, reqNo: 'REQ_001', product: 'Compressor XA-200', qty: 100, status: 'Pending' },
@@ -273,9 +276,41 @@ const DetailItem = ({ label, value }) => (
 
 // --- Main Component ---
 export default function DealersManagement() {
-    const [selectedDealer, setSelectedDealer] = useState(dealersData[0]);
+    
     const [requests, setRequests] = useState(initialRequests);
     const [searchTerm, setSearchTerm] = useState('');
+    const [dealersData, setDealersData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDealers = async () => {
+            try {
+                const authKey = localStorage.getItem("authKey");
+                const response = await axios.get("http://localhost:8080/api/admin/users/DEALER",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${authKey}`,
+                        },
+                    }
+                );
+                setDealersData(response.data);  // make sure API returns array
+            } catch (error) {
+                console.error("Error fetching dealers:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDealers();
+    }, []);
+    const [selectedDealer, setSelectedDealer] = useState(null);
+
+    useEffect(() => {
+        if (dealersData.length > 0) {
+            setSelectedDealer(dealersData[0]);
+        }
+    }, [dealersData]);
+
 
     const handleApprove = (requestId) => {
         setRequests(requests.map((req) => req.id === requestId ? { ...req, status: 'Approved' } : req));
@@ -283,14 +318,37 @@ export default function DealersManagement() {
 
     const filteredDealers = useMemo(() =>
         dealersData.filter(dealer =>
-            dealer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            dealer.handle.toLowerCase().includes(searchTerm.toLowerCase())
-        ), [searchTerm]);
+            dealer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            dealer.handle?.toLowerCase().includes(searchTerm.toLowerCase())
+        ), [dealersData, searchTerm]);
 
     return (
         <Box>
             <Grid container spacing={3}>
                 {/* Left Column: Dealer List */}
+                {loading ? (
+                    <Typography variant="body2" sx={{ p: 2 }}>Loading dealers...</Typography>
+                ) : filteredDealers.length > 0 ? (
+                    filteredDealers.map((dealer) => (
+                        <ListItem key={dealer.id} disablePadding sx={{ mb: 1 }}>
+                            <ListItemButton
+                                selected={selectedDealer?.id === dealer.id}
+                                onClick={() => setSelectedDealer(dealer)}
+                            >
+                                <ListItemAvatar>
+                                    <Avatar alt={dealer.name} src={dealer.avatar} />
+                                </ListItemAvatar>
+                                <ListItemText
+                                    primary={<Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{dealer.name}</Typography>}
+                                    secondary={dealer.email}
+                                />
+                                <Typography variant="caption" color="text.secondary">{dealer.status}</Typography>
+                            </ListItemButton>
+                        </ListItem>
+                    ))
+                ) : (
+                    <Typography variant="body2" sx={{ p: 2 }}>No dealers found</Typography>
+                )}
                 <Grid item xs={12} md={3}>
                     <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
                         <CardContent>
@@ -381,7 +439,7 @@ export default function DealersManagement() {
                                                         {req.status === 'Pending' ? (
                                                             <Button variant="contained" size="small" onClick={() => handleApprove(req.id)}>Approve</Button>
                                                         ) : (
-                                                            <Chip icon={<CheckCircleOutlineIcon fontSize="small" />} label="Approved" color="success" size="small" variant="outlined"/>
+                                                            <Chip icon={<CheckCircleOutlineIcon fontSize="small" />} label="Approved" color="success" size="small" variant="outlined" />
                                                         )}
                                                     </TableCell>
                                                 </TableRow>
