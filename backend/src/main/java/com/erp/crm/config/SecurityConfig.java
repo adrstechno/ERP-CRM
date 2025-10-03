@@ -1,5 +1,7 @@
 package com.erp.crm.config;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,7 +16,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.erp.crm.security.JwtAuthFilter;
 import com.erp.crm.services.CustomUserDetailsService;
-
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -32,17 +33,15 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
 
-    // Modern authentication manager configuration
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // Security filter chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> {})
@@ -54,6 +53,20 @@ public class SecurityConfig {
                 .requestMatchers("/api/subadmin/**").hasRole("SUBADMIN")
                 .requestMatchers("/api/engineer/**").hasRole("ENGINEER")
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(ex -> ex
+                // Handle missing/invalid token -> 401
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setContentType("application/json");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("{\"success\":false,\"message\":\"Unauthorized: Token missing or invalid\",\"data\":null}");
+                })
+                // Handle forbidden -> 403
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setContentType("application/json");
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.getWriter().write("{\"success\":false,\"message\":\"Forbidden: You don't have permission\",\"data\":null}");
+                })
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
