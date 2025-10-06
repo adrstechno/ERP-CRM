@@ -790,8 +790,7 @@ export default function Customers() {
     }
   }, [editingCustomer]);
 
-  // 🔹 Delete Customer
-  
+ 
   // 🔹 Filtered List
   const filteredCustomers = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
