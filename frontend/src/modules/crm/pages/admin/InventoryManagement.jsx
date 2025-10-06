@@ -837,8 +837,7 @@ export default function InventoryManagementContent() {
                       <TableCell sx={{ fontWeight: 500 }}>
                         {product.stock}
                       </TableCell>
-                      <TableCell>{product.warrantyMonths}</TableCell>{" "}
-        
+                      <TableCell>{product.warrantyMonths}</TableCell>
                       <TableCell>{getStatusChip(product.status)}</TableCell>
                       <TableCell>
                         <IconButton
