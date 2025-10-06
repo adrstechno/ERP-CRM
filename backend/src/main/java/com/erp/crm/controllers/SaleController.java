@@ -3,6 +3,7 @@ package com.erp.crm.controllers;
 import com.erp.crm.dto.*;
 import com.erp.crm.services.SaleService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,31 +19,32 @@ public class SaleController {
     }
 
     @PostMapping("/create-sale")
-    public ResponseEntity<SaleResponseDto> createSale(@RequestBody SaleRequestDto dto) {
+    public ResponseEntity<SaleResponseDTO> createSale(@RequestBody SaleRequestDTO dto) {
         return ResponseEntity.ok(saleService.createSale(dto));
     }
 
     @GetMapping("/get-sale/{id}")
-    public ResponseEntity<SaleResponseDto> getSale(@PathVariable Long id) {
+    public ResponseEntity<SaleResponseDTO> getSale(@PathVariable Long id) {
         return ResponseEntity.ok(saleService.getSale(id));
     }
 
     @GetMapping("/get-all-sales")
-    public ResponseEntity<List<SaleResponseDto>> getAllSales() {
+    public ResponseEntity<List<SaleResponseDTO>> getAllSales() {
         return ResponseEntity.ok(saleService.getAllSales());
     }
 
     // Dealer-specific sales
     @GetMapping("/dealer/{dealerId}")
-    public ResponseEntity<List<SaleResponseDto>> getSalesByDealer(@PathVariable Long dealerId) {
+    public ResponseEntity<List<SaleResponseDTO>> getSalesByDealer(@PathVariable Long dealerId) {
         return ResponseEntity.ok(saleService.getSalesByDealer(dealerId));
     }
 
     // Global update sale status
     @PatchMapping("/{saleId}/status")
-    public ResponseEntity<SaleResponseDto> updateSaleStatus(
+    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN')")
+    public ResponseEntity<SaleResponseDTO> updateSaleStatus(
             @PathVariable Long saleId,
-            @RequestBody SaleStatusDto statusDto) {
+            @RequestBody SaleStatusDTO statusDto) {
         return ResponseEntity.ok(saleService.updateSaleStatus(saleId, statusDto.getStatus()));
     }
 }

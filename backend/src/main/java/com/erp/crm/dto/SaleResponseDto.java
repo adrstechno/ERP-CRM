@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class SaleResponseDto {
+public class SaleResponseDTO {
     private Long saleId;
     private String adminName;
     private String marketerName;
@@ -17,5 +17,5 @@ public class SaleResponseDto {
     private LocalDate saleDate;
     private Double totalAmount;
     private String saleStatus;
-    private List<SaleItemDto> items;
+    private List<SaleItemDTO> items;
 }
