@@ -52,7 +52,7 @@ async function createProfileApi(userId, profileData) {
   try {
     const authKey = localStorage.getItem("authKey");
     const response = await axios.post(
-      `${REACT_APP_BASE_URL}/profiles/create-profile`,
+      `${VITE_API_BASE_URL}/profiles/create-profile`,
       { userId, ...profileData },   // send full details
       {
         headers: {
