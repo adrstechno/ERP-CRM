@@ -637,11 +637,8 @@ export default function InventoryManagementContent() {
         },
       ]);
       handleClose();
-    } catch (err) {
-      console.error(
-        "Failed to save product",
-        err.response?.data || err.message
-      );
+    } catch (err) { 
+      
     } finally {
       setLoading(false);
     }
@@ -968,7 +965,14 @@ export default function InventoryManagementContent() {
           <Button onClick={handleClose}>Cancel</Button>
           <Button
             variant="contained"
-            onClick={editing ? handleUpdateProduct : handleAddProduct}
+             onClick={async () => {
+    if (editing) {
+      await handleUpdateProduct();
+    } else {
+      await handleAddProduct();
+    }
+    handleClose(); 
+  }}
             disabled={loading}
           >
             {loading ? "Saving..." : editing ? "Update Product" : "Add Product"}
