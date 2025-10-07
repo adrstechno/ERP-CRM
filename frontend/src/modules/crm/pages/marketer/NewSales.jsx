@@ -519,7 +519,8 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { REACT_APP_BASE_URL } from "../../utils/State"; // <-- import your base URL
+import { VITE_API_BASE_URL } from "../../utils/State";
+
 
 // --- Status Chip ---
 const StatusChip = ({ status }) => {
@@ -573,9 +574,9 @@ export default function NewSales() {
   const fetchDropdownData = useCallback(async () => {
     try {
       const [dealerRes, customerRes, productRes] = await Promise.all([
-        axios.get(`${REACT_APP_BASE_URL}/admin/dealers`, axiosConfig),
-        axios.get(`${REACT_APP_BASE_URL}/customer`, axiosConfig),
-        axios.get(`${REACT_APP_BASE_URL}/products/all`, axiosConfig),
+        axios.get(`${VITE_API_BASE_URL}/admin/dealers`, axiosConfig),
+        axios.get(`${VITE_API_BASE_URL}/customer`, axiosConfig),
+        axios.get(`${VITE_API_BASE_URL}/products/all`, axiosConfig),
       ]);
 
       // ✅ Adjusting for dealer API structure
@@ -679,7 +680,7 @@ export default function NewSales() {
       console.log("Creating Sale with Payload:", payload);
 
       const response = await axios.post(
-        `${REACT_APP_BASE_URL}/sales/create-sale`,
+        `${VITE_API_BASE_URL}/sales/create-sale`,
         payload,
         axiosConfig
       );

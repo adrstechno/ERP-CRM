@@ -20,9 +20,11 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Visibility from '@mui/icons-material/Visibility';
-import { REACT_APP_BASE_URL } from "../../utils/State";
+import { VITE_API_BASE_URL } from "../../utils/State";
 
-const VITE_API_BASE_URL= import.meta.env.VITE_API_BASE_URL;
+
+
+// const VITE_API_BASE_URL= import.meta.env.VITE_API_BASE_URL;
 
 
 const user = localStorage.getItem("user");
@@ -52,7 +54,7 @@ async function createProfileApi(userId, profileData) {
   try {
     const authKey = localStorage.getItem("authKey");
     const response = await axios.post(
-      `${REACT_APP_BASE_URL}/profiles/create-profile`,
+      `${VITE_API_BASE_URL}/profiles/create-profile`,
       { userId, ...profileData },   // send full details
       {
         headers: {
@@ -101,7 +103,7 @@ export default function UserManagement() {
         const fetchUsers = async () => {
             try {
                 const authKey = localStorage.getItem("authKey");
-                const response = await axios.get(`${REACT_APP_BASE_URL}/admin/users`,
+                const response = await axios.get(`${VITE_API_BASE_URL}/admin/users`,
                     {
                         headers: {
                             Authorization: `Bearer ${authKey}`,
@@ -187,7 +189,7 @@ const handleCreateProfileChange = (e) => {
         try {
             const authKey = localStorage.getItem("authKey");
             const response = await axios.put(
-                `${REACT_APP_BASE_URL}/profiles/update/${user.userId}`,
+                `${VITE_API_BASE_URL}/profiles/update/${user.userId}`,
                 payload, {
                     headers: {
                         Authorization: `Bearer ${authKey}`,
@@ -281,7 +283,7 @@ const handleViewOpen = async (user) => {
   try {
     const authKey = localStorage.getItem("authKey");
     const response = await axios.get(
-      `${REACT_APP_BASE_URL}/profiles/${userId}`,
+      `${VITE_API_BASE_URL}/profiles/${userId}`,
       { headers: { Authorization: `Bearer ${authKey}` } }
     );
     setViewUser(response.data);
