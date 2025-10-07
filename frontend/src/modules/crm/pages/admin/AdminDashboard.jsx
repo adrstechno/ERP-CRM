@@ -209,6 +209,7 @@ import KPI from "../../components/KPIs";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import { VITE_API_BASE_URL } from "../../utils/State";
 
 // Static data remains the same
 const chartData = [
