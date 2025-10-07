@@ -22,15 +22,16 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Visibility from '@mui/icons-material/Visibility';
 import { REACT_APP_BASE_URL } from "../../utils/State";
 
+const VITE_API_BASE_URL= import.meta.env.VITE_API_BASE_URL;
 
-// const REACT_APP_BASE_URL =  "http://localhost:8080";
+
 const user = localStorage.getItem("user");
 
 async function createUserApi(userData) {
     try {
         const authKey = localStorage.getItem("authKey");
         const response = await axios.post(
-            `${REACT_APP_BASE_URL}/admin/create-user?`,
+            `${VITE_API_BASE_URL}/admin/create-user?`,
             userData,
             {
                 headers: {
