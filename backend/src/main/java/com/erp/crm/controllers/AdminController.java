@@ -49,7 +49,8 @@ public class AdminController {
         List<User> users = userService.getAllUserByRole(role);
         System.out.println(users);
         return ResponseEntity.ok(users);
-    } 
+    }
+
     @GetMapping("/dealers")
     @PreAuthorize("hasRole('ADMIN','SUBADMIN','MARKETER')")
     public ResponseEntity<List<User>> getAllDealer(){
@@ -58,4 +59,5 @@ public class AdminController {
         System.out.println(users);
         return ResponseEntity.ok(users);
     }
+    
 }
