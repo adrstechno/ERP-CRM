@@ -569,21 +569,33 @@ export default function NewSales() {
   const LOGGED_IN_MARKETER = { id: user?._id || "5", name: user?.name || "marketer" };
 
   // --- Fetch Dropdown Data ---
+   // --- Fetch Dropdown Data ---
   const fetchDropdownData = useCallback(async () => {
     try {
       const [dealerRes, customerRes, productRes] = await Promise.all([
-        axios.get(`${REACT_APP_BASE_URL}/admin/users/DEALER`, axiosConfig),
+        axios.get(`${REACT_APP_BASE_URL}/admin/dealers`, axiosConfig),
         axios.get(`${REACT_APP_BASE_URL}/customer`, axiosConfig),
         axios.get(`${REACT_APP_BASE_URL}/products/all`, axiosConfig),
       ]);
 
-      setDealers(dealerRes.data || []);
+      // ✅ Adjusting for dealer API structure
+      const formattedDealers = (dealerRes.data || []).map((dealer) => ({
+        id: dealer.userId,
+        name: dealer.name,
+        role: dealer.role?.name || "DEALER",
+        email: dealer.email,
+        phone: dealer.phone,
+        profile: dealer.profile || {},
+      }));
+
+      setDealers(formattedDealers);
       setCustomers(customerRes.data || []);
       setProducts(productRes.data || []);
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
     }
-  }, []);
+  }, [axiosConfig]);
+
 
   // --- Mock Fetch Sales (You can replace this with GET /sales/all) ---
   const fetchSales = useCallback(async () => {
