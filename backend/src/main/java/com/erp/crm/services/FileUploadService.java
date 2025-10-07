@@ -8,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 
+
+
 @Service
 public class FileUploadService {
 
@@ -17,13 +19,36 @@ public class FileUploadService {
         this.cloudinary = cloudinary;
     }
 
-    public String uploadFile(MultipartFile file) {
+    private String uploadFileToCloud(MultipartFile file, String folderPath) {
         try {
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            Map<String, Object> options = ObjectUtils.asMap(
+                    "folder", folderPath
+            );
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), options);
             return uploadResult.get("secure_url").toString();
         } catch (IOException e) {
             throw new RuntimeException("File upload failed: " + e.getMessage());
         }
+    }
+
+    // Invoices
+    public String uploadInvoice(MultipartFile file, Long invoiceId) {
+        return uploadFileToCloud(file, "invoices/" + invoiceId);
+    }
+
+    // Receipts
+    public String uploadReceipt(MultipartFile file, Long expenseId) {
+        return uploadFileToCloud(file, "receipts/" + expenseId);
+    }
+
+    // Product / Service Images
+    public String uploadProductStatus(MultipartFile file, Long productId) {
+        return uploadFileToCloud(file, "product-status/" + productId);
+    }
+
+    // Generic method if you need other types in the future
+    public String uploadCustom(MultipartFile file, String folderPath) {
+        return uploadFileToCloud(file, folderPath);
     }
 
     public String deleteFile(String publicId) {
