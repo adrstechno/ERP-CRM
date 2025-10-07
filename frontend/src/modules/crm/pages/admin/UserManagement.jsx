@@ -1333,7 +1333,7 @@ const handleViewOpen = async (user) => {
   <DialogActions sx={{ p: '16px 24px' }}>
     <Button onClick={handleCreateProfileClose}>Cancel</Button>
     <Button
-      variant="contained"
+      variant="contained"   
       onClick={async () => {
         try {
         //   const createdProfile = await createProfileApi(viewUser ? viewUser.userId : userBeingViewed.userId, createProfileData);
