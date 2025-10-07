@@ -289,7 +289,7 @@ export default function DealersManagement() {
         const fetchDealers = async () => {
             try {
                 const authKey = localStorage.getItem("authKey");
-                const response = await axios.get(`${VITE_API_BASE_URL}/admin/users/DEALER`,
+                const response = await axios.get(`${VITE_API_BASE_URL}/admin/dealer`,
                     {
                         headers: {
                             Authorization: `Bearer ${authKey}`,
