@@ -37,16 +37,16 @@ public class SaleService {
 
     // ... existing createSale() method ...
 
-    public SaleResponseDTO updateSaleStatus(Long saleId, SaleStatus status) {
+    public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
         Sale sale = saleRepo.findById(saleId)
                 .orElseThrow(() -> new RuntimeException("Sale not found with id: " + saleId));
         
-        SaleStatus oldStatus = sale.getSaleStatus();
+        Status oldStatus = sale.getSaleStatus();
         sale.setSaleStatus(status);
         Sale savedSale = saleRepo.save(sale);
         
         // ✅ Generate invoice only when status changes from PENDING to APPROVED
-        if (oldStatus == SaleStatus.PENDING && status == SaleStatus.APPROVED) {
+        if (oldStatus == Status.PENDING && status == Status.APPROVED) {
             generateInvoice(savedSale);
             createServiceEntitlements(savedSale);  // ✅ Create 2 free services
         }
