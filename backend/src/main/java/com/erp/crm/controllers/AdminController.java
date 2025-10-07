@@ -49,6 +49,5 @@ public class AdminController {
         List<User> users = userService.getAllUserByRole(role);
         System.out.println(users);
         return ResponseEntity.ok(users);
-    }
-    
+    } 
 }
