@@ -159,10 +159,9 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useCRMAuth } from "../context/CRMAuthContext";
-import { REACT_APP_BASE_URL } from "../utils/State";
 import axios from "axios";
+import { VITE_API_BASE_URL } from "../utils/State";
 
-const BASE_URL = REACT_APP_BASE_URL;
 
 export default function Login() {
   const theme = useTheme();
@@ -214,7 +213,7 @@ export default function Login() {
   setLoading(true);
 
   try {
-    const response = await axios.post(`${BASE_URL}/auth/login`, {
+    const response = await axios.post(`${VITE_API_BASE_URL}/auth/login`, {
       email: form.email, 
        // ✅ Correct field
       password: form.password,
