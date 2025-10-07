@@ -512,7 +512,8 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import CategoryIcon from "@mui/icons-material/Category";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
-import { REACT_APP_BASE_URL } from "../../utils/State";
+import { VITE_API_BASE_URL } from "../../utils/State";
+
 
 const categories = ["AC Units", "Parts", "Electronics", "Accessories"];
 
@@ -558,7 +559,7 @@ export default function InventoryManagementContent() {
   const fetchAllProducts = async () => {
     try {
       const response = await axios.get(
-        `${REACT_APP_BASE_URL}/products/all`,
+        `${VITE_API_BASE_URL}/products/all`,
         axiosConfig
       );
       setProducts(
@@ -613,7 +614,7 @@ export default function InventoryManagementContent() {
         warrantyMonths: parseInt(newProduct.warrantyMonths),
       };
       const response = await axios.post(
-        `${REACT_APP_BASE_URL}/products/create`,
+        `${VITE_API_BASE_URL}/products/create`,
         body,
         axiosConfig
       );
@@ -670,7 +671,7 @@ export default function InventoryManagementContent() {
         warrantyMonths: parseInt(newProduct.warrantyMonths),
       };
       const response = await axios.put(
-        `${REACT_APP_BASE_URL}/products/${selectedId}/update`,
+        `${VITE_API_BASE_URL}/products/${selectedId}/update`,
         body,
         axiosConfig
       );
@@ -710,7 +711,7 @@ export default function InventoryManagementContent() {
       return;
     try {
       await axios.delete(
-        `${REACT_APP_BASE_URL}/products/${id}/delete`,
+        `${VITE_API_BASE_URL}/products/${id}/delete`,
         axiosConfig
       );
       setProducts((prev) => prev.filter((p) => p.id !== id));
