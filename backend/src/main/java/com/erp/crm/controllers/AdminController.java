@@ -44,8 +44,17 @@ public class AdminController {
 
     // get user by role
     @GetMapping("/users/{role}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN','SUBADMIN')")
     public ResponseEntity<List<User>> getAllUserByRole(@PathVariable String role){
+        List<User> users = userService.getAllUserByRole(role);
+        System.out.println(users);
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/dealers")
+    @PreAuthorize("hasRole('ADMIN','SUBADMIN','MARKETER')")
+    public ResponseEntity<List<User>> getAllDealer(){
+        String role = "DEALER";
         List<User> users = userService.getAllUserByRole(role);
         System.out.println(users);
         return ResponseEntity.ok(users);
