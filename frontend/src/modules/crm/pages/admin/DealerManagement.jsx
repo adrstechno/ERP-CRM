@@ -276,11 +276,13 @@ const DetailItem = ({ label, value }) => (
 
 // --- Main Component ---
 export default function DealersManagement() {
-    
+
     const [requests, setRequests] = useState(initialRequests);
     const [searchTerm, setSearchTerm] = useState('');
     const [dealersData, setDealersData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [dealerProfile, setDealerProfile] = useState(null);
+
 
     useEffect(() => {
         const fetchDealers = async () => {
@@ -294,6 +296,7 @@ export default function DealersManagement() {
                     }
                 );
                 setDealersData(response.data);  // make sure API returns array
+                console.log("Fetched dealers:", response.data);
             } catch (error) {
                 console.error("Error fetching dealers:", error);
             } finally {
@@ -315,6 +318,24 @@ export default function DealersManagement() {
     const handleApprove = (requestId) => {
         setRequests(requests.map((req) => req.id === requestId ? { ...req, status: 'Approved' } : req));
     };
+    const handleDealerSelect = async (dealer) => {
+        setSelectedDealer(dealer);
+        setDealerProfile(null); // reset while fetching new one
+        try {
+            const authKey = localStorage.getItem("authKey");
+            console.log("Fetching profile for dealer ID:", dealer.id);
+            const response = await axios.get(`http://localhost:8080/api/profiles/${user.userId}`, {
+                headers: {
+                    Authorization: `Bearer ${authKey}`,
+                },
+            });
+            console.log("Dealer profile data:", response.data);
+            setDealerProfile(response.data);
+        } catch (error) {
+            console.error("Error fetching dealer profile:", error);
+        }
+    };
+
 
     const filteredDealers = useMemo(() =>
         dealersData.filter(dealer =>
@@ -325,15 +346,16 @@ export default function DealersManagement() {
     return (
         <Box>
             <Grid container spacing={3}>
-                {/* Left Column: Dealer List */}
+                {/* Left Column: Dealer List
                 {loading ? (
                     <Typography variant="body2" sx={{ p: 2 }}>Loading dealers...</Typography>
                 ) : filteredDealers.length > 0 ? (
                     filteredDealers.map((dealer) => (
-                        <ListItem key={dealer.id} disablePadding sx={{ mb: 1 }}>
+                        <ListItem key={dealer._id || dealer.id} disablePadding sx={{ mb: 1 }}>
                             <ListItemButton
                                 selected={selectedDealer?.id === dealer.id}
-                                onClick={() => setSelectedDealer(dealer)}
+                                onClick={() => handleDealerSelect(dealer)}
+
                             >
                                 <ListItemAvatar>
                                     <Avatar alt={dealer.name} src={dealer.avatar} />
@@ -348,7 +370,7 @@ export default function DealersManagement() {
                     ))
                 ) : (
                     <Typography variant="body2" sx={{ p: 2 }}>No dealers found</Typography>
-                )}
+                )} */}
                 <Grid item xs={12} md={3}>
                     <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
                         <CardContent>
@@ -396,26 +418,33 @@ export default function DealersManagement() {
                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Dealer Information</Typography>
                                 </Stack>
                                 <Divider sx={{ mb: 3 }} />
-                                {selectedDealer ? (
-                                    <TableContainer sx={{ maxHeight: 200, overflowY: 'auto' }}>
-                                        <Table size="small">
-                                            <TableBody>
-                                                <TableRow>
-                                                    <TableCell><DetailItem label="Name" value={selectedDealer.name} /></TableCell>
-                                                    <TableCell><DetailItem label="Mobile No" value={selectedDealer.mobile} /></TableCell>
-                                                    <TableCell><DetailItem label="Address" value={selectedDealer.address} /></TableCell>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableCell><DetailItem label="E-Mail" value={selectedDealer.email} /></TableCell>
-                                                    <TableCell><DetailItem label="Account No" value={selectedDealer.accNo} /></TableCell>
-                                                    <TableCell><DetailItem label="GST No" value={selectedDealer.gstNo} /></TableCell>
-                                                </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                ) : (
-                                    <Typography>Select a dealer to see information.</Typography>
-                                )}
+                                : (
+                                <Typography></Typography>
+                           {selectedDealer ? (
+  <TableContainer sx={{ maxHeight: 200, overflowY: 'auto' }}>
+    <Table size="small">
+      <TableBody>
+        <TableRow>
+          <TableCell><DetailItem label="Name" value={selectedDealer.name} /></TableCell>
+          <TableCell><DetailItem label="Mobile No" value={selectedDealer.phone} /></TableCell>
+          <TableCell><DetailItem label="E-Mail" value={selectedDealer.email} /></TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell><DetailItem label="Address" value={selectedDealer.profile?.address} /></TableCell>
+          <TableCell><DetailItem label="City" value={selectedDealer.profile?.city} /></TableCell>
+          <TableCell><DetailItem label="State" value={selectedDealer.profile?.state} /></TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell><DetailItem label="Pincode" value={selectedDealer.profile?.pincode} /></TableCell>
+          <TableCell><DetailItem label="GST No" value={selectedDealer.profile?.gstNumber} /></TableCell>
+          <TableCell><DetailItem label="Account No" value={selectedDealer.profile?.accountNo} /></TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  </TableContainer>
+) : (
+  <Typography></Typography>
+)}
                             </CardContent>
                         </Card>
 
