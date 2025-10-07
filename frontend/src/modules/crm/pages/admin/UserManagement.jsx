@@ -20,16 +20,17 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Visibility from '@mui/icons-material/Visibility';
+import { REACT_APP_BASE_URL } from "../../utils/State";
 
 
-const REACT_APP_BASE_URL =  "http://localhost:8080";
-
+// const REACT_APP_BASE_URL =  "http://localhost:8080";
+const user = localStorage.getItem("user");
 
 async function createUserApi(userData) {
     try {
         const authKey = localStorage.getItem("authKey");
         const response = await axios.post(
-            `${REACT_APP_BASE_URL}/api/admin/create-user?`,
+            `${REACT_APP_BASE_URL}/admin/create-user?`,
             userData,
             {
                 headers: {
@@ -50,7 +51,7 @@ async function createProfileApi(userId, profileData) {
   try {
     const authKey = localStorage.getItem("authKey");
     const response = await axios.post(
-      `${REACT_APP_BASE_URL}/api/profiles/create-profile`,
+      `${REACT_APP_BASE_URL}/profiles/create-profile`,
       { userId, ...profileData },   // send full details
       {
         headers: {
@@ -99,7 +100,7 @@ export default function UserManagement() {
         const fetchUsers = async () => {
             try {
                 const authKey = localStorage.getItem("authKey");
-                const response = await axios.get(`${REACT_APP_BASE_URL}/api/admin/users`,
+                const response = await axios.get(`${REACT_APP_BASE_URL}/admin/users`,
                     {
                         headers: {
                             Authorization: `Bearer ${authKey}`,
@@ -185,7 +186,7 @@ const handleCreateProfileChange = (e) => {
         try {
             const authKey = localStorage.getItem("authKey");
             const response = await axios.put(
-                `${REACT_APP_BASE_URL}/api/profiles/update/${user.userId}`,
+                `${REACT_APP_BASE_URL}/profiles/update/${user.userId}`,
                 payload, {
                     headers: {
                         Authorization: `Bearer ${authKey}`,
@@ -245,7 +246,7 @@ const handleCreateProfileChange = (e) => {
 //         try {
 //             const authKey = localStorage.getItem("authKey");
 //             const response = await axios.get(
-//                 `${REACT_APP_BASE_URL}/api/profiles/${userId}`, {
+//                 `${REACT_APP_BASE_URL}/profiles/${userId}`, {
 //                     headers: {
 //                         Authorization: `Bearer ${authKey}`,
 //                     },
@@ -279,7 +280,7 @@ const handleViewOpen = async (user) => {
   try {
     const authKey = localStorage.getItem("authKey");
     const response = await axios.get(
-      `${REACT_APP_BASE_URL}/api/profiles/${userId}`,
+      `${REACT_APP_BASE_URL}/profiles/${userId}`,
       { headers: { Authorization: `Bearer ${authKey}` } }
     );
     setViewUser(response.data);
