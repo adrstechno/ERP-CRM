@@ -234,7 +234,8 @@
 //     );
 // }
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import axios from "axios";
 import {
     Box, Grid, Card, CardContent, Typography, List, ListItem, ListItemButton,
     ListItemAvatar, Avatar, ListItemText, Table, TableBody, TableCell,
@@ -246,6 +247,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import SearchIcon from '@mui/icons-material/Search';
 
 // --- Mock Data ---
+/** 
 const dealersData = [
     { id: 1, name: 'Sophie Moore', handle: '@sophiemoore', time: '10 min ago', status: 'Active', mobile: '8787878787', email: 'sophie@example.com', address: 'Jabalpur, India', accNo: 'XXX-XXX-123', gstNo: 'ABCDI23HG', companyName: 'Moore Enterprises', panNo: 'ABCDE1234F', joinedDate: '15 Aug 2023' },
     { id: 2, name: 'Patrick Meyer', handle: '@patrickmeyer', time: '5 min ago', status: 'Active', mobile: '9898989898', email: 'patrick@example.com', address: 'Bhopal, India', accNo: 'YYY-YYY-456', gstNo: 'EFGHK45LM', companyName: 'Meyer Solutions', panNo: 'FGHIJ5678K', joinedDate: '22 Sep 2023' },
@@ -253,6 +255,7 @@ const dealersData = [
     { id: 4, name: 'Sandy Houston', handle: '@sandyhouston', time: '25 min ago', status: 'Active', mobile: '8989898989', email: 'sandy@example.com', address: 'Vidisha, India', accNo: 'AAA-AAA-012', gstNo: 'WXYZA90BC', companyName: 'Houston Supplies', panNo: 'PQRST3456M', joinedDate: '11 Jun 2023' },
     { id: 5, name: 'John Doe', handle: '@johndoe', time: '30 min ago', status: 'Active', mobile: '8888888888', email: 'john@example.com', address: 'Sagar, India', accNo: 'BBB-BBB-345', gstNo: 'CDEFG12HI', companyName: 'Doe & Co.', panNo: 'UVWXY7890N', joinedDate: '19 May 2023' },
 ];
+*/
 
 const initialRequests = [
     { id: 1, reqNo: 'REQ_001', product: 'Compressor XA-200', qty: 100, status: 'Pending' },
@@ -273,24 +276,101 @@ const DetailItem = ({ label, value }) => (
 
 // --- Main Component ---
 export default function DealersManagement() {
-    const [selectedDealer, setSelectedDealer] = useState(dealersData[0]);
+
     const [requests, setRequests] = useState(initialRequests);
     const [searchTerm, setSearchTerm] = useState('');
+    const [dealersData, setDealersData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [dealerProfile, setDealerProfile] = useState(null);
+
+
+    useEffect(() => {
+        const fetchDealers = async () => {
+            try {
+                const authKey = localStorage.getItem("authKey");
+                const response = await axios.get("http://localhost:8080/api/admin/users/DEALER",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${authKey}`,
+                        },
+                    }
+                );
+                setDealersData(response.data);  // make sure API returns array
+                console.log("Fetched dealers:", response.data);
+            } catch (error) {
+                console.error("Error fetching dealers:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDealers();
+    }, []);
+    const [selectedDealer, setSelectedDealer] = useState(null);
+
+    useEffect(() => {
+        if (dealersData.length > 0) {
+            setSelectedDealer(dealersData[0]);
+        }
+    }, [dealersData]);
+
 
     const handleApprove = (requestId) => {
         setRequests(requests.map((req) => req.id === requestId ? { ...req, status: 'Approved' } : req));
     };
+    const handleDealerSelect = async (dealer) => {
+        setSelectedDealer(dealer);
+        setDealerProfile(null); // reset while fetching new one
+        try {
+            const authKey = localStorage.getItem("authKey");
+            console.log("Fetching profile for dealer ID:", dealer.id);
+            const response = await axios.get(`http://localhost:8080/api/profiles/${user.userId}`, {
+                headers: {
+                    Authorization: `Bearer ${authKey}`,
+                },
+            });
+            console.log("Dealer profile data:", response.data);
+            setDealerProfile(response.data);
+        } catch (error) {
+            console.error("Error fetching dealer profile:", error);
+        }
+    };
+
 
     const filteredDealers = useMemo(() =>
         dealersData.filter(dealer =>
-            dealer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            dealer.handle.toLowerCase().includes(searchTerm.toLowerCase())
-        ), [searchTerm]);
+            dealer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            dealer.handle?.toLowerCase().includes(searchTerm.toLowerCase())
+        ), [dealersData, searchTerm]);
 
     return (
         <Box>
             <Grid container spacing={3}>
-                {/* Left Column: Dealer List */}
+                {/* Left Column: Dealer List
+                {loading ? (
+                    <Typography variant="body2" sx={{ p: 2 }}>Loading dealers...</Typography>
+                ) : filteredDealers.length > 0 ? (
+                    filteredDealers.map((dealer) => (
+                        <ListItem key={dealer._id || dealer.id} disablePadding sx={{ mb: 1 }}>
+                            <ListItemButton
+                                selected={selectedDealer?.id === dealer.id}
+                                onClick={() => handleDealerSelect(dealer)}
+
+                            >
+                                <ListItemAvatar>
+                                    <Avatar alt={dealer.name} src={dealer.avatar} />
+                                </ListItemAvatar>
+                                <ListItemText
+                                    primary={<Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{dealer.name}</Typography>}
+                                    secondary={dealer.email}
+                                />
+                                <Typography variant="caption" color="text.secondary">{dealer.status}</Typography>
+                            </ListItemButton>
+                        </ListItem>
+                    ))
+                ) : (
+                    <Typography variant="body2" sx={{ p: 2 }}>No dealers found</Typography>
+                )} */}
                 <Grid item xs={12} md={3}>
                     <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
                         <CardContent>
@@ -338,26 +418,33 @@ export default function DealersManagement() {
                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Dealer Information</Typography>
                                 </Stack>
                                 <Divider sx={{ mb: 3 }} />
-                                {selectedDealer ? (
-                                    <TableContainer sx={{ maxHeight: 200, overflowY: 'auto' }}>
-                                        <Table size="small">
-                                            <TableBody>
-                                                <TableRow>
-                                                    <TableCell><DetailItem label="Name" value={selectedDealer.name} /></TableCell>
-                                                    <TableCell><DetailItem label="Mobile No" value={selectedDealer.mobile} /></TableCell>
-                                                    <TableCell><DetailItem label="Address" value={selectedDealer.address} /></TableCell>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableCell><DetailItem label="E-Mail" value={selectedDealer.email} /></TableCell>
-                                                    <TableCell><DetailItem label="Account No" value={selectedDealer.accNo} /></TableCell>
-                                                    <TableCell><DetailItem label="GST No" value={selectedDealer.gstNo} /></TableCell>
-                                                </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                ) : (
-                                    <Typography>Select a dealer to see information.</Typography>
-                                )}
+                                : (
+                                <Typography></Typography>
+                           {selectedDealer ? (
+  <TableContainer sx={{ maxHeight: 200, overflowY: 'auto' }}>
+    <Table size="small">
+      <TableBody>
+        <TableRow>
+          <TableCell><DetailItem label="Name" value={selectedDealer.name} /></TableCell>
+          <TableCell><DetailItem label="Mobile No" value={selectedDealer.phone} /></TableCell>
+          <TableCell><DetailItem label="E-Mail" value={selectedDealer.email} /></TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell><DetailItem label="Address" value={selectedDealer.profile?.address} /></TableCell>
+          <TableCell><DetailItem label="City" value={selectedDealer.profile?.city} /></TableCell>
+          <TableCell><DetailItem label="State" value={selectedDealer.profile?.state} /></TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell><DetailItem label="Pincode" value={selectedDealer.profile?.pincode} /></TableCell>
+          <TableCell><DetailItem label="GST No" value={selectedDealer.profile?.gstNumber} /></TableCell>
+          <TableCell><DetailItem label="Account No" value={selectedDealer.profile?.accountNo} /></TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  </TableContainer>
+) : (
+  <Typography></Typography>
+)}
                             </CardContent>
                         </Card>
 
@@ -381,7 +468,7 @@ export default function DealersManagement() {
                                                         {req.status === 'Pending' ? (
                                                             <Button variant="contained" size="small" onClick={() => handleApprove(req.id)}>Approve</Button>
                                                         ) : (
-                                                            <Chip icon={<CheckCircleOutlineIcon fontSize="small" />} label="Approved" color="success" size="small" variant="outlined"/>
+                                                            <Chip icon={<CheckCircleOutlineIcon fontSize="small" />} label="Approved" color="success" size="small" variant="outlined" />
                                                         )}
                                                     </TableCell>
                                                 </TableRow>

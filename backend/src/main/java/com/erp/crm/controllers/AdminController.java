@@ -36,7 +36,7 @@ public class AdminController {
 
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<User>> getAllUser(){
+    public ResponseEntity<List<User>> getAllUser() {
         List<User> users = userService.getAllUser();
         System.out.println(users);
         return ResponseEntity.ok(users);
@@ -44,8 +44,9 @@ public class AdminController {
 
     // get user by role
     @GetMapping("/users/{role}")
+
     @PreAuthorize("hasRole('ADMIN','SUBADMIN')")
-    public ResponseEntity<List<User>> getAllUserByRole(@PathVariable String role){
+    public ResponseEntity<List<User>> getAllUserByRole(@PathVariable String role){  
         List<User> users = userService.getAllUserByRole(role);
         System.out.println(users);
         return ResponseEntity.ok(users);
@@ -59,5 +60,4 @@ public class AdminController {
         System.out.println(users);
         return ResponseEntity.ok(users);
     }
-    
 }

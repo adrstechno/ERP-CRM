@@ -193,14 +193,20 @@ const mockApiData = {
         { title: "Old Customers", value: "36", change: "-0.03%", trend: "down" },
     ],
     salesTrend: [
-        { month: "Jan", sales: 12000, target: 10000 },
-        { month: "Feb", sales: 8000, target: 9500 },
-        { month: "Mar", sales: 15000, target: 12000 },
-        { month: "Apr", sales: 14000, target: 13000 },
-        { month: "May", sales: 16000, target: 14000 },
-        { month: "Jun", sales: 12500, target: 13500 },
-        { month: "Jul", sales: 18000, target: 15000 },
-    ],
+    { month: "Jan", sales: 12000, target: 10000 },
+    { month: "Feb", sales: 8000, target: 9500 },
+    { month: "Mar", sales: 15000, target: 12000 },
+    { month: "Apr", sales: 14000, target: 13000 },
+    { month: "May", sales: 16000, target: 14000 },
+    { month: "Jun", sales: 12500, target: 13500 },
+    { month: "Jul", sales: 18000, target: 15000 },
+    { month: "Aug", sales: 17000, target: 15500 },
+    { month: "Sep", sales: 14500, target: 14000 },
+    { month: "Oct", sales: 15500, target: 15000 },
+    { month: "Nov", sales: 16500, target: 16000 },
+    { month: "Dec", sales: 11000, target: 10500 },
+]
+, 
     totalUnits: {
         data: [
             { name: "AC", value: 1000 },

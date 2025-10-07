@@ -796,8 +796,46 @@ async function createUserApi(userData) {
         throw error;
     }
 }
+async function createProfileApi(userId, profileData) {
+  try {
+    const authKey = localStorage.getItem("authKey");
+    const response = await axios.post(
+      `${REACT_APP_BASE_URL}/api/profiles/create-profile`,
+      { userId, ...profileData },   // send full details
+      {
+        headers: {
+          Authorization: `Bearer ${authKey}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to create profile:", error);
+    throw error;
+  }
+}
+// async function createProfileApi(userId) {
+//   try {
+//     const authKey = localStorage.getItem("authKey");
+//     const response = await axios.post(
+//       `${REACT_APP_BASE_URL}/api/profiles/create-profile`,
+//       { userId },  // send userId in body
+//       {
+//         headers: {
+//           Authorization: `Bearer ${authKey}`,
+//         },
+//       }
+//     );
+//     return response.data;
+//   } catch (error) {
+//     console.error("Failed to create profile:", error);
+//     throw error;
+//   }
+// }
 
 const roleOptions = ['MARKETER', 'ENGINEER', 'DEALER', 'SUBADMIN'];
+
+
 
 const getRoleIcon = (role) => {
     switch (role) {
@@ -846,7 +884,39 @@ export default function UserManagement() {
 
         fetchUsers();
     }, []);
+const [createProfileData, setCreateProfileData] = useState({
+  gstNumber: "",
+  panNumber: "",
+  address: "",
+  city: "",
+  state: "",
+  pincode: "",
+  accountNo: "",
+  bankName: "",
+  ifscCode: ""
+});
+const [createProfileOpen, setCreateProfileOpen] = useState(false);
+const [currentUserId, setCurrentUserId] = useState(null);
 
+const handleCreateProfileOpen = () => setCreateProfileOpen(true);
+const handleCreateProfileClose = () => {
+  setCreateProfileOpen(false);
+  setCreateProfileData({
+    gstNumber: "",
+    panNumber: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    accountNo: "",
+    bankName: "",
+    ifscCode: ""
+  });
+};
+const handleCreateProfileChange = (e) => {
+  const { name, value } = e.target;
+  setCreateProfileData((prev) => ({ ...prev, [name]: value }));
+};
     const handleClickOpen = () => setOpen(true);
     const handleClose = () => {
         setOpen(false);
@@ -922,40 +992,73 @@ export default function UserManagement() {
         }
     };
 
-   const handleViewOpen = async (user) => {
-        // This console.log is the most important tool to debug this.
-        // Please check your browser's developer console to see what the 'user' object contains.
-        console.log("Inspecting user object on click:", user);
+//    const handleViewOpen = async (user) => {
+//         // This console.log is the most important tool to debug this.
+//         // Please check your browser's developer console to see what the 'user' object contains.
+//         console.log("Inspecting user object on click:", user);
 
-        setViewOpen(true);
-        setViewLoading(true);
-        setViewUser(null);
+//         setViewOpen(true);
+//         setViewLoading(true);
+//         setViewUser(null);
 
-        // Ensure we have a valid ID before making the call.
-        const userId = user.userId;
-        if (!userId) {
-            console.error("User ID is missing or invalid", user);
-            setViewLoading(false);
-            return;
-        }
+//         // Ensure we have a valid ID before making the call.
+//         const userId = user.userId;
+//         if (!userId) {
+//             console.error("User ID is missing or invalid", user);
+//             setViewLoading(false);
+//             return;
+//         }
 
-        try {
-            const authKey = localStorage.getItem("authKey");
-            const response = await axios.get(
-                `${REACT_APP_BASE_URL}/api/profiles/${userId}`, {
-                    headers: {
-                        Authorization: `Bearer ${authKey}`,
-                    },
-                }
-            );
-            setViewUser(response.data);
-        } catch (error) {
-            console.error("Failed to fetch user profile:", error);
-            setViewUser(null);
-        } finally {
-            setViewLoading(false);
-        }
-    };
+//         try {
+//             const authKey = localStorage.getItem("authKey");
+//             const response = await axios.get(
+//                 `${REACT_APP_BASE_URL}/api/profiles/${userId}`, {
+//                     headers: {
+//                         Authorization: `Bearer ${authKey}`,
+//                     },
+//                 }
+//             );
+//             setViewUser(response.data);
+//         } catch (error) {
+//             console.error("Failed to fetch user profile:", error);
+//             setViewUser(null);
+//         } finally {
+//             setViewLoading(false);
+//         }
+//     };
+const [profileMissing, setProfileMissing] = useState(false);
+
+const handleViewOpen = async (user) => {
+  console.log("Inspecting user object on click:", user);
+   setCurrentUserId(user.userId);
+  setViewOpen(true);
+  setViewLoading(true);
+  setViewUser(null);
+  setProfileMissing(false);
+
+  const userId = user.userId;
+  if (!userId) {
+    console.error("User ID missing", user);
+    setViewLoading(false);
+    return;
+  }
+
+  try {
+    const authKey = localStorage.getItem("authKey");
+    const response = await axios.get(
+      `${REACT_APP_BASE_URL}/api/profiles/${userId}`,
+      { headers: { Authorization: `Bearer ${authKey}` } }
+    );
+    setViewUser(response.data);
+  } catch (error) {
+    console.warn("No profile found for this user:", error);
+    setProfileMissing(true);  // flag that profile is missing
+    setViewUser(null);
+  } finally {
+    setViewLoading(false);
+  }
+};
+
 
     const handleViewClose = () => {
         setViewOpen(false);
@@ -1142,6 +1245,23 @@ export default function UserManagement() {
 
             {/* View User Details Dialog */}
             <Dialog open={viewOpen} onClose={handleViewClose} maxWidth="sm" fullWidth>
+                <DialogActions sx={{ p: '16px 24px' }}>
+  <Button onClick={handleViewClose}>Close</Button>
+  {profileMissing && (
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={handleCreateProfileOpen}
+    >
+      Create Profile
+    </Button>
+  )}
+  {!profileMissing && (
+    <Button onClick={handleEditExtraOpen} variant="contained" disabled={!viewUser}>
+      Edit Details
+    </Button>
+  )}
+</DialogActions>
                 <DialogTitle sx={{ fontWeight: 'bold' }}>User Details</DialogTitle>
                 <DialogContent>
                     {viewLoading ? (
@@ -1191,7 +1311,47 @@ export default function UserManagement() {
                         <Button onClick={handleEditExtraSave} variant="contained">Save Changes</Button>
                     </DialogActions>
                 </Dialog>
+                
+                
             )}
+
+            <Dialog open={createProfileOpen} onClose={handleCreateProfileClose} maxWidth="sm" fullWidth>
+  <DialogTitle sx={{ fontWeight: 'bold' }}>Create Profile</DialogTitle>
+  <DialogContent>
+    <Stack spacing={2} sx={{ mt: 2 }}>
+      <TextField name="gstNumber" label="GST Number" fullWidth value={createProfileData.gstNumber} onChange={handleCreateProfileChange} />
+      <TextField name="panNumber" label="PAN Number" fullWidth value={createProfileData.panNumber} onChange={handleCreateProfileChange} />
+      <TextField name="address" label="Address" fullWidth value={createProfileData.address} onChange={handleCreateProfileChange} />
+      <TextField name="city" label="City" fullWidth value={createProfileData.city} onChange={handleCreateProfileChange} />
+      <TextField name="state" label="State" fullWidth value={createProfileData.state} onChange={handleCreateProfileChange} />
+      <TextField name="pincode" label="Pincode" fullWidth value={createProfileData.pincode} onChange={handleCreateProfileChange} />
+      <TextField name="accountNo" label="Account No" fullWidth value={createProfileData.accountNo} onChange={handleCreateProfileChange} />
+      <TextField name="bankName" label="Bank Name" fullWidth value={createProfileData.bankName} onChange={handleCreateProfileChange} />
+      <TextField name="ifscCode" label="IFSC Code" fullWidth value={createProfileData.ifscCode} onChange={handleCreateProfileChange} />
+    </Stack>
+  </DialogContent>
+  <DialogActions sx={{ p: '16px 24px' }}>
+    <Button onClick={handleCreateProfileClose}>Cancel</Button>
+    <Button
+      variant="contained"   
+      onClick={async () => {
+        try {
+        //   const createdProfile = await createProfileApi(viewUser ? viewUser.userId : userBeingViewed.userId, createProfileData);
+        const createdProfile = await createProfileApi(currentUserId, createProfileData);
+          console.log("Profile created:", createdProfile);
+          setViewUser(createdProfile);
+          setProfileMissing(false);
+          handleCreateProfileClose();
+        } catch (err) {
+          console.error("Error creating profile:", err);
+        }
+      }}
+    >
+      Save Profile
+    </Button>
+  </DialogActions>
+</Dialog>
+
 
         </Box>
     );
