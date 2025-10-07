@@ -1,6 +1,6 @@
 package com.erp.crm.dto;
 
-import com.erp.crm.models.SaleStatus;
+import com.erp.crm.models.Status;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,5 +8,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SaleStatusDTO{
-    private SaleStatus status;
+    private Status saleStatus;
 }
