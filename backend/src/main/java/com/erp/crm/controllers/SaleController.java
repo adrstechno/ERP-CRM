@@ -45,6 +45,6 @@ public class SaleController {
     public ResponseEntity<SaleResponseDTO> updateSaleStatus(
             @PathVariable Long saleId,
             @RequestBody SaleStatusDTO statusDto) {
-        return ResponseEntity.ok(saleService.updateSaleStatus(saleId, statusDto.getStatus()));
+        return ResponseEntity.ok(saleService.updateSaleStatus(saleId, statusDto.getSaleStatus()));
     }
 }
