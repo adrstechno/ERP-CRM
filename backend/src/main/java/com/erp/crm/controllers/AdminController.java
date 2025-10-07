@@ -53,7 +53,7 @@ public class AdminController {
     }
 
     @GetMapping("/dealers")
-    @PreAuthorize("hasRole('ADMIN','SUBADMIN','MARKETER')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN','MARKETER')")
     public ResponseEntity<List<User>> getAllDealer(){
         String role = "DEALER";
         List<User> users = userService.getAllUserByRole(role);
