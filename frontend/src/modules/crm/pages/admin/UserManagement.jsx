@@ -101,7 +101,7 @@ export default function UserManagement() {
         const fetchUsers = async () => {
             try {
                 const authKey = localStorage.getItem("authKey");
-                const response = await axios.get(`${REACT_APP_BASE_URL}/admin/users`,
+                const response = await axios.get(`${VITE_API_BASE_URL}/admin/users`,
                     {
                         headers: {
                             Authorization: `Bearer ${authKey}`,
@@ -187,7 +187,7 @@ const handleCreateProfileChange = (e) => {
         try {
             const authKey = localStorage.getItem("authKey");
             const response = await axios.put(
-                `${REACT_APP_BASE_URL}/profiles/update/${user.userId}`,
+                `${VITE_API_BASE_URL}/profiles/update/${user.userId}`,
                 payload, {
                     headers: {
                         Authorization: `Bearer ${authKey}`,
@@ -281,7 +281,7 @@ const handleViewOpen = async (user) => {
   try {
     const authKey = localStorage.getItem("authKey");
     const response = await axios.get(
-      `${REACT_APP_BASE_URL}/profiles/${userId}`,
+      `${VITE_API_BASE_URL}/profiles/${userId}`,
       { headers: { Authorization: `Bearer ${authKey}` } }
     );
     setViewUser(response.data);
