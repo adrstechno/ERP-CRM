@@ -68,9 +68,8 @@ public class PaymentService {
         }
 
         if (dto.getReceivedById() != null) {
-            User receivedBy = userRepo.findById(dto.getReceivedById())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            payment.setReceivedBy(receivedBy);
+            
+            payment.setReceivedBy(user);
         }
 
         Payment savedPayment = paymentRepo.save(payment);
