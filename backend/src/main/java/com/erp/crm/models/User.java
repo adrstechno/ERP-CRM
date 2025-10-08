@@ -22,13 +22,17 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
+@NoArgsConstructor
 public class User {
+
+    
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,5 +69,10 @@ public class User {
     @OneToMany(mappedBy = "dealer", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Sale> dealerSales;
+
+
+    public User(Long userId) {
+        this.userId = userId;
+    }
 
 }
