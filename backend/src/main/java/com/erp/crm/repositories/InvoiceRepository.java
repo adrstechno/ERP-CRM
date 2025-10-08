@@ -15,4 +15,5 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     
     // Find all unpaid invoices
     List<Invoice> findByPaymentStatus(PaymentStatus status);
+
 }
