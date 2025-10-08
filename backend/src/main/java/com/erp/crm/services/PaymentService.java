@@ -33,6 +33,7 @@ public class PaymentService {
     }
 
     public PaymentResponseDTO recordPayment(PaymentRequestDTO dto, MultipartFile proofFile) {
+        System.out.println(proofFile + " lkdsalfajsljl ");
         Invoice invoice = invoiceRepo.findById(dto.getInvoiceId())
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
@@ -56,8 +57,13 @@ public class PaymentService {
         payment.setReferenceNo(dto.getReferenceNo());
         payment.setStatus(PaymentStatus.PENDING);
 
+        User user = userRepo.findById(dto.getReceivedById())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getReceivedById()));
+        payment.setReceivedBy(user);
+
         if (proofFile != null && !proofFile.isEmpty()) {
             String uploadedUrl = fileUploadService.uploadReceipt(proofFile, payment.getInvoice().getInvoiceId());
+            System.out.println("Uploaded proof URL: " + uploadedUrl);
             payment.setProofUrl(uploadedUrl);
         }
 
@@ -128,6 +134,7 @@ public class PaymentService {
         PaymentResponseDTO dto = new PaymentResponseDTO();
         dto.setPaymentId(payment.getPaymentId());
         dto.setInvoiceId(payment.getInvoice().getInvoiceId());
+        dto.setInvoiceNumber(payment.getInvoice().getInvoiceNumber());
         dto.setAmount(payment.getAmount());
         dto.setPaymentDate(payment.getPaymentDate());
         dto.setPaymentMethod(payment.getPaymentMethod().name());
