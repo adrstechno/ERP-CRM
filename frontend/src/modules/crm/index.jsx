@@ -57,32 +57,32 @@ export default function CRMModule() {
 
   return (
     <Routes>
-              <Route path="/crm" element={<Navigate to="/login" replace />} />
+      <Route path="/crm" element={<Navigate to="/login" replace />} />
       <Route element={<CRMLayout />}>
-      
-       
-      
+
+
+
         {crmUser?.role === "admin" && (
           <>
-          <Route path="admin" element={<AdminDashboard />} />
-          <Route path="users" element ={<UserManagement />} />
-          <Route path="dealers" element ={<DealerManagement />} />
-          <Route path="inventory" element ={<InventoryManagement />} /> 
-          <Route path="sales" element ={<Sales />} />
-          <Route path="service" element = {<Service />} />
-          <Route path="invoices" element = {<BillingNInvoice />} />
-          <Route path="reports" element = {<ReportsAnalytics />} />
-         <Route path="settings" element  ={<Setting />} />
-       
-           </>
+            <Route path="admin" element={<AdminDashboard />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="dealers" element={<DealerManagement />} />
+            <Route path="inventory" element={<InventoryManagement />} />
+            <Route path="sales" element={<Sales />} />
+            <Route path="service" element={<Service />} />
+            <Route path="invoices" element={<BillingNInvoice />} />
+            <Route path="reports" element={<ReportsAnalytics />} />
+            <Route path="settings" element={<Setting />} />
+
+          </>
 
         )}
-      
+
         {crmUser?.role === "dealer" && (
           <>
-          <Route path="dealer" element={<DealerDashboard />} />
-          <Route path="stock-requests" element={<DealerStockRequests />} />
-          <Route path="notices" element={<Notices />} />
+            <Route path="dealer" element={<DealerDashboard />} />
+            <Route path="stock-requests" element={<DealerStockRequests />} />
+            <Route path="notices" element={<Notices />} />
 
           </>
         )}
@@ -92,34 +92,34 @@ export default function CRMModule() {
             <Route path="marketer" element={<MarketerDashboard />} />
             <Route path="New-Customer" element={<AddCustomer />} />
             <Route path="new-sales" element={<NewSales />} />
-            <Route path="mysales" element ={<MySales />} />
+            <Route path="mysales" element={<MySales />} />
             <Route path="expenses" element={<MarketerExpenses />} />
             <Route path="paystatus" element={<PayStatus />} />
           </>
         )}
 
-       {crmUser?.role === "subadmin" && (
-        <>
-  <Route path="subadmindashboard" element={<SubadminDashboard />} />
-<Route path ="subadmin/dealers" element ={<Dealers />} />
-<Route path = "expenses/approve" element ={<ApproveExpenses />} />
-<Route path="service/assign" element ={<ServiceTicket />}/>
-<Route path="/sub/reports" element ={<Reports />} />
-  </>
-)}
+        {crmUser?.role === "subadmin" && (
+          <>
+            <Route path="subadmindashboard" element={<SubadminDashboard />} />
+            <Route path="subadmin/dealers" element={<Dealers />} />
+            <Route path="expenses/approve" element={<ApproveExpenses />} />
+            <Route path="service/assign" element={<ServiceTicket />} />
+            <Route path="/sub/reports" element={<Reports />} />
+          </>
+        )}
         {crmUser?.role === "engineer" && (
-  <>
-    <Route path="serviceengineer" element={<ServiceEngineerDashboard />}/>
-    <Route path="service/reports" element={<Reports />}/>
-    <Route path="service/assign-report" element={<AssignReport />}/>
-    <Route path="service/rimbursement" element={<Rimburesement/>}/>
-    <Route path="service/report" element={<ServiceReport />}/>
-  </>
-)}
+          <>
+            <Route path="serviceengineer" element={<ServiceEngineerDashboard />} />
+            <Route path="service/reports" element={<Reports />} />
+            <Route path="service/assign-report" element={<AssignReport />} />
+            <Route path="service/rimbursement" element={<Rimburesement />} />
+            <Route path="service/report" element={<ServiceReport />} />
+          </>
+        )}
 
 
         {!crmUser?.role && <Route path="*" element={<ErrorPage />} />}
-       
+
       </Route>
     </Routes>
   );
