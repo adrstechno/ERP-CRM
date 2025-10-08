@@ -40,6 +40,13 @@ public class UserController {
         ApiResponse<Void> response = new ApiResponse<>(true, "User deactivated successfully", null);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/dealers")
+    public ResponseEntity<List<User>> getAllDealer() {
+        String role = "DEALER";
+        List<User> users = userService.getAllUserByRole(role);
+        System.out.println(users);
+        return ResponseEntity.ok(users);
+    }
 
     // ✅ get By user id
     @GetMapping("/{userId}")

@@ -86,37 +86,37 @@ export default function NewSales() {
 
   // --- Fetch Dropdown Data ---
   const fetchDropdownData = useCallback(async () => {
-    try {
-      console.log("Fetching dropdown data with config:", axiosConfig);
-      const [dealerRes, customerRes, productRes] = await Promise.all([
-        axios.get(`${REACT_APP_BASE_URL}/admin/dealers`, {
-    headers: { Authorization: `Bearer ${token}` },
-  }),
-        axios.get(`${REACT_APP_BASE_URL}/customer`, {
-    headers: { Authorization: `Bearer ${token}` },
-  }),
-        axios.get(`${REACT_APP_BASE_URL}/products/all`,{
-    headers: { Authorization: `Bearer ${token}` },
-  } ),
-      ]);
+  try {
+    console.log("Fetching dropdown data with config:", axiosConfig);
 
-      const formattedDealers = (dealerRes.data || []).map((dealer) => ({
-        id: dealer.userId,
-        name: dealer.name,
-        role: dealer.role?.name || "DEALER",
-        email: dealer.email,
-        phone: dealer.phone,
-        profile: dealer.profile || {},
-      }));
+    // ✅ Pass the memoized axiosConfig directly to each call. It's cleaner.
+    const [dealerRes, customerRes, productRes] = await Promise.all([
+      axios.get(`${REACT_APP_BASE_URL}/user/dealers`, axiosConfig),
+      axios.get(`${REACT_APP_BASE_URL}/customer`, axiosConfig),
+      axios.get(`${REACT_APP_BASE_URL}/products/all`, axiosConfig),
+    ]);
 
-      setDealers(formattedDealers);
-      setCustomers(customerRes.data || []);
-      setProducts(productRes.data || []);
-    } catch (error) {
-      console.error("Error fetching dropdown data:", error);
+    const formattedDealers = (dealerRes.data || []).map((dealer) => ({
+      id: dealer.userId,
+      name: dealer.name,
+      role: dealer.role?.name || "DEALER",
+      email: dealer.email,
+      phone: dealer.phone,
+      profile: dealer.profile || {},
+    }));
+
+    setDealers(formattedDealers);
+    setCustomers(customerRes.data || []);
+    setProducts(productRes.data || []);
+  } catch (error) {
+    console.error("Error fetching dropdown data:", error);
+    // Optional: You could add logic here to automatically log the user out on a 401.
+    if (error.response && error.response.status === 401) {
+      alert("Your session has expired. Please log in again.");
+      // Add your logout logic here (e.g., clear localStorage, redirect to /login)
     }
-  }, [axiosConfig]);
-
+  }
+}, [axiosConfig]); // ✅ Dependency is correct
 
   // --- Fetch Sales Data ---
   const fetchSales = useCallback(async () => {
