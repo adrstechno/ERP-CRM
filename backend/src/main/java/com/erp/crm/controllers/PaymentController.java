@@ -31,7 +31,8 @@ public class PaymentController {
     // --------------------- Record Payment ---------------------
     @PostMapping("/add-payment")
     public ResponseEntity<ApiResponse<PaymentResponseDTO>> recordPayment(@ModelAttribute PaymentRequestDTO dto,
-            @RequestPart(value = "proofFile", required = false) MultipartFile proofFile) {
+            @RequestParam(value = "proofFile", required = false) MultipartFile proofFile) {
+                System.out.println(proofFile + "``````````````````");
         return ResponseEntity
                 .ok(new ApiResponse<>(true, "Payment recorded successfully",
                         paymentService.recordPayment(dto, proofFile)));
