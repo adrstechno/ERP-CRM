@@ -30,6 +30,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import { VITE_API_BASE_URL } from "../../utils/State";
 
 // --- Custom Tooltip for Charts ---
 const CustomTooltip = ({ active, payload, label }) => {
@@ -74,7 +75,7 @@ export default function SalesManagement() {
     const fetchSales = async () => {
       try {
         const authKey = localStorage.getItem("authKey");
-        const response = await axios.get("http://localhost:8080/api/sales/get-all-sales",
+        const response = await axios.get(`${VITE_API_BASE_URL}/sales/get-all-sales`,
           {
                     headers: {
                         Authorization: `Bearer ${authKey}`,

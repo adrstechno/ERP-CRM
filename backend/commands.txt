@@ -26,3 +26,20 @@ INSERT INTO users (user_id, role_id, name, email, password, phone, is_active) VA
 (10, 4, 'Roshan Sachdev', 'manalks1805@gmail.com', '123456', '8887776419', true),
 (11, 2, 'Dragon', 'dear12@example.com', '123456', '9876543280', true);
 
+for new laptop docker setup
+mysql -u root -p
+-> enter your local sql password
+
+CREATE USER 'crm_user'@'%' IDENTIFIED BY 'crm_pass';
+GRANT ALL PRIVILEGES ON crm_db.* TO 'crm_user'@'%';
+FLUSH PRIVILEGES;
+
+
+-> confirm that user exists or not
+SELECT user, host FROM mysql.user WHERE user = 'crm_user';
++----------+-----------+
+| user     | host      |
++----------+-----------+
+| crm_user | localhost |
++----------+-----------+
+

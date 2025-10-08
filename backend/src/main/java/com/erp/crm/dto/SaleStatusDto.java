@@ -1,10 +1,12 @@
 package com.erp.crm.dto;
 
-import com.erp.crm.models.SaleStatus;
+import com.erp.crm.models.Status;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-public class SaleStatusDTO {
-    private SaleStatus status;
+@Getter
+@Setter
+public class SaleStatusDTO{
+    private Status saleStatus;
 }

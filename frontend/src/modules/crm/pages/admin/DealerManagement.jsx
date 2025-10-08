@@ -245,6 +245,7 @@ import {
 import BusinessIcon from '@mui/icons-material/Business';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import SearchIcon from '@mui/icons-material/Search';
+import { VITE_API_BASE_URL } from "../../utils/State";
 
 // --- Mock Data ---
 /** 
@@ -288,7 +289,7 @@ export default function DealersManagement() {
         const fetchDealers = async () => {
             try {
                 const authKey = localStorage.getItem("authKey");
-                const response = await axios.get("http://localhost:8080/api/admin/users/DEALER",
+                const response = await axios.get(`${VITE_API_BASE_URL}/admin/dealers`,
                     {
                         headers: {
                             Authorization: `Bearer ${authKey}`,
@@ -324,7 +325,7 @@ export default function DealersManagement() {
         try {
             const authKey = localStorage.getItem("authKey");
             console.log("Fetching profile for dealer ID:", dealer.id);
-            const response = await axios.get(`http://localhost:8080/api/profiles/${user.userId}`, {
+            const response = await axios.get(`${VITE_API_BASE_URL}/profiles/${user.userId}`, {
                 headers: {
                     Authorization: `Bearer ${authKey}`,
                 },

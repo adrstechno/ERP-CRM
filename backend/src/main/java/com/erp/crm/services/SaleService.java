@@ -18,13 +18,77 @@ public class SaleService {
     private final UserRepository userRepo;
     private final CustomerRepository customerRepo;
     private final ProductRepository productRepo;
+    private final InvoiceRepository invoiceRepo;  // ✅ Add this
+    private final ServiceEntitlementRepository serviceEntitlementRepo; 
 
-    public SaleService(SaleRepository saleRepo, UserRepository userRepo,
-                       CustomerRepository customerRepo, ProductRepository productRepo) {
+    public SaleService(SaleRepository saleRepo, 
+                       UserRepository userRepo,
+                       CustomerRepository customerRepo, 
+                       ProductRepository productRepo,
+                       InvoiceRepository invoiceRepo,
+                       ServiceEntitlementRepository serviceEntitlementRepo) {
         this.saleRepo = saleRepo;
         this.userRepo = userRepo;
         this.customerRepo = customerRepo;
         this.productRepo = productRepo;
+        this.invoiceRepo = invoiceRepo;
+        this.serviceEntitlementRepo = serviceEntitlementRepo;
+    }
+
+    // ... existing createSale() method ...
+
+    public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
+        Sale sale = saleRepo.findById(saleId)
+                .orElseThrow(() -> new RuntimeException("Sale not found with id: " + saleId));
+        
+        Status oldStatus = sale.getSaleStatus();
+        sale.setSaleStatus(status);
+        Sale savedSale = saleRepo.save(sale);
+        
+        // ✅ Generate invoice only when status changes from PENDING to APPROVED
+        if (oldStatus == Status.PENDING && status == Status.APPROVED) {
+            generateInvoice(savedSale);
+            createServiceEntitlements(savedSale);  // ✅ Create 2 free services
+        }
+        
+        return mapToDto(savedSale);
+    }
+
+    // ✅ Invoice Generation Logic
+    private void generateInvoice(Sale sale) {
+        // Check if invoice already exists
+        if (sale.getInvoice() != null) {
+            throw new RuntimeException("Invoice already exists for sale ID: " + sale.getSaleId());
+        }
+        
+        Invoice invoice = new Invoice();
+        invoice.setSale(sale);
+        invoice.setInvoiceNumber(generateInvoiceNumber());
+        invoice.setInvoiceDate(LocalDate.now());
+        invoice.setTotalAmount(sale.getTotalAmount());
+        invoice.setPaymentStatus(PaymentStatus.UNPAID);
+        
+        invoiceRepo.save(invoice);
+    }
+    
+    // ✅ Generate unique invoice number
+    private String generateInvoiceNumber() {
+        int year = LocalDate.now().getYear();
+        long count = invoiceRepo.count() + 1;
+        return String.format("INV-%d-%05d", year, count);
+        // Example: INV-2025-00001
+    }
+    
+    // ✅ Create free service entitlements (2 free services per sale)
+    private void createServiceEntitlements(Sale sale) {
+        ServiceEntitlement entitlement = new ServiceEntitlement();
+        entitlement.setSale(sale);
+        entitlement.setEntitlementType(EntitlementType.FREE);
+        entitlement.setTotalAllowed(2);  // 2 free services
+        entitlement.setUsedCount(0);
+        entitlement.setExpiryDate(LocalDate.now().plusYears(1));  // Valid for 1 year
+        
+        serviceEntitlementRepo.save(entitlement);
     }
 
     public SaleResponseDTO createSale(SaleRequestDTO dto) {
@@ -81,14 +145,6 @@ public class SaleService {
                 .map(this::mapToDto)
                 .toList();
     }
-
-    public SaleResponseDTO updateSaleStatus(Long saleId, SaleStatus status) {
-        Sale sale = saleRepo.findById(saleId)
-                .orElseThrow(() -> new RuntimeException("Sale not found with id: " + saleId));
-        sale.setSaleStatus(status);
-        return mapToDto(saleRepo.save(sale));
-    }
-
     private SaleResponseDTO mapToDto(Sale sale) {
         SaleResponseDTO dto = new SaleResponseDTO();
         dto.setSaleId(sale.getSaleId());
@@ -127,3 +183,5 @@ public class SaleService {
                 .orElseThrow(() -> new RuntimeException(role + " not found with id: " + id));
     }
 }
+
+

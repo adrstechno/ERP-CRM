@@ -276,6 +276,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { VITE_API_BASE_URL } from "../../utils/State";
 
 // --- API Simulation ---
 const mockServiceTickets = [
