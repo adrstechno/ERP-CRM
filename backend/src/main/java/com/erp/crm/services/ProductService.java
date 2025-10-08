@@ -31,6 +31,22 @@ public class ProductService {
         return mapToDto(saved);
     }
 
+    public List<ProductResponseDTO> createProducts(List<ProductRequestDTO> dtos) {
+        List<Product> products = dtos.stream().map(dto -> {
+            Product product = new Product();
+            product.setName(dto.getName());
+            product.setCategory(dto.getCategory());
+            product.setPrice(dto.getPrice());
+            product.setWarrantyMonths(dto.getWarrantyMonths() != null ? dto.getWarrantyMonths() : 12);
+            product.setStock(dto.getStock());
+            return product;
+        }).toList();
+
+        List<Product> savedProducts = productRepo.saveAll(products);
+
+        return savedProducts.stream().map(this::mapToDto).toList();
+    }
+
     public ProductResponseDTO getProduct(Long productId) {
         Product product = productRepo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
@@ -50,7 +66,8 @@ public class ProductService {
         product.setName(dto.getName());
         product.setCategory(dto.getCategory());
         product.setPrice(dto.getPrice());
-        product.setWarrantyMonths(dto.getWarrantyMonths() != null ? dto.getWarrantyMonths() : product.getWarrantyMonths());
+        product.setWarrantyMonths(
+                dto.getWarrantyMonths() != null ? dto.getWarrantyMonths() : product.getWarrantyMonths());
         product.setStock(dto.getStock());
 
         Product updated = productRepo.save(product);
