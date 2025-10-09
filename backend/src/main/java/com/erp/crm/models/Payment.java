@@ -48,4 +48,5 @@ public class Payment {
     @Column(name = "proof_url", length = 500)
     private String proofUrl; // Cloudinary secure URL
 
+    private Double remainingAmount;
 }
