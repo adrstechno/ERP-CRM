@@ -67,7 +67,7 @@ public class SaleService {
         invoice.setInvoiceDate(LocalDate.now());
         invoice.setTotalAmount(sale.getTotalAmount());
         invoice.setPaymentStatus(PaymentStatus.UNPAID);
-
+        invoice.setOutstandingAmount(sale.getTotalAmount());
         invoiceRepo.save(invoice);
     }
 
