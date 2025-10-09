@@ -127,6 +127,15 @@ public class PaymentService {
      */
 
     public List<PaymentResponseDTO> getPaymentsByInvoice(Long invoiceId) {
+
+        Invoice invoice = invoiceRepo.findById(invoiceId)
+                .orElseThrow(() -> new RuntimeException("Invoice not found with ID: " + invoiceId));
+
+        List<Payment> payments = paymentRepo.findByInvoice_InvoiceId(invoiceId);
+
+        if (payments == null || payments.isEmpty()) {
+            throw new RuntimeException("No payments found for Invoice ID: " + invoiceId);
+        }
         return paymentRepo.findByInvoice_InvoiceId(invoiceId).stream()
                 .map(this::mapToDto)
                 .toList();
