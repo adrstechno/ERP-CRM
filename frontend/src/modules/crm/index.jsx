@@ -5,6 +5,7 @@ import { useCRMAuth } from "./context/CRMAuthContext";
 import ErrorPage from "./pages/ErrorPage";
 import Login from "./pages/Login";
 
+
 //Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement"
@@ -48,6 +49,7 @@ import MySales from "./pages/marketer/MySales";
 import MarketerExpenses from "./pages/marketer/MarketerExpenses";
 import PayStatus from "./pages/marketer/PayStatus";
 import AddCustomer from "./pages/marketer/AddCustomer";
+import InvoicePage from "./components/InvoicePage";
 
 
 
@@ -60,6 +62,8 @@ export default function CRMModule() {
       <Route path="/crm" element={<Navigate to="/login" replace />} />
       <Route element={<CRMLayout />}>
 
+    
+      
 
 
         {crmUser?.role === "admin" && (
@@ -95,6 +99,7 @@ export default function CRMModule() {
             <Route path="mysales" element={<MySales />} />
             <Route path="expenses" element={<MarketerExpenses />} />
             <Route path="paystatus" element={<PayStatus />} />
+            <Route path="invoice" element ={<InvoicePage />}/>
           </>
         )}
 
