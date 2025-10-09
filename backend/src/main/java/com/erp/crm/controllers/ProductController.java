@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
-@PreAuthorize("hasAnyRole('ADMIN','SUBADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','SUBADMIN','MARKETER')")
 public class ProductController {
 
     private final ProductService productService;
