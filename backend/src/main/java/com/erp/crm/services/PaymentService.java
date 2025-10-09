@@ -33,7 +33,6 @@ public class PaymentService {
     }
 
     public PaymentResponseDTO recordPayment(PaymentRequestDTO dto, MultipartFile proofFile) {
-        System.out.println(proofFile + " lkdsalfajsljl ");
         Invoice invoice = invoiceRepo.findById(dto.getInvoiceId())
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
@@ -42,7 +41,10 @@ public class PaymentService {
                 .mapToDouble(Payment::getAmount)
                 .sum();
 
+        System.out.println("Total paid so far: ~~~~~~~~ " + totalPaid);
+
         double remaining = invoice.getTotalAmount() - totalPaid;
+        invoice.setOutstandingAmount(remaining);
 
         if (dto.getAmount() > remaining) {
             throw new RuntimeException("Payment amount exceeds remaining balance");
@@ -56,6 +58,7 @@ public class PaymentService {
         payment.setPaymentMethod(dto.getPaymentMethod());
         payment.setReferenceNo(dto.getReferenceNo());
         payment.setStatus(PaymentStatus.PENDING);
+        payment.setNotes(dto.getNotes());
 
         User user = userRepo.findById(dto.getReceivedById())
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getReceivedById()));
@@ -68,7 +71,7 @@ public class PaymentService {
         }
 
         if (dto.getReceivedById() != null) {
-            
+
             payment.setReceivedBy(user);
         }
 
@@ -141,6 +144,9 @@ public class PaymentService {
         dto.setStatus(payment.getStatus().name());
         dto.setProofUrl(payment.getProofUrl());
         dto.setReceivedBy(payment.getReceivedBy() != null ? payment.getReceivedBy().getName() : null);
+        dto.setRemainingBalance(payment.getInvoice().getOutstandingAmount());
+        dto.setTotalBalance(payment.getInvoice().getTotalAmount());
+        dto.setNotes(payment.getNotes());
         return dto;
 
     }
