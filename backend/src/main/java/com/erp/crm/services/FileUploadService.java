@@ -22,7 +22,7 @@ public class FileUploadService {
     private String uploadFileToCloud(MultipartFile file, String folderPath) {
         try {
             Map<String, Object> options = ObjectUtils.asMap(
-                    "folder", folderPath
+                    "folder", "crm/" + folderPath
             );
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(), options);
             return uploadResult.get("secure_url").toString();

@@ -15,6 +15,6 @@ public class SaleRequestDTO {
     private Long customerId; // optional
     private LocalDate saleDate;
     private Double totalAmount;
-    private List<SaleItemDTO> items;
+    private List<SaleItemRequestDTO> items;
 }
 

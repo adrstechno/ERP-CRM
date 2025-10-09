@@ -12,4 +12,7 @@ public class PaymentResponseDTO {
     private LocalDate paymentDate;
     private String paymentMethod;
     private String referenceNo;
+    private String status;
+    private String proofUrl;
+    private String receivedBy;
 }
