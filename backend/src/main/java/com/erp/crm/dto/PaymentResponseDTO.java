@@ -15,4 +15,7 @@ public class PaymentResponseDTO {
     private String status;
     private String proofUrl;
     private String receivedBy;
+    private Double remainingBalance;
+    private Double totalBalance;
+    private String notes;
 }
