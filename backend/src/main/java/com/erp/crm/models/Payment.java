@@ -44,7 +44,7 @@ public class Payment {
     @Column(length = 255)
     private String notes;
 
-    // 🔹 Proof of payment (image/PDF)
+    //  Proof of payment (image/PDF)
     @Column(name = "proof_url", length = 500)
     private String proofUrl; // Cloudinary secure URL
 
