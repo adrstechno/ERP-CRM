@@ -24,7 +24,6 @@ export const crmMenuConfig = {
     { label: "Sales", path: "/crm/sales", icon: <ShoppingCartIcon /> },
     { label: "Service", path: "/crm/service", icon: <AssignmentIcon /> },
     { label: "Billing & Invoices", path: "/crm/invoices", icon: <ReceiptIcon /> },
-    { label: "Reports & Analytics", path: "/crm/reports", icon: <BarChartIcon /> },
     { label: "Settings", path: "/crm/settings", icon: <SettingsIcon /> },
   ],
 
@@ -39,7 +38,6 @@ export const crmMenuConfig = {
   dealer: [
     { label: "Dashboard", path: "/crm/dealer", icon: <DashboardIcon /> },
     { label: "Stock Requests", path: "/crm/stock-requests", icon: <InventoryIcon /> },
-    
     { label: "Notices", path: "/crm/notices", icon: <MailIcon /> },
     {/* label: "Sales Entry", path: "/crm/sales/entry", icon: <ShoppingCartIcon /> */},
     { /*label: "Invoices & Payments", path: "/crm/invoices", icon: <ReceiptIcon /> */},
