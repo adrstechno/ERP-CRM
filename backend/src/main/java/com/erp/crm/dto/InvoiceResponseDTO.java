@@ -13,4 +13,5 @@ public class InvoiceResponseDTO {
     private PaymentStatus paymentStatus;
     private Double totalAmount;
     private SaleResponseDTO sale;
+    private Double outstandingAmount;
 }
