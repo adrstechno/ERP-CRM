@@ -82,7 +82,7 @@ export default function NewSales() {
   };
 }, [token]);
 
-  const ADMIN_ID = "1";
+  const ADMIN_ID = 1;
   const LOGGED_IN_MARKETER = { id: user?._id || "5", name: user?.name || "marketer" };
 
   // --- Fetch Dropdown Data ---
@@ -90,44 +90,62 @@ export default function NewSales() {
   try {
     console.log("Fetching dropdown data with config:", axiosConfig);
 
-    // ✅ Pass the memoized axiosConfig directly to each call. It's cleaner.
     const [dealerRes, customerRes, productRes] = await Promise.all([
-      axios.get(`${REACT_APP_BASE_URL}/user/dealers`, axiosConfig),
-      axios.get(`${REACT_APP_BASE_URL}/customer`, axiosConfig),
-      axios.get(`${REACT_APP_BASE_URL}/products/all`, axiosConfig),
+      axios.get(`${VITE_API_BASE_URL}/user/dealers`, axiosConfig),
+      axios.get(`${VITE_API_BASE_URL}/customer`, axiosConfig),
+     axios.get(`${VITE_API_BASE_URL}/products/all`, axiosConfig),
     ]);
 
+    // ✅ Format dealers based on your actual API response
     const formattedDealers = (dealerRes.data || []).map((dealer) => ({
-      id: dealer.userId,
+      id: dealer.userId, // from your API
       name: dealer.name,
-      role: dealer.role?.name || "DEALER",
       email: dealer.email,
-      phone: dealer.phone,
-      profile: dealer.profile || {},
+      role: dealer.role?.name || "DEALER",
     }));
 
+    console.log("✅ Dealers fetched:", formattedDealers);
     setDealers(formattedDealers);
     setCustomers(customerRes.data || []);
     setProducts(productRes.data || []);
   } catch (error) {
-    console.error("Error fetching dropdown data:", error);
-    // Optional: You could add logic here to automatically log the user out on a 401.
+    console.error("❌ Error fetching dropdown data:", error);
     if (error.response && error.response.status === 401) {
       alert("Your session has expired. Please log in again.");
-      // Add your logout logic here (e.g., clear localStorage, redirect to /login)
     }
   }
-}, [axiosConfig]); // ✅ Dependency is correct
-
+}, [axiosConfig]);
   // --- Fetch Sales Data ---
-  const fetchSales = useCallback(async () => {
+  // --- Fetch Sales Data ---
+const fetchSales = useCallback(async () => {
+  try {
     setIsLoading(true);
-    // In a real app, you would fetch existing sales here:
-    // e.g., axios.get(`${REACT_APP_BASE_URL}/sales/all`, axiosConfig)
-    await new Promise((res) => setTimeout(res, 800));
-    setSales([]); // initially empty
+
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}/sales/get-all-sales`,
+      axiosConfig
+    );
+
+    console.log("✅ All Sales Response:", response.data);
+
+    const formattedSales = (response.data || []).map((sale) => ({
+      id: `#S${sale.saleId}`,
+      date: sale.saleDate,
+      dealer: sale.customerType === "DEALER" ? sale.customerName : "N/A",
+      customer: sale.customerType === "CUSTOMER" ? sale.customerName : "N/A",
+      marketer: sale.marketerName || "N/A",
+      amount: sale.totalAmount || 0,
+      status: sale.saleStatus || "PENDING",
+    }));
+
+    setSales(formattedSales);
+  } catch (error) {
+    console.error("❌ Error fetching all sales:", error);
+    alert("Failed to load sales list. Please check console for details.");
+  } finally {
     setIsLoading(false);
-  }, []);
+  }
+}, [axiosConfig]);
 
   useEffect(() => {
     fetchDropdownData();
@@ -141,22 +159,26 @@ export default function NewSales() {
   };
 
   const handleEntitySelect = (value) => {
-    if (form.saleToType === "Dealer") {
-      const dealer = dealers.find((d) => d.name === value);
+  if (form.saleToType === "Dealer") {
+    const dealer = dealers.find((d) => d.id === value);
+    if (dealer) {
       setForm((prev) => ({
         ...prev,
-        saleToEntity: dealer?.name || "",
-        entityId: dealer?.id || "", // Adjusted to use 'id'
-      }));
-    } else {
-      const customer = customers.find((c) => c.customerName === value);
-      setForm((prev) => ({
-        ...prev,
-        saleToEntity: customer?.customerName || "",
-        entityId: customer?.customerId || "",
+        saleToEntity: dealer.name,
+        entityId: dealer.id,
       }));
     }
-  };
+  } else {
+    const customer = customers.find((c) => c.customerId === value);
+    if (customer) {
+      setForm((prev) => ({
+        ...prev,
+        saleToEntity: customer.customerName,
+        entityId: customer.customerId,
+      }));
+    }
+  }
+};
 
   const handleProductSelect = (value) => {
     const product = products.find((p) => p.name === value);
@@ -180,64 +202,62 @@ export default function NewSales() {
 
   // --- Submit Sale ---
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  e.preventDefault();
+  setIsSubmitting(true);
 
-    try {
-      // ✅ Payload structure already matches the required API body
-      const payload = {
-        adminId: ADMIN_ID,
-        marketerId: LOGGED_IN_MARKETER.id,
-        dealerId: form.saleToType === "Dealer" ? form.entityId : null,
-        customerId: form.saleToType === "Customer" ? form.entityId : null,
-        totalAmount: amount,
-        items: [
-          {
-            productId: form.productId,
-            productName: form.salesItem,
-            quantity: form.quantity,
-            price: form.perUnit,
-          },
-        ],
-      };
+  if (!form.saleToType || !form.entityId) {
+    alert("Please select Dealer or Customer before submitting.");
+    setIsSubmitting(false);
+    return;
+  }
 
-      console.log("Creating Sale with Payload:", payload);
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    console.log("Logged-in user object:", user);
 
-      const response = await axios.post(
-        `${VITE_API_BASE_URL}/sales/create-sale`,
-        payload,
-        axiosConfig
-      );
+    // ✅ FIX HERE — use numeric fallback if user.userId is missing
+    const ADMIN_ID = 1;
+    const MARKETER_ID =
+      typeof user?.userId === "number"
+        ? user.userId
+        : user?.id && !isNaN(user.id)
+        ? Number(user.id)
+        : 2; // fallback marketer id (update to actual numeric id if needed)
 
-      console.log("Sale created successfully:", response.data);
+    const payload = {
+      adminId: Number(ADMIN_ID),
+      marketerId: Number(MARKETER_ID),
+      dealerId: form.saleToType === "Dealer" ? Number(form.entityId) : null,
+      customerId: form.saleToType === "Customer" ? Number(form.entityId) : null,
+      totalAmount: amount,
+      items: [
+        {
+          productId: Number(form.productId),
+          productName: form.salesItem,
+          quantity: Number(form.quantity),
+          price: Number(form.perUnit),
+        },
+      ],
+    };
 
-      // --- MODIFIED SECTION ---
-      // ✅ Create the newSale object using the API response as the source of truth.
-      const newSale = {
-        id: `#S${response.data.saleId}`, // Using the saleId from the response
-        date: response.data.saleDate,
-        dealer:
-          response.data.customerType === "DEALER"
-            ? response.data.customerName
-            : "N/A",
-        customer:
-          response.data.customerType !== "DEALER"
-            ? response.data.customerName
-            : "N/A",
-        marketer: response.data.marketerName,
-        amount: response.data.totalAmount,
-        status: response.data.saleStatus,
-      };
-      
-      setSales((prev) => [newSale, ...prev]);
-      handleCloseDialog();
-    } catch (error) {
-      console.error("Error creating sale:", error.response?.data || error.message);
-      alert("Failed to create sale. Check console for details.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    console.log("🧾 Final Sale Payload:", payload);
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/sales/create-sale`,
+      payload,
+      axiosConfig
+    );
+
+    console.log("✅ Sale created successfully:", response.data);
+    handleCloseDialog();
+  } catch (error) {
+    console.error("❌ Error creating sale:", error.response?.data || error.message);
+    alert(error.response?.data?.message || "Failed to create sale.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const handleOpenDialog = () => setIsDialogOpen(true);
   const handleCloseDialog = () => {
@@ -360,26 +380,27 @@ export default function NewSales() {
 
                 {/* Entity Dropdown */}
                 {form.saleToType && (
-                  <FormControl fullWidth>
-                    <InputLabel>{`Select ${form.saleToType}`}</InputLabel>
-                    <Select
-                      value={form.saleToEntity}
-                      label={`Select ${form.saleToType}`}
-                      onChange={(e) => handleEntitySelect(e.target.value)}
-                    >
-                      {(form.saleToType === "Dealer" ? dealers : customers).map((entity) => (
-                        <MenuItem
-                          key={form.saleToType === "Dealer" ? entity.id : entity.customerId}
-                          value={form.saleToType === "Dealer" ? entity.name : entity.customerName}
-                        >
-                          {form.saleToType === "Dealer"
-                            ? `${entity.name} (${entity.role})`
-                            : entity.customerName}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
+  <FormControl fullWidth>
+    <InputLabel>{`Select ${form.saleToType}`}</InputLabel>
+    <Select
+      value={form.entityId}
+      label={`Select ${form.saleToType}`}
+      onChange={(e) => handleEntitySelect(e.target.value)}
+    >
+      {form.saleToType === "Dealer"
+        ? dealers.map((d) => (
+            <MenuItem key={d.id} value={d.id}>
+              {`${d.name} (${d.role})`}
+            </MenuItem>
+          ))
+        : customers.map((c) => (
+            <MenuItem key={c.customerId} value={c.customerId}>
+              {c.customerName}
+            </MenuItem>
+          ))}
+    </Select>
+  </FormControl>
+)}
 
                 {/* Product */}
                 <FormControl fullWidth>
