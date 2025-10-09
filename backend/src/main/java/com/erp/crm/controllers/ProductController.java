@@ -26,6 +26,11 @@ public class ProductController {
         return ResponseEntity.ok(productService.createProduct(dto));
     }
 
+    @PostMapping("/create-bulk")
+    public ResponseEntity<List<ProductResponseDTO>> createProducts(@RequestBody List<ProductRequestDTO> dtos) {
+        return ResponseEntity.ok(productService.createProducts(dtos));
+    }
+
     // Get a single product by ID
     @GetMapping("get-product/{id}")
     public ResponseEntity<ProductResponseDTO> getProduct(@PathVariable Long id) {

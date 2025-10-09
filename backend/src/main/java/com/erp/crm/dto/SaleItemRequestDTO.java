@@ -11,10 +11,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class SaleItemDTO {
-    private Long productId;   // ✅ Use ID instead of name
-    private String productName; // ✅ Filled only in response
+public class SaleItemRequestDTO {
+    private Long productId; // ✅ Use ID instead of name
     private Integer quantity;
-    private Double price;
-    private Double taxRate = 0.0;
+
 }

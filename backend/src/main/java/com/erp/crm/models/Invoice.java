@@ -47,6 +47,9 @@ public class Invoice {
     @Column(nullable = false)
     private Double totalAmount;
 
+    @Column(nullable = false)
+    private Double OutstandingAmount;
+
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 

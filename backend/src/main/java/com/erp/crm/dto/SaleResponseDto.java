@@ -17,5 +17,5 @@ public class SaleResponseDTO {
     private LocalDate saleDate;
     private Double totalAmount;
     private String saleStatus;
-    private List<SaleItemDTO> items;
+    private List<SaleItemResponseDTO> items;
 }

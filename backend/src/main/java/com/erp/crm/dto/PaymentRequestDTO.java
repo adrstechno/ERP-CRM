@@ -11,4 +11,6 @@ public class PaymentRequestDTO {
     private PaymentMethod paymentMethod;  // CASH, UPI, BANK_TRANSFER, etc.
     private String referenceNo;
     private LocalDate paymentDate;
+    private Long receivedById; // User ID of the staff receiving the payment
+    private String notes;
 }
