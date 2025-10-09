@@ -12,4 +12,5 @@ public class PaymentRequestDTO {
     private String referenceNo;
     private LocalDate paymentDate;
     private Long receivedById; // User ID of the staff receiving the payment
+    private String notes;
 }
