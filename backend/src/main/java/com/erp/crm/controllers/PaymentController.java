@@ -8,7 +8,6 @@ import com.erp.crm.models.PaymentStatus;
 import com.erp.crm.services.FileUploadService;
 import com.erp.crm.services.PaymentService;
 
-import org.apache.tomcat.util.http.fileupload.FileUpload;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -50,7 +49,7 @@ public class PaymentController {
     }
 
     // --------------------- Get Payments by Invoice ---------------------
-    @GetMapping("/invoice/{invoiceId}")
+    @GetMapping("/{invoiceId}")
     public ResponseEntity<List<PaymentResponseDTO>> getPaymentsByInvoice(@PathVariable Long invoiceId) {
         return ResponseEntity.ok(paymentService.getPaymentsByInvoice(invoiceId));
     }
