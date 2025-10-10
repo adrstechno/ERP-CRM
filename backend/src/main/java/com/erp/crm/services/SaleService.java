@@ -4,14 +4,16 @@ import com.erp.crm.dto.*;
 import com.erp.crm.models.*;
 import com.erp.crm.repositories.*;
 import com.erp.crm.security.SecurityUtils;
+import com.erp.crm.security.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,11 +25,9 @@ public class SaleService {
     private final UserRepository userRepo;
     private final CustomerRepository customerRepo;
     private final ProductRepository productRepo;
-    private final InvoiceRepository invoiceRepo; // ✅ Add this
+    private final InvoiceRepository invoiceRepo;
     private final ServiceEntitlementRepository serviceEntitlementRepo;
     private final SecurityUtils securityUtils;
-
-   
 
     public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
         Sale sale = saleRepo.findById(saleId)
@@ -36,18 +36,25 @@ public class SaleService {
         Status oldStatus = sale.getSaleStatus();
         sale.setSaleStatus(status);
 
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (status == Status.APPROVED && auth != null && auth.getPrincipal() instanceof UserPrincipal principal) {
+            String email = principal.getUsername();
+            User admin = userRepo.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+            sale.setApprovedBy(admin);
+        }
+
         Sale savedSale = saleRepo.save(sale);
 
-        // ✅ Generate invoice only when status changes from PENDING to APPROVED
+        // Generate invoice only when status changes from PENDING to APPROVED
         if (oldStatus == Status.PENDING && status == Status.APPROVED) {
             generateInvoice(savedSale);
-            createServiceEntitlements(savedSale); // ✅ Create 2 free services
+            createServiceEntitlements(savedSale); // Create 2 free services
         }
 
         return mapToDto(savedSale);
     }
 
-    // ✅ Invoice Generation Logic
     private void generateInvoice(Sale sale) {
         // Check if invoice already exists
         if (sale.getInvoice() != null) {
