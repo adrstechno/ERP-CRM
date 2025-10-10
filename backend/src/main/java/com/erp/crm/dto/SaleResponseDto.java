@@ -10,9 +10,8 @@ import lombok.Setter;
 @Setter
 public class SaleResponseDTO {
     private Long saleId;
-    private String adminName;
-    private String marketerName;
-    private String customerType; // "DEALER" or "RETAIL"
+    private String approvedBy;
+    private String createdBy;
     private String customerName;
     private LocalDate saleDate;
     private Double totalAmount;
