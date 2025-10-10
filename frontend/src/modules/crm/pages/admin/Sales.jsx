@@ -164,7 +164,7 @@ export default function SalesManagement() {
         <Grid container spacing={3}>
           {/* Dealer-wise Sales Bar Chart */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: 400 }}>
+            <Card sx={{ height: 400,  width: 600}}>
               <CardContent sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
                 <Typography variant="h6" sx={{ fontWeight: "bold" }} gutterBottom>
                   Dealer-wise Sales
@@ -187,7 +187,7 @@ export default function SalesManagement() {
 
           {/* Sale Status Pie Chart */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: 400 }}>
+            <Card sx={{ height: 400 ,width: 500 }}>
               <CardContent sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
                 <Typography variant="h6" sx={{ fontWeight: "bold" }} gutterBottom>
                   Sale Status Distribution
@@ -199,7 +199,7 @@ export default function SalesManagement() {
                       <Pie
                         data={[
                           { name: "Pending", value: salesData.filter(s => s.saleStatus === "PENDING").length },
-                          { name: "Completed", value: salesData.filter(s => s.saleStatus === "COMPLETED").length },
+                          { name: "APPROVED", value: salesData.filter(s => s.saleStatus === "APPROVED").length },
                           { name: "Cancelled", value: salesData.filter(s => s.saleStatus === "CANCELLED").length },
                         ]}
                         cx="50%"

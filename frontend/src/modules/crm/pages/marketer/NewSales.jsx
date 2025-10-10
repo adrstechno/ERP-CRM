@@ -64,15 +64,11 @@ export default function NewSales() {
   const [products, setProducts] = useState([]);
 
   const [form, setForm] = useState({
-    saleToType: "",
-    saleToEntity: "",
-    entityId: "",
-    salesItem: "",
-    productId: "",
-    date: dayjs(),
-    quantity: 1,
-    perUnit: 0,
-  });
+  saleToEntity: "",
+  entityId: "",
+  date: dayjs(),
+  items: [{ productId: "", productName: "", quantity: 1, perUnit: 0 }],
+});
 
   const token = localStorage.getItem("authKey");
   const user = JSON.parse(localStorage.getItem("user"));
@@ -129,14 +125,14 @@ const fetchSales = useCallback(async () => {
     console.log("✅ All Sales Response:", response.data);
 
     const formattedSales = (response.data || []).map((sale) => ({
-      id: `#S${sale.saleId}`,
-      date: sale.saleDate,
-      dealer: sale.customerType === "DEALER" ? sale.customerName : "N/A",
-      customer: sale.customerType === "CUSTOMER" ? sale.customerName : "N/A",
-      marketer: sale.marketerName || "N/A",
-      amount: sale.totalAmount || 0,
-      status: sale.saleStatus || "PENDING",
-    }));
+  id: `#S${sale.saleId}`,
+  date: sale.saleDate,
+  customerName: sale.customerName || "N/A",
+  marketerName: sale.marketerName || "N/A",
+  amount: sale.totalAmount || 0,
+  status: sale.saleStatus || "PENDING",
+}));
+
 
     setSales(formattedSales);
   } catch (error) {
@@ -201,54 +197,51 @@ const fetchSales = useCallback(async () => {
   }, [form.quantity, form.perUnit]);
 
   // --- Submit Sale ---
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
   setIsSubmitting(true);
 
-  if (!form.saleToType || !form.entityId) {
-    alert("Please select Dealer or Customer before submitting.");
+  if (!form.entityId) {
+    alert("Please select a customer before submitting.");
     setIsSubmitting(false);
     return;
   }
 
   try {
     const user = JSON.parse(localStorage.getItem("user"));
-    console.log("Logged-in user object:", user);
-
-    // ✅ FIX HERE — use numeric fallback if user.userId is missing
     const ADMIN_ID = 1;
     const MARKETER_ID =
       typeof user?.userId === "number"
         ? user.userId
         : user?.id && !isNaN(user.id)
         ? Number(user.id)
-        : 2; // fallback marketer id (update to actual numeric id if needed)
+        : 2;
 
     const payload = {
       adminId: Number(ADMIN_ID),
       marketerId: Number(MARKETER_ID),
-      dealerId: form.saleToType === "Dealer" ? Number(form.entityId) : null,
-      customerId: form.saleToType === "Customer" ? Number(form.entityId) : null,
-      totalAmount: amount,
-      items: [
-        {
-          productId: Number(form.productId),
-          productName: form.salesItem,
-          quantity: Number(form.quantity),
-          price: Number(form.perUnit),
-        },
-      ],
+      customerId: Number(form.entityId),
+      totalAmount: form.items.reduce(
+        (sum, item) => sum + item.quantity * item.perUnit,
+        0
+      ),
+      items: form.items.map((item) => ({
+        productId: Number(item.productId),
+        productName: item.productName,
+        quantity: Number(item.quantity),
+        price: Number(item.perUnit),
+      })),
     };
 
     console.log("🧾 Final Sale Payload:", payload);
 
-    const response = await axios.post(
+    await axios.post(
       `${import.meta.env.VITE_API_BASE_URL}/sales/create-sale`,
       payload,
       axiosConfig
     );
 
-    console.log("✅ Sale created successfully:", response.data);
+    console.log("✅ Sale created successfully");
     handleCloseDialog();
   } catch (error) {
     console.error("❌ Error creating sale:", error.response?.data || error.message);
@@ -257,6 +250,7 @@ const fetchSales = useCallback(async () => {
     setIsSubmitting(false);
   }
 };
+
 
 
   const handleOpenDialog = () => setIsDialogOpen(true);
@@ -312,180 +306,220 @@ const fetchSales = useCallback(async () => {
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  {[
-                    "Sale ID",
-                    "Date",
-                    "Dealer",
-                    "Customer",
-                    "Marketer",
-                    "Amount",
-                    "Status",
-                  ].map((h) => (
+                  {["Sale ID", "Date", "Customer", "Marketer", "Amount", "Status"].map((h) => (
                     <TableCell key={h}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {isLoading
-                  ? Array.from(new Array(5)).map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell colSpan={7}>
-                          <Skeleton />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  : sales.map((sale) => (
-                      <TableRow key={sale.id} hover>
-                        <TableCell sx={{ fontWeight: 500 }}>
-                          {sale.id}
-                        </TableCell>
-                        <TableCell>
-                          {dayjs(sale.date).format("DD MMM YYYY")}
-                        </TableCell>
-                        <TableCell>{sale.dealer || "N/A"}</TableCell>
-                        <TableCell>{sale.customer || "N/A"}</TableCell>
-                        <TableCell>{sale.marketer}</TableCell>
-                        <TableCell>
-                          ₹{sale.amount.toLocaleString("en-IN")}
-                        </TableCell>
-                        <TableCell>
-                          <StatusChip status={sale.status} />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-              </TableBody>
+  {isLoading ? (
+    Array.from(new Array(5)).map((_, i) => (
+      <TableRow key={i}>
+        <TableCell colSpan={6}>
+          <Skeleton />
+        </TableCell>
+      </TableRow>
+    ))
+  ) : sales.length > 0 ? (
+    sales.map((sale) => (
+      <TableRow key={sale.id} hover>
+        <TableCell sx={{ fontWeight: 500 }}>{sale.id}</TableCell>
+        <TableCell>{dayjs(sale.date).format("DD MMM YYYY")}</TableCell>
+        <TableCell>{sale.customerName}</TableCell>
+        <TableCell>{sale.marketerName}</TableCell>
+        <TableCell>₹{sale.amount.toLocaleString("en-IN")}</TableCell>
+        <TableCell>
+          <StatusChip status={sale.status} />
+        </TableCell>
+      </TableRow>
+    ))
+  ) : (
+    <TableRow>
+      <TableCell colSpan={6} align="center">
+        No sales records found.
+      </TableCell>
+    </TableRow>
+  )}
+</TableBody>
             </Table>
           </TableContainer>
         </Card>
 
         {/* --- Dialog --- */}
-        <Dialog open={isDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>New Sale Entry</DialogTitle>
-          <DialogContent>
-            <Box component="form" id="new-sale-form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-              <Stack spacing={2.5}>
-                {/* Sale To */}
-                <FormControl fullWidth>
-                  <InputLabel>Sale To</InputLabel>
-                  <Select
-                    name="saleToType"
-                    label="Sale To"
-                    value={form.saleToType}
-                    onChange={handleChange}
-                  >
-                    <MenuItem value="Dealer">Dealer</MenuItem>
-                    <MenuItem value="Customer">Customer</MenuItem>
-                  </Select>
-                </FormControl>
+        <Dialog open={isDialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+  <DialogTitle>New Sale Entry</DialogTitle>
+  <DialogContent>
+    <Box component="form" id="new-sale-form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+      <Stack spacing={2.5}>
+        {/* Customer Selection */}
+        <FormControl fullWidth>
+          <InputLabel>Select Customer</InputLabel>
+          <Select
+            value={form.entityId}
+            label="Select Customer"
+            onChange={(e) => {
+              const customer = customers.find(
+                (c) => c.customerId === e.target.value
+              );
+              if (customer) {
+                setForm((prev) => ({
+                  ...prev,
+                  saleToEntity: customer.customerName,
+                  entityId: customer.customerId,
+                }));
+              }
+            }}
+          >
+            {customers.map((c) => (
+              <MenuItem key={c.customerId} value={c.customerId}>
+                {c.customerName}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-                {/* Entity Dropdown */}
-                {form.saleToType && (
-  <FormControl fullWidth>
-    <InputLabel>{`Select ${form.saleToType}`}</InputLabel>
-    <Select
-      value={form.entityId}
-      label={`Select ${form.saleToType}`}
-      onChange={(e) => handleEntitySelect(e.target.value)}
-    >
-      {form.saleToType === "Dealer"
-        ? dealers.map((d) => (
-            <MenuItem key={d.id} value={d.id}>
-              {`${d.name} (${d.role})`}
-            </MenuItem>
-          ))
-        : customers.map((c) => (
-            <MenuItem key={c.customerId} value={c.customerId}>
-              {c.customerName}
-            </MenuItem>
-          ))}
-    </Select>
-  </FormControl>
-)}
+        {/* Product Section */}
+        <Typography variant="subtitle1" fontWeight="bold">
+          Products
+        </Typography>
 
-                {/* Product */}
-                <FormControl fullWidth>
-                  <InputLabel>Sales Item</InputLabel>
-                  <Select
-                    value={form.salesItem}
-                    label="Sales Item"
-                    onChange={(e) => handleProductSelect(e.target.value)}
-                  >
-                    {products.map((p) => (
-                      <MenuItem key={p.productId} value={p.name}>
-                        {p.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <DatePicker
-                  label="Sale Date"
-                  value={form.date}
-                  onChange={handleDateChange}
-                  sx={{ width: "100%" }}
-                />
-
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      name="quantity"
-                      label="Quantity"
-                      type="number"
-                      value={form.quantity}
-                      onChange={handleChange}
-                      inputProps={{ min: 1 }}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      name="perUnit"
-                      label="Per Unit (₹)"
-                      type="number"
-                      value={form.perUnit}
-                      onChange={handleChange}
-                      inputProps={{ min: 0 }}
-                    />
-                  </Grid>
-                </Grid>
-
-                <TextField
-                  fullWidth
-                  name="amount"
-                  label="Total Amount (₹)"
-                  value={amount.toLocaleString("en-IN")}
-                  InputProps={{
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Typography fontWeight="bold">₹</Typography>
-                      </InputAdornment>
-                    ),
+        {form.items?.map((item, index) => (
+          <Grid container spacing={2} key={index}>
+            <Grid item xs={5}>
+              <FormControl fullWidth>
+                <InputLabel>Product</InputLabel>
+                <Select
+                  value={item.productId || ""}
+                  label="Product"
+                  onChange={(e) => {
+                    const selected = products.find(
+                      (p) => p.productId === e.target.value
+                    );
+                    const updated = [...form.items];
+                    updated[index] = {
+                      ...updated[index],
+                      productId: selected.productId,
+                      productName: selected.name,
+                      perUnit: selected.price,
+                    };
+                    setForm((prev) => ({ ...prev, items: updated }));
                   }}
-                  variant="filled"
-                />
-              </Stack>
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ p: "16px 24px" }}>
-            <Button onClick={handleCloseDialog} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              form="new-sale-form"
-              variant="contained"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Submit Sale"
-              )}
-            </Button>
-          </DialogActions>
-        </Dialog>
+                >
+                  {products.map((p) => (
+                    <MenuItem key={p.productId} value={p.productId}>
+                      {p.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={3}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Quantity"
+                value={item.quantity}
+                onChange={(e) => {
+                  const updated = [...form.items];
+                  updated[index].quantity = Number(e.target.value);
+                  setForm((prev) => ({ ...prev, items: updated }));
+                }}
+                inputProps={{ min: 1 }}
+              />
+            </Grid>
+
+            <Grid item xs={3}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Price (₹)"
+                value={item.perUnit}
+                onChange={(e) => {
+                  const updated = [...form.items];
+                  updated[index].perUnit = Number(e.target.value);
+                  setForm((prev) => ({ ...prev, items: updated }));
+                }}
+                inputProps={{ min: 0 }}
+              />
+            </Grid>
+
+            <Grid item xs={1}>
+              <Button
+                color="error"
+                onClick={() => {
+                  const updated = form.items.filter((_, i) => i !== index);
+                  setForm((prev) => ({ ...prev, items: updated }));
+                }}
+              >
+                ❌
+              </Button>
+            </Grid>
+          </Grid>
+        ))}
+
+        <Button
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={() =>
+            setForm((prev) => ({
+              ...prev,
+              items: [
+                ...(prev.items || []),
+                { productId: "", productName: "", quantity: 1, perUnit: 0 },
+              ],
+            }))
+          }
+        >
+          Add Product
+        </Button>
+
+        <DatePicker
+          label="Sale Date"
+          value={form.date}
+          onChange={(d) => setForm((prev) => ({ ...prev, date: d }))}
+          sx={{ width: "100%" }}
+        />
+
+        {/* Total Amount */}
+        <TextField
+          fullWidth
+          label="Total Amount (₹)"
+          value={
+            (form.items || [])
+              .reduce(
+                (sum, item) => sum + item.quantity * item.perUnit,
+                0
+              )
+              .toLocaleString("en-IN")
+          }
+          InputProps={{
+            readOnly: true,
+            startAdornment: (
+              <InputAdornment position="start">
+                <Typography fontWeight="bold">₹</Typography>
+              </InputAdornment>
+            ),
+          }}
+          variant="filled"
+        />
+      </Stack>
+    </Box>
+  </DialogContent>
+  <DialogActions sx={{ p: "16px 24px" }}>
+    <Button onClick={handleCloseDialog} disabled={isSubmitting}>
+      Cancel
+    </Button>
+    <Button
+      type="submit"
+      form="new-sale-form"
+      variant="contained"
+      disabled={isSubmitting}
+    >
+      {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Submit Sale"}
+    </Button>
+  </DialogActions>
+</Dialog>
+
       </Box>
     </LocalizationProvider>
   );
