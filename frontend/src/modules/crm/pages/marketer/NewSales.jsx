@@ -124,14 +124,15 @@ const fetchSales = useCallback(async () => {
 
     console.log("✅ All Sales Response:", response.data);
 
-    const formattedSales = (response.data || []).map((sale) => ({
+   const formattedSales = (response.data || []).map((sale) => ({
   id: `#S${sale.saleId}`,
   date: sale.saleDate,
   customerName: sale.customerName || "N/A",
-  marketerName: sale.marketerName || "N/A",
+  createdBy: sale.createdBy || "N/A",
   amount: sale.totalAmount || 0,
   status: sale.saleStatus || "PENDING",
 }));
+
 
 
     setSales(formattedSales);
@@ -208,40 +209,31 @@ const fetchSales = useCallback(async () => {
   }
 
   try {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const ADMIN_ID = 1;
-    const MARKETER_ID =
-      typeof user?.userId === "number"
-        ? user.userId
-        : user?.id && !isNaN(user.id)
-        ? Number(user.id)
-        : 2;
-
-    const payload = {
-      adminId: Number(ADMIN_ID),
-      marketerId: Number(MARKETER_ID),
-      customerId: Number(form.entityId),
-      totalAmount: form.items.reduce(
-        (sum, item) => sum + item.quantity * item.perUnit,
-        0
-      ),
-      items: form.items.map((item) => ({
-        productId: Number(item.productId),
-        productName: item.productName,
-        quantity: Number(item.quantity),
-        price: Number(item.perUnit),
-      })),
-    };
+    // Prepare payload as per new API
+   const payload = {
+  customerId: Number(form.entityId),
+  totalAmount: form.items
+    .reduce((sum, item) => sum + item.quantity * item.perUnit, 0)
+    .toFixed(0), // still stringified but safe
+  items: form.items.map((item) => ({
+    productId: Number(item.productId),
+    quantity: Number(item.quantity),
+  })),
+};
 
     console.log("🧾 Final Sale Payload:", payload);
 
-    await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/sales/create-sale`,
+    const response = await axios.post(
+      `${VITE_API_BASE_URL}/sales/create-sale`,
       payload,
       axiosConfig
     );
 
-    console.log("✅ Sale created successfully");
+    console.log("✅ Sale created successfully:", response.data);
+    alert(`Sale Created Successfully for ${response.data.customerName}`);
+
+    // Refresh the table after creation
+    fetchSales();
     handleCloseDialog();
   } catch (error) {
     console.error("❌ Error creating sale:", error.response?.data || error.message);
@@ -250,6 +242,7 @@ const fetchSales = useCallback(async () => {
     setIsSubmitting(false);
   }
 };
+
 
 
 
@@ -306,7 +299,7 @@ const fetchSales = useCallback(async () => {
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  {["Sale ID", "Date", "Customer", "Marketer", "Amount", "Status"].map((h) => (
+                  {["Sale ID", "Date", "Customer", "Created By", "Amount", "Status"].map((h) => (
                     <TableCell key={h}>{h}</TableCell>
                   ))}
                 </TableRow>
@@ -326,11 +319,12 @@ const fetchSales = useCallback(async () => {
         <TableCell sx={{ fontWeight: 500 }}>{sale.id}</TableCell>
         <TableCell>{dayjs(sale.date).format("DD MMM YYYY")}</TableCell>
         <TableCell>{sale.customerName}</TableCell>
-        <TableCell>{sale.marketerName}</TableCell>
-        <TableCell>₹{sale.amount.toLocaleString("en-IN")}</TableCell>
-        <TableCell>
-          <StatusChip status={sale.status} />
-        </TableCell>
+<TableCell>{sale.createdBy}</TableCell>
+<TableCell>₹{sale.amount.toLocaleString("en-IN")}</TableCell>
+<TableCell>
+  <StatusChip status={sale.status} />
+</TableCell>
+
       </TableRow>
     ))
   ) : (

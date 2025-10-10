@@ -105,17 +105,7 @@ export default function SalesManagement() {
               <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
-                    {[
-                      "Sale ID",
-                      "Admin",
-                      "Marketer",
-                      "Customer Type",
-                      "Customer Name",
-                      "Sale Date",
-                      "Total Amount",
-                      "Status",
-                      "Action",
-                    ].map((head) => (
+                    {["Sale ID", "Date", "Customer", "Created By", "Amount", "Status","Action"].map((head) => (
                       <TableCell key={head}>{head}</TableCell>
                     ))}
                   </TableRow>
@@ -131,11 +121,11 @@ export default function SalesManagement() {
                     salesData.map((sale) => (
                       <TableRow key={sale.saleId} hover>
                         <TableCell>{sale.saleId}</TableCell>
-                        <TableCell>{sale.adminName}</TableCell>
-                        <TableCell>{sale.marketerName}</TableCell>
-                        <TableCell>{sale.customerType}</TableCell>
-                        <TableCell>{sale.customerName}</TableCell>
                         <TableCell>{sale.saleDate}</TableCell>
+                        <TableCell>{sale.customerName}</TableCell>
+                        <TableCell>{sale.createdBy}</TableCell>
+
+                        
                         <TableCell>
                           ₹{sale.totalAmount.toLocaleString("en-IN")}
                         </TableCell>
