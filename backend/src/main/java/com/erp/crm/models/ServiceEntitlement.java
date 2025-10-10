@@ -10,33 +10,34 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class ServiceEntitlement {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long entitlementId;
-    
+    private Long serviceEntitlementId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_id", nullable = false)
     private Sale sale;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EntitlementType entitlementType;  // FREE or PAID
-    
+
     @Column(nullable = false)
     private Integer totalAllowed = 2;  // Default 2 free services
-    
+
     @Column(nullable = false)
     private Integer usedCount = 0;
-    
+
     @Column(nullable = false)
-    private LocalDate expiryDate;  // 1 year from sale date
-    
-    // Helper method
+    private LocalDate expiryDate;
+
+    // 🔹 Helper methods
     public boolean canUseService() {
-        return usedCount < totalAllowed && 
+        return usedCount < totalAllowed &&
                LocalDate.now().isBefore(expiryDate);
     }
-    
+
     public void useService() {
         if (!canUseService()) {
             throw new RuntimeException("No free services remaining or expired");
