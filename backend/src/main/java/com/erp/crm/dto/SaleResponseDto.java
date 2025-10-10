@@ -12,7 +12,6 @@ public class SaleResponseDTO {
     private Long saleId;
     private String approvedBy;
     private String createdBy;
-    private String customerType; // "DEALER" or "RETAIL"
     private String customerName;
     private LocalDate saleDate;
     private Double totalAmount;
