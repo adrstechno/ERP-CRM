@@ -3,6 +3,10 @@ package com.erp.crm.services;
 import com.erp.crm.dto.*;
 import com.erp.crm.models.*;
 import com.erp.crm.repositories.*;
+import com.erp.crm.security.SecurityUtils;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +16,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class SaleService {
 
     private final SaleRepository saleRepo;
@@ -20,22 +25,9 @@ public class SaleService {
     private final ProductRepository productRepo;
     private final InvoiceRepository invoiceRepo; // ✅ Add this
     private final ServiceEntitlementRepository serviceEntitlementRepo;
+    private final SecurityUtils securityUtils;
 
-    public SaleService(SaleRepository saleRepo,
-            UserRepository userRepo,
-            CustomerRepository customerRepo,
-            ProductRepository productRepo,
-            InvoiceRepository invoiceRepo,
-            ServiceEntitlementRepository serviceEntitlementRepo) {
-        this.saleRepo = saleRepo;
-        this.userRepo = userRepo;
-        this.customerRepo = customerRepo;
-        this.productRepo = productRepo;
-        this.invoiceRepo = invoiceRepo;
-        this.serviceEntitlementRepo = serviceEntitlementRepo;
-    }
-
-    // ... existing createSale() method ...
+   
 
     public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
         Sale sale = saleRepo.findById(saleId)
@@ -43,6 +35,7 @@ public class SaleService {
 
         Status oldStatus = sale.getSaleStatus();
         sale.setSaleStatus(status);
+
         Sale savedSale = saleRepo.save(sale);
 
         // ✅ Generate invoice only when status changes from PENDING to APPROVED
@@ -94,18 +87,14 @@ public class SaleService {
     public SaleResponseDTO createSale(SaleRequestDTO dto) {
         Sale sale = new Sale();
         sale.setSaleDate(LocalDate.now());
-        sale.setAdmin(findUserById(dto.getAdminId(), "ADMIN"));
-        sale.setMarketer(findUserById(dto.getMarketerId(), "MARKETER"));
+        sale.setCreatedBy(findUserById(dto.getCreatedById(), "CREATED_BY"));
         sale.setTotalAmount(dto.getTotalAmount());
 
-        // Set customer or dealer
-        if (dto.getDealerId() != null) {
-            sale.setDealer(findUserById(dto.getDealerId(), "DEALER"));
-        } else if (dto.getCustomerId() != null) {
+        if (dto.getCustomerId() != null) {
             sale.setCustomer(customerRepo.findById(dto.getCustomerId())
                     .orElseThrow(() -> new RuntimeException("Customer not found with id: " + dto.getCustomerId())));
         } else {
-            throw new RuntimeException("Either dealerId or customerId must be provided");
+            throw new RuntimeException("customerId must be provided");
         }
 
         if (dto.getItems() != null && !dto.getItems().isEmpty()) {
@@ -148,17 +137,20 @@ public class SaleService {
                 .toList();
     }
 
+    public List<SaleResponseDTO> getSalesByMarketer(Long marketerId) {
+        User marketer = findUserById(marketerId, "Marketer");
+        return saleRepo.findAllByMarketer(marketer).stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
     private SaleResponseDTO mapToDto(Sale sale) {
         SaleResponseDTO dto = new SaleResponseDTO();
         dto.setSaleId(sale.getSaleId());
-        dto.setAdminName(sale.getAdmin().getName());
-        dto.setMarketerName(sale.getMarketer().getName());
+        dto.setApprovedBy(sale.getApprovedBy().getName());
+        dto.setCreatedBy(sale.getCreatedBy().getName());
 
-        if (sale.getDealer() != null) {
-            dto.setCustomerType("DEALER");
-            dto.setCustomerName(sale.getDealer().getName());
-        } else if (sale.getCustomer() != null) {
-            dto.setCustomerType("RETAIL");
+        if (sale.getCustomer() != null) {
             dto.setCustomerName(sale.getCustomer().getCustomerName());
         }
 

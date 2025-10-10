@@ -9,10 +9,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SaleRequestDTO {
-    private Long adminId;
-    private Long marketerId;
-    private Long dealerId;         // optional
-    private Long customerId; // optional
+    private Long approvedById;
+    private Long createdById;
+    private Long customerId; 
     private LocalDate saleDate;
     private Double totalAmount;
     private List<SaleItemRequestDTO> items;

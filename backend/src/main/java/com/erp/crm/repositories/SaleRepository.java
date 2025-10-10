@@ -12,5 +12,6 @@ import com.erp.crm.models.User;
 public interface SaleRepository extends JpaRepository<Sale, Long> {
 
     List<Sale> findAllByDealer(User dealer);
+    List<Sale> findAllByMarketer(User marketer);
 
 }
