@@ -14,7 +14,7 @@ import InventoryManagement from "./pages/admin/InventoryManagement"
 import Sales from "./pages/admin/Sales"
 import Service from "./pages/admin/Service"
 import BillingNInvoice from "./pages/admin/BillingNInvoice"
-import Setting from "./pages/admin/Settings"
+import Setting from "./pages/admin/settings"
 
 
 
