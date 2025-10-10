@@ -39,6 +39,12 @@ public class SaleController {
         return ResponseEntity.ok(saleService.getSalesByDealer(dealerId));
     }
 
+    // Dealer-specific sales
+    @GetMapping("/marketer/{marketerId}")
+    public ResponseEntity<List<SaleResponseDTO>> getSalesByMarketer(@PathVariable Long marketerId) {
+        return ResponseEntity.ok(saleService.getSalesByMarketer(marketerId));
+    }
+
     // Global update sale status
     @PatchMapping("/{saleId}/status")
     @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN')")
