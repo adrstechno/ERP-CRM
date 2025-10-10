@@ -34,12 +34,6 @@ public class SaleController {
     }
 
     // Dealer-specific sales
-    @GetMapping("/dealer/{dealerId}")
-    public ResponseEntity<List<SaleResponseDTO>> getSalesByDealer(@PathVariable Long dealerId) {
-        return ResponseEntity.ok(saleService.getSalesByDealer(dealerId));
-    }
-
-    // Dealer-specific sales
     @GetMapping("/marketer/{marketerId}")
     public ResponseEntity<List<SaleResponseDTO>> getSalesByMarketer(@PathVariable Long marketerId) {
         return ResponseEntity.ok(saleService.getSalesByMarketer(marketerId));
