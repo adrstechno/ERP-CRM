@@ -36,22 +36,17 @@ public class PaymentService {
         Invoice invoice = invoiceRepo.findById(dto.getInvoiceId())
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
-        // Validate payment amount
-        double totalPaid = invoice.getPayments().stream()
-                .mapToDouble(Payment::getAmount)
-                .sum();
-
-        System.out.println("Total paid so far: ~~~~~~~~ " + totalPaid);
-
-        double remaining = invoice.getTotalAmount() - totalPaid;
-        invoice.setOutstandingAmount(remaining);
-
-        if (dto.getAmount() > remaining) {
+        if (dto.getAmount() > invoice.getOutstandingAmount()) {
             throw new RuntimeException("Payment amount exceeds remaining balance");
         }
 
+        double remaining = invoice.getOutstandingAmount() - dto.getAmount();
+
+        invoice.setOutstandingAmount(remaining); // invoice ke current remaining ko update karo
+        
         // ✅ Create payment entry
         Payment payment = new Payment();
+        payment.setRemainingAmount(remaining); // only for THIS payment
         payment.setInvoice(invoice);
         payment.setPaymentDate(dto.getPaymentDate() != null ? dto.getPaymentDate() : LocalDate.now());
         payment.setAmount(dto.getAmount());
@@ -59,7 +54,7 @@ public class PaymentService {
         payment.setReferenceNo(dto.getReferenceNo());
         payment.setStatus(PaymentStatus.PENDING);
         payment.setNotes(dto.getNotes());
-
+        payment.setRemainingAmount(remaining);
         User user = userRepo.findById(dto.getReceivedById())
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getReceivedById()));
         payment.setReceivedBy(user);
@@ -127,6 +122,15 @@ public class PaymentService {
      */
 
     public List<PaymentResponseDTO> getPaymentsByInvoice(Long invoiceId) {
+
+        Invoice invoice = invoiceRepo.findById(invoiceId)
+                .orElseThrow(() -> new RuntimeException("Invoice not found with ID: " + invoiceId));
+
+        List<Payment> payments = paymentRepo.findByInvoice_InvoiceId(invoiceId);
+
+        if (payments == null || payments.isEmpty()) {
+            throw new RuntimeException("No payments found for Invoice ID: " + invoiceId);
+        }
         return paymentRepo.findByInvoice_InvoiceId(invoiceId).stream()
                 .map(this::mapToDto)
                 .toList();
@@ -144,7 +148,7 @@ public class PaymentService {
         dto.setStatus(payment.getStatus().name());
         dto.setProofUrl(payment.getProofUrl());
         dto.setReceivedBy(payment.getReceivedBy() != null ? payment.getReceivedBy().getName() : null);
-        dto.setRemainingBalance(payment.getInvoice().getOutstandingAmount());
+        dto.setRemainingBalance(payment.getRemainingAmount());
         dto.setTotalBalance(payment.getInvoice().getTotalAmount());
         dto.setNotes(payment.getNotes());
         return dto;

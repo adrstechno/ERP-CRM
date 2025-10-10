@@ -31,6 +31,7 @@ public class InvoiceService {
         invoiceResponse.setInvoiceNumber(invoice.getInvoiceNumber());
         invoiceResponse.setPaymentStatus(invoice.getPaymentStatus());
         invoiceResponse.setTotalAmount(invoice.getTotalAmount());
+        invoiceResponse.setOutstandingAmount(invoice.getOutstandingAmount());
         invoiceResponse.setSale(sale);
         return invoiceResponse;
     }

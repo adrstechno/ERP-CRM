@@ -21,7 +21,6 @@ import lombok.Setter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-
 @Entity
 @Table(name = "invoices")
 @Getter
@@ -30,7 +29,7 @@ import lombok.NoArgsConstructor;
 public class Invoice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="invoice_id")
+    @Column(name = "invoice_id")
     private Long invoiceId;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -43,20 +42,15 @@ public class Invoice {
     @Column(nullable = false)
     private LocalDate invoiceDate;
 
-
     @Column(nullable = false)
     private Double totalAmount;
 
-    @Column(nullable = false)
-    private Double OutstandingAmount;
-
+    private Double outstandingAmount;
+    
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
-
 
     // Relations
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payment> payments;
 }
-
-
