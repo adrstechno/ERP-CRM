@@ -94,7 +94,13 @@ public class SaleService {
     public SaleResponseDTO createSale(SaleRequestDTO dto) {
         Sale sale = new Sale();
         sale.setSaleDate(LocalDate.now());
-        sale.setCreatedBy(findUserById(dto.getCreatedById()));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof UserPrincipal principal) {
+            String email = principal.getUsername();
+            User user = userRepo.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+            sale.setCreatedBy(user);
+        }
         sale.setTotalAmount(dto.getTotalAmount());
 
         if (dto.getCustomerId() != null) {
@@ -147,7 +153,9 @@ public class SaleService {
     private SaleResponseDTO mapToDto(Sale sale) {
         SaleResponseDTO dto = new SaleResponseDTO();
         dto.setSaleId(sale.getSaleId());
-        dto.setApprovedBy(sale.getApprovedBy().getName());
+        if (sale.getApprovedBy() != null) {
+            dto.setApprovedBy(sale.getApprovedBy().getName());
+        }
         dto.setCreatedBy(sale.getCreatedBy().getName());
 
         if (sale.getCustomer() != null) {
