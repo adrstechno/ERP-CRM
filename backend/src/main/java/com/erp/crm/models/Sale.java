@@ -33,22 +33,17 @@ public class Sale {
 
     // Admin (super stockist)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id", nullable = false)
-    private User admin;
+    @JoinColumn(name = "approved_by", nullable = true)
+    private User approvedBy;
 
     // Created by marketer
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "marketer_id", nullable = false)
-    private User marketer;
-
-    // Dealer as customer
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dealer_id", nullable = true , columnDefinition = "bigint DEFAULT 0")  // ✅ only JoinColumn
-    private User dealer;
+    @JoinColumn(name = "created_by", nullable = false)
+    private User createdBy;
 
     // Retail customer
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = true,columnDefinition = "bigint DEFAULT 0")  // ✅ only JoinColumn
+    @JoinColumn(name = "customer_id", nullable = true,columnDefinition = "bigint DEFAULT 0")  
     private Customer customer;
 
     @Column(nullable = false)
