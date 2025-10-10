@@ -330,20 +330,23 @@ const InvoicePage = ({ invoiceId }) => {
   const [loading, setLoading] = useState(true);
 
   // Fetch payments from API
-  useEffect(() => {
-    const fetchPayments = async () => {
-      try {
-        const response = await axios.get(`${VITE_API_BASE_URL}/payments/${invoiceId}`);
-        setPaymentData(response.data);
-      } catch (error) {
-        console.error("Error fetching payments:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+ useEffect(() => {
+  const fetchPayments = async () => {
+    try {
+      const url = `${VITE_API_BASE_URL}/payments/${invoiceId}`;
+      console.log("Fetching from:", url);
+      const response = await axios.get(url);
+      console.log("Response:", response);
+      setPaymentData(response.data);
+    } catch (error) {
+      console.error("Error fetching payments:", error.response || error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchPayments();
+}, [invoiceId]);
 
-    fetchPayments();
-  }, [invoiceId]);
 
   const handleDownloadPDF = () => {
     const input = invoiceRef.current;
