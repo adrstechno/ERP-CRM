@@ -27,7 +27,7 @@ public class JwtUtils {
     }
 
     // Generate token with username + ROLE_*
-    public String generateToken(String username, String role) {
+    public String generateToken( String username, String role) {
         if (!role.startsWith("ROLE_")) {
             role = "ROLE_" + role;
         }
@@ -47,6 +47,10 @@ public class JwtUtils {
 
     public String getRoleFromToken(String token) {
         return (String) getAllClaimsFromToken(token).get("role");
+    }
+
+    public Long getUserIdFromToken(String token) {
+        return getAllClaimsFromToken(token).get("userId", Long.class);
     }
 
     public boolean validateToken(String token) {

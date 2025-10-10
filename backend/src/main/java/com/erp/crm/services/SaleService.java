@@ -4,14 +4,16 @@ import com.erp.crm.dto.*;
 import com.erp.crm.models.*;
 import com.erp.crm.repositories.*;
 import com.erp.crm.security.SecurityUtils;
+import com.erp.crm.security.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,11 +25,9 @@ public class SaleService {
     private final UserRepository userRepo;
     private final CustomerRepository customerRepo;
     private final ProductRepository productRepo;
-    private final InvoiceRepository invoiceRepo; // ✅ Add this
+    private final InvoiceRepository invoiceRepo;
     private final ServiceEntitlementRepository serviceEntitlementRepo;
     private final SecurityUtils securityUtils;
-
-   
 
     public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
         Sale sale = saleRepo.findById(saleId)
@@ -36,18 +36,25 @@ public class SaleService {
         Status oldStatus = sale.getSaleStatus();
         sale.setSaleStatus(status);
 
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (status == Status.APPROVED && auth != null && auth.getPrincipal() instanceof UserPrincipal principal) {
+            String email = principal.getUsername();
+            User admin = userRepo.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+            sale.setApprovedBy(admin);
+        }
+
         Sale savedSale = saleRepo.save(sale);
 
-        // ✅ Generate invoice only when status changes from PENDING to APPROVED
+        // Generate invoice only when status changes from PENDING to APPROVED
         if (oldStatus == Status.PENDING && status == Status.APPROVED) {
             generateInvoice(savedSale);
-            createServiceEntitlements(savedSale); // ✅ Create 2 free services
+            createServiceEntitlements(savedSale); // Create 2 free services
         }
 
         return mapToDto(savedSale);
     }
 
-    // ✅ Invoice Generation Logic
     private void generateInvoice(Sale sale) {
         // Check if invoice already exists
         if (sale.getInvoice() != null) {
@@ -87,7 +94,7 @@ public class SaleService {
     public SaleResponseDTO createSale(SaleRequestDTO dto) {
         Sale sale = new Sale();
         sale.setSaleDate(LocalDate.now());
-        sale.setCreatedBy(findUserById(dto.getCreatedById(), "CREATED_BY"));
+        sale.setCreatedBy(findUserById(dto.getCreatedById()));
         sale.setTotalAmount(dto.getTotalAmount());
 
         if (dto.getCustomerId() != null) {
@@ -130,16 +137,9 @@ public class SaleService {
                 .toList();
     }
 
-    public List<SaleResponseDTO> getSalesByDealer(Long dealerId) {
-        User dealer = findUserById(dealerId, "Dealer");
-        return saleRepo.findAllByDealer(dealer).stream()
-                .map(this::mapToDto)
-                .toList();
-    }
-
-    public List<SaleResponseDTO> getSalesByMarketer(Long marketerId) {
-        User marketer = findUserById(marketerId, "Marketer");
-        return saleRepo.findAllByMarketer(marketer).stream()
+    public List<SaleResponseDTO> getSalesByMarketer(Long userId) {
+        User user = findUserById(userId);
+        return saleRepo.findAllByCreatedByUserId(user.getUserId()).stream()
                 .map(this::mapToDto)
                 .toList();
     }
@@ -171,9 +171,8 @@ public class SaleService {
         return dto;
     }
 
-    // Helper method to reduce repetitive code
-    private User findUserById(Long id, String role) {
+    private User findUserById(Long id) {
         return userRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException(role + " not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 }

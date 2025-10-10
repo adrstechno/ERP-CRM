@@ -32,8 +32,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class User {
 
-    
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -65,11 +63,6 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private UserProfile profile;
-
-    @OneToMany(mappedBy = "dealer", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Sale> dealerSales;
-
 
     public User(Long userId) {
         this.userId = userId;
