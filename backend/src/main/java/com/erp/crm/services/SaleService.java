@@ -94,7 +94,7 @@ public class SaleService {
     public SaleResponseDTO createSale(SaleRequestDTO dto) {
         Sale sale = new Sale();
         sale.setSaleDate(LocalDate.now());
-        sale.setCreatedBy(findUserById(dto.getCreatedById(), "CREATED_BY"));
+        sale.setCreatedBy(findUserById(dto.getCreatedById()));
         sale.setTotalAmount(dto.getTotalAmount());
 
         if (dto.getCustomerId() != null) {
@@ -137,16 +137,9 @@ public class SaleService {
                 .toList();
     }
 
-    public List<SaleResponseDTO> getSalesByDealer(Long dealerId) {
-        User dealer = findUserById(dealerId, "Dealer");
-        return saleRepo.findAllByDealer(dealer).stream()
-                .map(this::mapToDto)
-                .toList();
-    }
-
-    public List<SaleResponseDTO> getSalesByMarketer(Long marketerId) {
-        User marketer = findUserById(marketerId, "Marketer");
-        return saleRepo.findAllByMarketer(marketer).stream()
+    public List<SaleResponseDTO> getSalesByMarketer(Long userId) {
+        User user = findUserById(userId);
+        return saleRepo.findAllByCreatedByUserId(user.getUserId()).stream()
                 .map(this::mapToDto)
                 .toList();
     }
@@ -178,9 +171,8 @@ public class SaleService {
         return dto;
     }
 
-    // Helper method to reduce repetitive code
-    private User findUserById(Long id, String role) {
+    private User findUserById(Long id) {
         return userRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException(role + " not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 }
