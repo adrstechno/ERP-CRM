@@ -42,8 +42,9 @@ public class PaymentService {
 
         double remaining = invoice.getOutstandingAmount() - dto.getAmount();
 
-        invoice.setOutstandingAmount(remaining); // invoice ke current remaining ko update karo
-        
+        // invoice.setOutstandingAmount(remaining); // invoice ke current remaining ko
+        // update karo
+
         // ✅ Create payment entry
         Payment payment = new Payment();
         payment.setRemainingAmount(remaining); // only for THIS payment
@@ -109,6 +110,13 @@ public class PaymentService {
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 
         payment.setStatus(newStatus);
+        // If approved, adjust the invoice's outstanding amount
+        if (newStatus == PaymentStatus.APPROVED) {
+            Invoice invoice = invoiceRepo.findById(payment.getInvoice().getInvoiceId())
+                    .orElseThrow(() -> new RuntimeException("Invoice not found with ID: " + payment.getInvoice().getInvoiceId()));
+            invoice.setOutstandingAmount(invoice.getOutstandingAmount() - payment.getAmount());
+        }
+
         paymentRepo.save(payment);
 
         // Update invoice totals accordingly
