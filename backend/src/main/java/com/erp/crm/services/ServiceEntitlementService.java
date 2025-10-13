@@ -31,8 +31,8 @@ public class ServiceEntitlementService {
         ServiceEntitlementResponseDTO dto = new ServiceEntitlementResponseDTO();
         dto.setEntitlementId(entitlement.getServiceEntitlementId());
         dto.setCustomerName(
-                entitlement.getSale().getCustomer() != null ? entitlement.getSale().getCustomer().getCustomerName()
-                        : entitlement.getSale().getDealer().getName());
+                entitlement.getSale().getCustomer().getCustomerName());
+
         dto.setEntitlementType(entitlement.getEntitlementType());
         dto.setTotalAllowed(entitlement.getTotalAllowed());
         dto.setUsedCount(entitlement.getUsedCount());
