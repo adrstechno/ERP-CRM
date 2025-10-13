@@ -160,7 +160,7 @@ export default function StockRequestPage() {
             <Grid container spacing={3}>
                 {/* Left Form Section */}
                 <Grid item xs={12} lg={5}>
-                    <Card component="form" onSubmit={handleSubmit} sx={{ height: '100%' }}>
+                    <Card component="form" onSubmit={handleSubmit} sx={{ height: '100%' , width:  '100%'}}>
                         <CardContent sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
                             <Stack direction="row" spacing={1.5} alignItems="center" mb={1}>
                                 <ShoppingCartIcon color="primary" />
@@ -191,7 +191,7 @@ export default function StockRequestPage() {
 
                 {/* Right History Table */}
                 <Grid item xs={12} lg={7}>
-                    <Card sx={{ height: { xs: 'auto', lg: 'calc(100vh - 120px)' }, display: 'flex', flexDirection: 'column' }}>
+                    <Card sx={{ height: { xs: 'auto', lg: 'calc(100vh - 120px)' }, width:770, display: 'flex', flexDirection: 'column' }}>
                         <CardContent>
                             <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
                                 <HistoryIcon color="primary" />
