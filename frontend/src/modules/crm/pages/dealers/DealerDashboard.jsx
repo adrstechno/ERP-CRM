@@ -345,7 +345,7 @@ export default function DealerDashboard() {
                 <Grid container spacing={3}>
                     {/* Stock Performance */}
                     <Grid item xs={12} lg={6}>
-                        <Card sx={{ height: '100%' }}>
+                        <Card sx={{ height: '100%', width: 550 }}>
                             <CardContent>
                                 <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
                                     <InventoryIcon color="primary" />
@@ -370,8 +370,8 @@ export default function DealerDashboard() {
                     </Grid>
 
                     {/* Top Selling Products */}
-                    <Grid item xs={12} lg={6}>
-                        <Card sx={{ height: '100%' }}>
+                    <Grid item xs={12} lg={9}>
+                        <Card sx={{ height: '100%' , width: 550 }}>
                             <CardContent>
                                 <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
                                     <TrendingUpIcon color="primary" />

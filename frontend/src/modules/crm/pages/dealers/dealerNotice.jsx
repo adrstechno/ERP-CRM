@@ -307,7 +307,7 @@ export default function DealerNotice() {
 
                 {/* Right Notice Content */}
                 <Grid item xs={12} md={9} sx={{ height: '100%',width:'50%' }}>
-                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Card sx={{ height: '100%', width: 770,display: 'flex', flexDirection: 'column' }}>
                         {isLoading || !selectedNotice ? (
                             <CardContent><Skeleton variant="rectangular" height="100%" /></CardContent>
                         ) : (

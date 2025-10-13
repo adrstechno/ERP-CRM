@@ -237,16 +237,16 @@ export default function EngineerDashboard() {
 
     return (
         <Box>
-            <Stack spacing={3}>
+            <Stack spacing={5}>
                 {/* KPI Cards */}
-                <Grid container spacing={3}>
+                <Grid container spacing={6}>
                     {isLoading ? (
                         Array.from(new Array(3)).map((_, idx) => (
-                            <Grid item xs={12} sm={6} md={4} key={idx}><Skeleton variant="rectangular" height={120} sx={{ borderRadius: 3 }} /></Grid>
+                            <Grid item xs={12} sm={6} md={6}  key={idx}><Skeleton variant="rectangular" height={120}  sx={{ borderRadius: 3 }} /></Grid>
                         ))
                     ) : (
                         kpiData.map((item, idx) => (
-                            <Grid item xs={12} sm={6} md={4} key={idx}>
+                            <Grid item xs={12} sm={6} md={4} key={idx} width={300} height={120}>
                                 <KPI {...item} variant={["blue", "dark", "light"][idx % 3]} />
                             </Grid>
                         ))
@@ -256,7 +256,7 @@ export default function EngineerDashboard() {
                 <Grid container spacing={3}>
                     {/* Service Breakdown Radial Chart */}
                     <Grid item xs={12} lg={6}>
-                        <Card sx={{ height: '100%' }}>
+                        <Card sx={{ height: '100%' ,width: 400}}>
                             <CardContent>
                                 <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
                                     <BuildIcon color="primary" />
@@ -294,8 +294,8 @@ export default function EngineerDashboard() {
                     </Grid>
 
                     {/* Recent Services Table */}
-                    <Grid item xs={12} lg={6}>
-                        <Card sx={{ height: '100%' }}>
+                    <Grid item xs={12} lg={6}> 
+                        <Card sx={{ height: '100%' ,width: 500 }}>
                              <CardContent>
                                 <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
                                     <EventNoteIcon color="primary" />

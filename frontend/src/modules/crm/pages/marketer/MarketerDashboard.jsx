@@ -277,7 +277,7 @@ export default function MarketerDashboard() {
                         ))
                     ) : (
                         kpiData.map((item, idx) => (
-                            <Grid item xs={12} sm={6} md={3} key={idx}>
+                            <Grid item xs={12} sm={6} md={3} width={280} key={idx}>
                                 <KPI {...item} variant={idx % 2 === 0 ? "blue" : (theme.palette.mode === 'dark' ? "dark" : "light")} />
                             </Grid>
                         ))
@@ -309,7 +309,7 @@ export default function MarketerDashboard() {
                 <Grid container spacing={3}>
                     {/* Total Units Sold Pie Chart */}
                     <Grid item xs={12} md={6}>
-                        <Card sx={{ height: 400, display: 'flex', flexDirection: 'column' }}>
+                        <Card sx={{ height: 400, width:550,display: 'flex', flexDirection: 'column' }}>
                             <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
                                 <Typography variant="h6" sx={{ fontWeight: 'bold' }} mb={2}>Total Units Sold</Typography>
                                 <Divider sx={{ mb: 2 }} />
@@ -342,8 +342,8 @@ export default function MarketerDashboard() {
                     </Grid>
 
                     {/* Recent Earnings Table */}
-                    <Grid item xs={12} md={6}>
-                        <Card sx={{ height: 400, display: 'flex', flexDirection: 'column' }}>
+                    <Grid item xs={12} md={7}>
+                        <Card sx={{ height: 400, width: 550,display: 'flex', flexDirection: 'column' }}>
                             <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
                                 <Typography variant="h6" sx={{ fontWeight: 'bold' }} mb={2}>Recent Earnings</Typography>
                                 <Divider sx={{ mb: 2 }} />

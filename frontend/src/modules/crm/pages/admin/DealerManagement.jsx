@@ -412,14 +412,14 @@ export default function DealersManagement() {
                 {/* Right Column: Details and Table */}
                 <Grid item xs={12} md={9}>
                     <Stack spacing={3}>
-                        <Card>
+                        <Card sx={{ height: '100%', width:  700 }}>
                             <CardContent>
                                 <Stack direction="row" spacing={2} alignItems="center" mb={2}>
                                     <BusinessIcon color="primary" />
                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Dealer Information</Typography>
                                 </Stack>
                                 <Divider sx={{ mb: 3 }} />
-                                : (
+                                
                                 <Typography></Typography>
                            {selectedDealer ? (
   <TableContainer sx={{ maxHeight: 200, overflowY: 'auto' }}>
