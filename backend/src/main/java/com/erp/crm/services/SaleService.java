@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -29,6 +30,7 @@ public class SaleService {
     private final ServiceEntitlementRepository serviceEntitlementRepo;
     private final SecurityUtils securityUtils;
 
+    // Update Sale Status
     public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
         Sale sale = saleRepo.findById(saleId)
                 .orElseThrow(() -> new RuntimeException("Sale not found with id: " + saleId));
@@ -56,11 +58,7 @@ public class SaleService {
     }
 
     private void generateInvoice(Sale sale) {
-        // Check if invoice already exists
-        if (sale.getInvoice() != null) {
-            throw new RuntimeException("Invoice already exists for sale ID: " + sale.getSaleId());
-        }
-
+        if (sale.getInvoice() != null) return; // idempotent
         Invoice invoice = new Invoice();
         invoice.setSale(sale);
         invoice.setInvoiceNumber(generateInvoiceNumber());
@@ -71,23 +69,19 @@ public class SaleService {
         invoiceRepo.save(invoice);
     }
 
-    // ✅ Generate unique invoice number
     private String generateInvoiceNumber() {
         int year = LocalDate.now().getYear();
         long count = invoiceRepo.count() + 1;
         return String.format("INV-%d-%05d", year, count);
-        // Example: INV-2025-00001
     }
 
-    // ✅ Create free service entitlements (2 free services per sale)
     private void createServiceEntitlements(Sale sale) {
         ServiceEntitlement entitlement = new ServiceEntitlement();
         entitlement.setSale(sale);
         entitlement.setEntitlementType(EntitlementType.FREE);
-        entitlement.setTotalAllowed(2); // 2 free services
+        entitlement.setTotalAllowed(2);
         entitlement.setUsedCount(0);
-        entitlement.setExpiryDate(LocalDate.now().plusYears(1)); // Valid for 1 year
-
+        entitlement.setExpiryDate(LocalDate.now().plusYears(1));
         serviceEntitlementRepo.save(entitlement);
     }
 
@@ -132,15 +126,12 @@ public class SaleService {
     }
 
     public SaleResponseDTO getSale(Long saleId) {
-        return saleRepo.findById(saleId)
-                .map(this::mapToDto)
-                .orElseThrow(() -> new RuntimeException("Sale not found with id: " + saleId));
+        return saleRepo.findById(saleId).map(this::mapToDto)
+                .orElseThrow(() -> new RuntimeException("Sale not found"));
     }
 
     public List<SaleResponseDTO> getAllSales() {
-        return saleRepo.findAll().stream()
-                .map(this::mapToDto)
-                .toList();
+        return saleRepo.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public List<SaleResponseDTO> getSalesByMarketer(Long userId) {
@@ -150,6 +141,7 @@ public class SaleService {
                 .toList();
     }
 
+    // Helper DTO mapping
     private SaleResponseDTO mapToDto(Sale sale) {
         SaleResponseDTO dto = new SaleResponseDTO();
         dto.setSaleId(sale.getSaleId());
@@ -175,7 +167,6 @@ public class SaleService {
                             i.getUnitPrice()))
                     .toList());
         }
-
         return dto;
     }
 

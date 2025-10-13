@@ -19,7 +19,7 @@ public class Expense {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long expenseId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -38,7 +38,7 @@ public class Expense {
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING;
 
-    private String invoiceUrl;
+    private String receiptURL;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by")
