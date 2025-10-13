@@ -30,7 +30,7 @@ public class ServiceEntitlementService {
     private ServiceEntitlementResponseDTO mapToDto(ServiceEntitlement entitlement) {
         ServiceEntitlementResponseDTO dto = new ServiceEntitlementResponseDTO();
         dto.setEntitlementId(entitlement.getServiceEntitlementId());
-        dto.setCustomerName(entitlement.getSale().getCustomer());
+        dto.setCustomerName(entitlement.getSale().getCustomer().getCustomerName());
         dto.setEntitlementType(entitlement.getEntitlementType());
         dto.setTotalAllowed(entitlement.getTotalAllowed());
         dto.setUsedCount(entitlement.getUsedCount());
