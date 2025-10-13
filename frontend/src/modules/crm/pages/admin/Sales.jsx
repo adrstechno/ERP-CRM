@@ -105,17 +105,7 @@ export default function SalesManagement() {
               <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
-                    {[
-                      "Sale ID",
-                      "Admin",
-                      "Marketer",
-                      "Customer Type",
-                      "Customer Name",
-                      "Sale Date",
-                      "Total Amount",
-                      "Status",
-                      "Action",
-                    ].map((head) => (
+                    {["Sale ID", "Date", "Customer", "Created By", "Amount", "Status","Action"].map((head) => (
                       <TableCell key={head}>{head}</TableCell>
                     ))}
                   </TableRow>
@@ -131,11 +121,11 @@ export default function SalesManagement() {
                     salesData.map((sale) => (
                       <TableRow key={sale.saleId} hover>
                         <TableCell>{sale.saleId}</TableCell>
-                        <TableCell>{sale.adminName}</TableCell>
-                        <TableCell>{sale.marketerName}</TableCell>
-                        <TableCell>{sale.customerType}</TableCell>
-                        <TableCell>{sale.customerName}</TableCell>
                         <TableCell>{sale.saleDate}</TableCell>
+                        <TableCell>{sale.customerName}</TableCell>
+                        <TableCell>{sale.createdBy}</TableCell>
+
+                        
                         <TableCell>
                           ₹{sale.totalAmount.toLocaleString("en-IN")}
                         </TableCell>
@@ -164,7 +154,7 @@ export default function SalesManagement() {
         <Grid container spacing={3}>
           {/* Dealer-wise Sales Bar Chart */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: 400 }}>
+            <Card sx={{ height: 400,  width: 600}}>
               <CardContent sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
                 <Typography variant="h6" sx={{ fontWeight: "bold" }} gutterBottom>
                   Dealer-wise Sales
@@ -187,7 +177,7 @@ export default function SalesManagement() {
 
           {/* Sale Status Pie Chart */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: 400 }}>
+            <Card sx={{ height: 400 ,width: 500 }}>
               <CardContent sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
                 <Typography variant="h6" sx={{ fontWeight: "bold" }} gutterBottom>
                   Sale Status Distribution
@@ -199,7 +189,7 @@ export default function SalesManagement() {
                       <Pie
                         data={[
                           { name: "Pending", value: salesData.filter(s => s.saleStatus === "PENDING").length },
-                          { name: "Completed", value: salesData.filter(s => s.saleStatus === "COMPLETED").length },
+                          { name: "APPROVED", value: salesData.filter(s => s.saleStatus === "APPROVED").length },
                           { name: "Cancelled", value: salesData.filter(s => s.saleStatus === "CANCELLED").length },
                         ]}
                         cx="50%"
