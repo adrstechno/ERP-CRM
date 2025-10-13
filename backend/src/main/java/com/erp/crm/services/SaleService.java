@@ -28,22 +28,9 @@ public class SaleService {
     private final ProductRepository productRepo;
     private final InvoiceRepository invoiceRepo;
     private final ServiceEntitlementRepository serviceEntitlementRepo;
-
-    public SaleService(SaleRepository saleRepo,
-                       UserRepository userRepo,
-                       CustomerRepository customerRepo,
-                       ProductRepository productRepo,
-                       InvoiceRepository invoiceRepo,
-                       ServiceEntitlementRepository serviceEntitlementRepo) {
-        this.saleRepo = saleRepo;
-        this.userRepo = userRepo;
-        this.customerRepo = customerRepo;
-        this.productRepo = productRepo;
-        this.invoiceRepo = invoiceRepo;
-        this.serviceEntitlementRepo = serviceEntitlementRepo;
-    }
     private final SecurityUtils securityUtils;
 
+    // Update Sale Status
     public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
         Sale sale = saleRepo.findById(saleId)
                 .orElseThrow(() -> new RuntimeException("Sale not found with id: " + saleId));
@@ -71,7 +58,6 @@ public class SaleService {
         return mapToDto(savedSale);
     }
 
-    // Generate Invoice
     private void generateInvoice(Sale sale) {
         if (sale.getInvoice() != null) return; // idempotent
         Invoice invoice = new Invoice();
@@ -100,7 +86,6 @@ public class SaleService {
         serviceEntitlementRepo.save(entitlement);
     }
 
-    // Getters
     public SaleResponseDTO createSale(SaleRequestDTO dto) {
         Sale sale = new Sale();
         sale.setSaleDate(LocalDate.now());
@@ -186,7 +171,6 @@ public class SaleService {
         return dto;
     }
 
-    private User findUserById(Long id, String role) {
     private User findUserById(Long id) {
         return userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
