@@ -1,155 +1,4 @@
 
-// import React, { useRef, useEffect, useState } from "react";
-// import axios from "axios";
-// import {
-//   Box,
-//   Button,
-//   Typography,
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableContainer,
-//   TableHead,
-//   TableRow,
-//   Paper,
-//   Divider,
-// } from "@mui/material";
-// import html2canvas from "html2canvas";
-// import jsPDF from "jspdf";
-// import { VITE_API_BASE_URL } from "../utils/State";
-
-// const InvoicePage = ({ invoiceId }) => {
-//   const invoiceRef = useRef();
-//   const [paymentData, setPaymentData] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   // Fetch payments from API
-//  useEffect(() => {
-//   const fetchPayments = async () => {
-//     try {
-//       const url = `${VITE_API_BASE_URL}/payments/${invoiceId}`;
-//       console.log("Fetching from:", url);
-//       const response = await axios.get(url);
-//       console.log("Response:", response);
-//       setPaymentData(response.data);
-//     } catch (error) {
-//       console.error("Error fetching payments:", error.response || error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-//   fetchPayments();
-// }, [invoiceId]);
-
-
-//   const handleDownloadPDF = () => {
-//     const input = invoiceRef.current;
-//     html2canvas(input, { scale: 2 }).then((canvas) => {
-//       const imgData = canvas.toDataURL("image/png");
-//       const pdf = new jsPDF("p", "mm", "a4");
-//       const pdfWidth = 210;
-//       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-//       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-//       if (paymentData.length > 0) {
-//         pdf.save(`${paymentData[0].invoiceNumber}.pdf`);
-//       }
-//     });
-//   };
-
-//   const totalPaid = paymentData.reduce((acc, p) => acc + p.amount, 0);
-//   const remainingBalance = paymentData[0]?.remainingBalance ?? 0;
-
-//   if (loading) return <Typography>Loading payments...</Typography>;
-
-//   if (paymentData.length === 0)
-//     return <Typography>No payment data available for this invoice.</Typography>;
-
-//   return (
-//     <Box sx={{ p: 2, "& *": { color: "#000 !important" }, backgroundColor: "#f0f0f0" }}>
-//       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-//         <Button variant="contained" onClick={handleDownloadPDF}>📄 Download PDF</Button>
-//       </Box>
-
-//       <Paper ref={invoiceRef} sx={{ p: 4, maxWidth: 800, mx: "auto", backgroundColor: "#fff", color: "#000" }}>
-//         {/* Header */}
-//         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-//           <Box>
-//             <img src="/main.png" alt="Company Logo" style={{ height: 50 }} />
-//             <Typography variant="h6">JK Power</Typography>
-//             <Typography variant="body2">Madan Mahal, Jabalpur</Typography>
-//           </Box>
-//           <Box textAlign="right">
-//             <Typography variant="h4" fontWeight="bold">INVOICE</Typography>
-//             <Typography>Invoice #: {paymentData[0].invoiceNumber}</Typography>
-//             <Typography>Date: {paymentData[0].paymentDate}</Typography>
-//             <Typography>Status: {paymentData[0].status}</Typography>
-//           </Box>
-//         </Box>
-
-//         <Divider sx={{ mb: 3, backgroundColor: "#ccc" }} />
-
-//         {/* Payments Table */}
-//         <TableContainer sx={{ backgroundColor: "#fff" }}>
-//           <Table sx={{ borderCollapse: "collapse", backgroundColor: "#fff" }}>
-//             <TableHead>
-//               <TableRow>
-//                 {["Payment ID", "Amount", "Payment Date", "Method", "Status", "Received By", "Notes", "Proof"].map((head) => (
-//                   <TableCell key={head} sx={{ borderBottom: "1px solid #ccc", backgroundColor: "#fff" }}>{head}</TableCell>
-//                 ))}
-//               </TableRow>
-//             </TableHead>
-//             <TableBody>
-//               {paymentData.map((p) => (
-//                 <TableRow key={p.paymentId} sx={{ backgroundColor: "#fff" }}>
-//                   <TableCell sx={{ borderBottom: "1px solid #eee" }}>{p.paymentId}</TableCell>
-//                   <TableCell sx={{ borderBottom: "1px solid #eee" }}>₹{p.amount.toLocaleString()}</TableCell>
-//                   <TableCell sx={{ borderBottom: "1px solid #eee" }}>{p.paymentDate}</TableCell>
-//                   <TableCell sx={{ borderBottom: "1px solid #eee" }}>{p.paymentMethod}</TableCell>
-//                   <TableCell sx={{ borderBottom: "1px solid #eee" }}>{p.status}</TableCell>
-//                   <TableCell sx={{ borderBottom: "1px solid #eee" }}>{p.receivedBy}</TableCell>
-//                   <TableCell sx={{ borderBottom: "1px solid #eee" }}>{p.notes || "-"}</TableCell>
-//                   <TableCell sx={{ borderBottom: "1px solid #eee" }}>
-//                     {p.proofUrl ? <a href={p.proofUrl} target="_blank" rel="noopener noreferrer">View</a> : "-"}
-//                   </TableCell>
-//                 </TableRow>
-//               ))}
-//             </TableBody>
-//           </Table>
-//         </TableContainer>
-
-//         {/* Summary */}
-//         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3, p: 2, backgroundColor: "#fff", borderRadius: 1 }}>
-//           <Box sx={{ width: 300 }}>
-//             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-//               <Typography>Total Paid:</Typography>
-//               <Typography>₹{totalPaid.toLocaleString()}</Typography>
-//             </Box>
-//             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-//               <Typography>Remaining Balance:</Typography>
-//               <Typography>₹{remainingBalance.toLocaleString()}</Typography>
-//             </Box>
-//             <Box sx={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", mt: 1 }}>
-//               <Typography>Total Amount:</Typography>
-//               <Typography>₹{paymentData[0].totalBalance.toLocaleString()}</Typography>
-//             </Box>
-//           </Box>
-//         </Box>
-
-//         {/* Footer */}
-//         <Box sx={{ mt: 6, display: "flex", justifyContent: "space-between", backgroundColor: "#fff" }}>
-//           <Box textAlign="left">
-//             <Typography fontWeight="bold">Srajal Vishwakarma — Administrator</Typography>
-//           </Box>
-//           <Box textAlign="center" flexGrow={1}>
-//             <Typography fontStyle="italic">Thank You for Your Business!</Typography>
-//           </Box>
-//         </Box>
-//       </Paper>
-//     </Box>
-//   );
-// };
-
-// export default InvoicePage;
 
 // import React, { useRef, useEffect, useState, useCallback } from "react";
 // import axios from "axios";
@@ -170,33 +19,57 @@
 // } from "@mui/material";
 // import html2canvas from "html2canvas";
 // import jsPDF from "jspdf";
-// import { VITE_API_BASE_URL } from "../utils/State";
+// import { useParams } from "react-router-dom";
+// import { VITE_API_BASE_URL as EXPORTED_BASE_URL } from "../utils/State";
 
-// const InvoicePage = ({ invoiceId }) => {
+// /*
+//   InvoicePage improvements/fixes:
+//   - Accept invoiceId via prop OR route param.
+//   - Fallback to import.meta.env.VITE_API_BASE_URL if utils export is missing.
+//   - Clearer error handling / loading states so the page always shows useful UI.
+//   - Defensive handling of response shapes.
+// */
+
+// const InvoicePage = ({ invoiceId: propInvoiceId }) => {
+//   const { invoiceId: paramInvoiceId } = useParams() || {};
 //   const invoiceRef = useRef();
 //   const [paymentData, setPaymentData] = useState([]);
 //   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState("");
 
-//   // ✅ Fetch payments using useCallback (to avoid re-renders)
+//   // Determine base URL (try exported constant first, then Vite env)
+//   const VITE_API_BASE_URL =
+//     EXPORTED_BASE_URL || import.meta?.env?.VITE_API_BASE_URL || "";
+
+//   // Prefer prop -> route param -> empty
+//   const invoiceId = propInvoiceId || paramInvoiceId;
+
 //   const fetchPayments = useCallback(async () => {
+//     setError("");
+//     setPaymentData([]);
+//     setLoading(true);
+
 //     if (!invoiceId) {
 //       setError("No invoice ID provided.");
 //       setLoading(false);
 //       return;
 //     }
 
-//     try {
-//       const url = `${VITE_API_BASE_URL}/payments/${invoiceId}`;
-//       console.log("Fetching payments from:", url);
+//     if (!VITE_API_BASE_URL) {
+//       setError("API base URL is not configured.");
+//       setLoading(false);
+//       return;
+//     }
 
+//     try {
+//       const url = `${VITE_API_BASE_URL.replace(/\/$/, "")}/payments/${invoiceId}`;
 //       const response = await axios.get(url);
 
-//       // ✅ Ensure consistent response structure
+//       // Support a few common response shapes
 //       const data =
-//         response.data?.data ||
-//         response.data?.payments ||
-//         (Array.isArray(response.data) ? response.data : []);
+//         response?.data?.data ||
+//         response?.data?.payments ||
+//         (Array.isArray(response?.data) ? response.data : []);
 
 //       if (!Array.isArray(data) || data.length === 0) {
 //         setError("No payment data available for this invoice.");
@@ -206,22 +79,21 @@
 //     } catch (err) {
 //       console.error("Error fetching payments:", err);
 //       setError(
-//         err.response?.data?.message ||
+//         err?.response?.data?.message ||
+//           err?.message ||
 //           "Failed to fetch payments. Please try again later."
 //       );
 //     } finally {
 //       setLoading(false);
 //     }
-//   }, [invoiceId]);
+//   }, [invoiceId, VITE_API_BASE_URL]);
 
 //   useEffect(() => {
 //     fetchPayments();
 //   }, [fetchPayments]);
 
-//   // ✅ Generate PDF
 //   const handleDownloadPDF = async () => {
-//     if (!invoiceRef.current) return;
-
+//     if (!invoiceRef.current || paymentData.length === 0) return;
 //     try {
 //       const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
 //       const imgData = canvas.toDataURL("image/png");
@@ -231,19 +103,17 @@
 //       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
 //       const fileName =
-//         paymentData[0]?.invoiceNumber || `Invoice-${invoiceId}.pdf`;
+//         paymentData[0]?.invoiceNumber || `Invoice-${invoiceId || "unknown"}`;
 //       pdf.save(`${fileName}.pdf`);
 //     } catch (err) {
 //       console.error("PDF generation failed:", err);
 //     }
 //   };
 
-//   // ✅ Derived totals
 //   const totalPaid = paymentData.reduce((acc, p) => acc + (p.amount || 0), 0);
 //   const remainingBalance = paymentData[0]?.remainingBalance ?? 0;
 //   const totalAmount = paymentData[0]?.totalBalance ?? totalPaid + remainingBalance;
 
-//   // ✅ Conditional UI
 //   if (loading)
 //     return (
 //       <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
@@ -254,13 +124,19 @@
 //   if (error)
 //     return (
 //       <Box sx={{ p: 3 }}>
-//         <Alert severity="error">{error}</Alert>
+//         <Alert severity="error" sx={{ mb: 2 }}>
+//           {error}
+//         </Alert>
+//         <Box>
+//           <Typography variant="body2" color="textSecondary">
+//             If this invoice should exist, verify the invoice ID and backend API.
+//           </Typography>
+//         </Box>
 //       </Box>
 //     );
 
 //   return (
 //     <Box sx={{ p: 2, backgroundColor: "#f0f0f0", minHeight: "100vh" }}>
-//       {/* Action Buttons */}
 //       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
 //         <Button
 //           variant="contained"
@@ -276,19 +152,17 @@
 //         </Button>
 //       </Box>
 
-//       {/* Invoice Paper */}
 //       <Paper
 //         ref={invoiceRef}
 //         sx={{
 //           p: 4,
-//           maxWidth: 850,
+//           maxWidth: 1000,
 //           mx: "auto",
 //           backgroundColor: "#fff",
 //           color: "#000",
 //           boxShadow: 4,
 //         }}
 //       >
-//         {/* Header */}
 //         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
 //           <Box>
 //             <img src="/main.png" alt="Company Logo" style={{ height: 50 }} />
@@ -299,15 +173,14 @@
 //             <Typography variant="h4" fontWeight="bold">
 //               INVOICE
 //             </Typography>
-//             <Typography>Invoice #: {paymentData[0].invoiceNumber}</Typography>
-//             <Typography>Date: {paymentData[0].paymentDate}</Typography>
-//             <Typography>Status: {paymentData[0].status}</Typography>
+//             <Typography>Invoice #: {paymentData[0]?.invoiceNumber || "-"}</Typography>
+//             <Typography>Date: {paymentData[0]?.paymentDate || "-"}</Typography>
+//             <Typography>Status: {paymentData[0]?.status || "-"}</Typography>
 //           </Box>
 //         </Box>
 
 //         <Divider sx={{ mb: 3, backgroundColor: "#ccc" }} />
 
-//         {/* Payment Table */}
 //         <TableContainer component={Paper} elevation={0}>
 //           <Table>
 //             <TableHead>
@@ -333,21 +206,17 @@
 //             </TableHead>
 //             <TableBody>
 //               {paymentData.map((p) => (
-//                 <TableRow key={p.paymentId}>
-//                   <TableCell>{p.paymentId}</TableCell>
-//                   <TableCell>₹{p.amount?.toLocaleString()}</TableCell>
-//                   <TableCell>{p.paymentDate}</TableCell>
-//                   <TableCell>{p.paymentMethod}</TableCell>
-//                   <TableCell>{p.status}</TableCell>
-//                   <TableCell>{p.receivedBy}</TableCell>
+//                 <TableRow key={p.paymentId || `${p.invoiceNumber}-${p.paymentDate}`}>
+//                   <TableCell>{p.paymentId || "-"}</TableCell>
+//                   <TableCell>₹{(p.amount || 0).toLocaleString()}</TableCell>
+//                   <TableCell>{p.paymentDate || "-"}</TableCell>
+//                   <TableCell>{p.paymentMethod || "-"}</TableCell>
+//                   <TableCell>{p.status || "-"}</TableCell>
+//                   <TableCell>{p.receivedBy || "-"}</TableCell>
 //                   <TableCell>{p.notes || "-"}</TableCell>
 //                   <TableCell>
 //                     {p.proofUrl ? (
-//                       <a
-//                         href={p.proofUrl}
-//                         target="_blank"
-//                         rel="noopener noreferrer"
-//                       >
+//                       <a href={p.proofUrl} target="_blank" rel="noopener noreferrer">
 //                         View
 //                       </a>
 //                     ) : (
@@ -360,7 +229,6 @@
 //           </Table>
 //         </TableContainer>
 
-//         {/* Summary */}
 //         <Box
 //           sx={{
 //             display: "flex",
@@ -394,7 +262,6 @@
 //           </Box>
 //         </Box>
 
-//         {/* Footer */}
 //         <Box
 //           sx={{
 //             mt: 6,
@@ -403,12 +270,8 @@
 //             alignItems: "center",
 //           }}
 //         >
-//           <Typography fontWeight="bold">
-//             Srajal Vishwakarma — Administrator
-//           </Typography>
-//           <Typography fontStyle="italic">
-//             Thank you for your business!
-//           </Typography>
+//           <Typography fontWeight="bold">Srajal Vishwakarma — Administrator</Typography>
+//           <Typography fontStyle="italic">Thank you for your business!</Typography>
 //         </Box>
 //       </Paper>
 //     </Box>
@@ -417,7 +280,7 @@
 
 // export default InvoicePage;
 
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import axios from "axios";
 import {
   Box,
@@ -437,56 +300,25 @@ import {
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useParams } from "react-router-dom";
-import { VITE_API_BASE_URL as EXPORTED_BASE_URL } from "../utils/State";
+import { VITE_API_BASE_URL } from "../utils/State"; // ✅ uses env indirectly
 
-/*
-  InvoicePage improvements/fixes:
-  - Accept invoiceId via prop OR route param.
-  - Fallback to import.meta.env.VITE_API_BASE_URL if utils export is missing.
-  - Clearer error handling / loading states so the page always shows useful UI.
-  - Defensive handling of response shapes.
-*/
-
-const InvoicePage = ({ invoiceId: propInvoiceId }) => {
-  const { invoiceId: paramInvoiceId } = useParams() || {};
+const InvoicePage = () => {
+  const { invoiceId } = useParams();
   const invoiceRef = useRef();
   const [paymentData, setPaymentData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Determine base URL (try exported constant first, then Vite env)
-  const VITE_API_BASE_URL =
-    EXPORTED_BASE_URL || import.meta?.env?.VITE_API_BASE_URL || "";
-
-  // Prefer prop -> route param -> empty
-  const invoiceId = propInvoiceId || paramInvoiceId;
-
-  const fetchPayments = useCallback(async () => {
-    setError("");
-    setPaymentData([]);
-    setLoading(true);
-
-    if (!invoiceId) {
-      setError("No invoice ID provided.");
-      setLoading(false);
-      return;
-    }
-
-    if (!VITE_API_BASE_URL) {
-      setError("API base URL is not configured.");
-      setLoading(false);
-      return;
-    }
-
+  const fetchPayments = async () => {
     try {
-      const url = `${VITE_API_BASE_URL.replace(/\/$/, "")}/payments/${invoiceId}`;
-      const response = await axios.get(url);
+      setLoading(true);
+      setError("");
 
-      // Support a few common response shapes
+      const response = await axios.get(`${VITE_API_BASE_URL}/invoices/${invoiceId}`);
       const data =
-        response?.data?.data ||
-        response?.data?.payments ||
-        (Array.isArray(response?.data) ? response.data : []);
+        response.data.data ||
+        response.data.payments ||
+        (Array.isArray(response.data) ? response.data : []);
 
       if (!Array.isArray(data) || data.length === 0) {
         setError("No payment data available for this invoice.");
@@ -495,41 +327,26 @@ const InvoicePage = ({ invoiceId: propInvoiceId }) => {
       }
     } catch (err) {
       console.error("Error fetching payments:", err);
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to fetch payments. Please try again later."
-      );
+      setError("Failed to fetch payments. Please try again later.");
     } finally {
       setLoading(false);
     }
-  }, [invoiceId, VITE_API_BASE_URL]);
+  };
 
   useEffect(() => {
-    fetchPayments();
-  }, [fetchPayments]);
+    if (invoiceId) fetchPayments();
+  }, [invoiceId]);
 
   const handleDownloadPDF = async () => {
     if (!invoiceRef.current || paymentData.length === 0) return;
-    try {
-      const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = 210;
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
-      const fileName =
-        paymentData[0]?.invoiceNumber || `Invoice-${invoiceId || "unknown"}`;
-      pdf.save(`${fileName}.pdf`);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-    }
+    const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = 210;
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`Invoice-${invoiceId}.pdf`);
   };
-
-  const totalPaid = paymentData.reduce((acc, p) => acc + (p.amount || 0), 0);
-  const remainingBalance = paymentData[0]?.remainingBalance ?? 0;
-  const totalAmount = paymentData[0]?.totalBalance ?? totalPaid + remainingBalance;
 
   if (loading)
     return (
@@ -541,30 +358,18 @@ const InvoicePage = ({ invoiceId: propInvoiceId }) => {
   if (error)
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-        <Box>
-          <Typography variant="body2" color="textSecondary">
-            If this invoice should exist, verify the invoice ID and backend API.
-          </Typography>
-        </Box>
+        <Alert severity="error">{error}</Alert>
       </Box>
     );
+
+  const totalPaid = paymentData.reduce((acc, p) => acc + (p.amount || 0), 0);
+  const remainingBalance = paymentData[0]?.remainingBalance ?? 0;
+  const totalAmount = paymentData[0]?.totalBalance ?? totalPaid + remainingBalance;
 
   return (
     <Box sx={{ p: 2, backgroundColor: "#f0f0f0", minHeight: "100vh" }}>
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleDownloadPDF}
-          sx={{
-            textTransform: "none",
-            fontWeight: "bold",
-            boxShadow: 2,
-          }}
-        >
+        <Button variant="contained" onClick={handleDownloadPDF}>
           📄 Download PDF
         </Button>
       </Box>
@@ -596,7 +401,7 @@ const InvoicePage = ({ invoiceId: propInvoiceId }) => {
           </Box>
         </Box>
 
-        <Divider sx={{ mb: 3, backgroundColor: "#ccc" }} />
+        <Divider sx={{ mb: 3 }} />
 
         <TableContainer component={Paper} elevation={0}>
           <Table>
@@ -612,10 +417,7 @@ const InvoicePage = ({ invoiceId: propInvoiceId }) => {
                   "Notes",
                   "Proof",
                 ].map((head) => (
-                  <TableCell
-                    key={head}
-                    sx={{ fontWeight: "bold", backgroundColor: "#fafafa" }}
-                  >
+                  <TableCell key={head} sx={{ fontWeight: "bold" }}>
                     {head}
                   </TableCell>
                 ))}
@@ -623,17 +425,17 @@ const InvoicePage = ({ invoiceId: propInvoiceId }) => {
             </TableHead>
             <TableBody>
               {paymentData.map((p) => (
-                <TableRow key={p.paymentId || `${p.invoiceNumber}-${p.paymentDate}`}>
-                  <TableCell>{p.paymentId || "-"}</TableCell>
-                  <TableCell>₹{(p.amount || 0).toLocaleString()}</TableCell>
-                  <TableCell>{p.paymentDate || "-"}</TableCell>
-                  <TableCell>{p.paymentMethod || "-"}</TableCell>
-                  <TableCell>{p.status || "-"}</TableCell>
-                  <TableCell>{p.receivedBy || "-"}</TableCell>
+                <TableRow key={p.paymentId}>
+                  <TableCell>{p.paymentId}</TableCell>
+                  <TableCell>₹{p.amount?.toLocaleString()}</TableCell>
+                  <TableCell>{p.paymentDate}</TableCell>
+                  <TableCell>{p.paymentMethod}</TableCell>
+                  <TableCell>{p.status}</TableCell>
+                  <TableCell>{p.receivedBy}</TableCell>
                   <TableCell>{p.notes || "-"}</TableCell>
                   <TableCell>
                     {p.proofUrl ? (
-                      <a href={p.proofUrl} target="_blank" rel="noopener noreferrer">
+                      <a href={p.proofUrl} target="_blank" rel="noreferrer">
                         View
                       </a>
                     ) : (
@@ -646,37 +448,13 @@ const InvoicePage = ({ invoiceId: propInvoiceId }) => {
           </Table>
         </TableContainer>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            mt: 3,
-            p: 2,
-            backgroundColor: "#fafafa",
-            borderRadius: 1,
-          }}
-        >
-          <Box sx={{ width: 300 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography>Total Paid:</Typography>
-              <Typography>₹{totalPaid.toLocaleString()}</Typography>
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography>Remaining Balance:</Typography>
-              <Typography>₹{remainingBalance.toLocaleString()}</Typography>
-            </Box>
-            <Divider sx={{ my: 1 }} />
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontWeight: "bold",
-              }}
-            >
-              <Typography>Total Amount:</Typography>
-              <Typography>₹{totalAmount.toLocaleString()}</Typography>
-            </Box>
-          </Box>
+        <Box sx={{ mt: 3, textAlign: "right" }}>
+          <Typography>Total Paid: ₹{totalPaid.toLocaleString()}</Typography>
+          <Typography>Remaining Balance: ₹{remainingBalance.toLocaleString()}</Typography>
+          <Divider sx={{ my: 1 }} />
+          <Typography fontWeight="bold">
+            Total Amount: ₹{totalAmount.toLocaleString()}
+          </Typography>
         </Box>
 
         <Box
