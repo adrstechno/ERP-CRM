@@ -229,8 +229,8 @@ export default function ServiceManagement() {
                 <Stack spacing={3}>
                     <Card>
                         <CardContent>
-                            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2} mb={2}>
-                                <Stack direction="row" spacing={1.5} alignItems="center">
+                            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={1} mb={1}>
+                                <Stack direction="row" spacing={1} alignItems="center">
                                     <SupportAgentIcon color="primary" />
                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Service Tickets</Typography>
                                 </Stack>
@@ -242,8 +242,8 @@ export default function ServiceManagement() {
                                         <TableRow>{['Ticket ID', 'Created', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date', 'Actions'].map(h => <TableCell key={h}>{h}</TableCell>)}</TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {isLoading ? <TableSkeleton columns={9} /> :
-                                            error ? <TableError columns={9} message={error} /> :
+                                        {isLoading ? <TableSkeleton columns={8} /> :
+                                            error ? <TableError columns={8} message={error} /> :
                                                 tickets.map((ticket) => (
                                                     <TableRow key={ticket.id} hover>
                                                         <TableCell sx={{ fontWeight: 500 }}>{ticket.id}</TableCell>

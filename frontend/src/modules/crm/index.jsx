@@ -50,7 +50,7 @@ import MarketerExpenses from "./pages/marketer/MarketerExpenses";
 import PayStatus from "./pages/marketer/PayStatus";
 import AddCustomer from "./pages/marketer/AddCustomer";
 import InvoicePage from "./components/InvoicePage";
-
+import GetExpenses from "./pages/marketer/GetExpenses";
 
 
 
@@ -100,6 +100,7 @@ export default function CRMModule() {
             <Route path="expenses" element={<MarketerExpenses />} />
             <Route path="paystatus" element={<PayStatus />} />
             <Route path="invoice" element ={<InvoicePage />}/>
+            <Route path="getexpenses" element={<GetExpenses />} />
           </>
         )}
 

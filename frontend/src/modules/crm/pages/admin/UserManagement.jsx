@@ -27,7 +27,7 @@ import { VITE_API_BASE_URL } from "../../utils/State";
 // const VITE_API_BASE_URL= import.meta.env.VITE_API_BASE_URL;
 
 
-const user = localStorage.getItem("user");
+
 
 async function createUserApi(userData) {
     try {
@@ -99,10 +99,12 @@ export default function UserManagement() {
     const [editExtraUser, setEditExtraUser] = useState(null);
 
     const [formData, setFormData] = useState({ name: '', email: '', password: '', role: '', phone: '' });
+    const authKey = localStorage.getItem("authKey");
+    const user = JSON.parse(localStorage.getItem("user"));
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const authKey = localStorage.getItem("authKey");
+               
                 const response = await axios.get(`${VITE_API_BASE_URL}/admin/users`,
                     {
                         headers: {
@@ -187,7 +189,7 @@ export default function UserManagement() {
         };
 
         try {
-            const authKey = localStorage.getItem("authKey");
+  ;
             const response = await axios.put(
                 `${VITE_API_BASE_URL}/profiles/update/${user.userId}`,
                 payload, {
@@ -234,7 +236,7 @@ export default function UserManagement() {
             setUsersData((prev) => [...prev, result]);
         } else {
             // ✅ Option 2 (more reliable): Re-fetch users to ensure table sync
-            const authKey = localStorage.getItem("authKey");
+         
             const response = await axios.get(`${VITE_API_BASE_URL}/admin/users`, {
                 headers: { Authorization: `Bearer ${authKey}` },
             });

@@ -2,15 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
     Box, Card, CardContent, Typography,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Button, Stack, FormControl, Select, MenuItem, InputAdornment, TextField, Chip, Skeleton, InputLabel, Link
+    Stack, FormControl, Select, MenuItem, InputAdornment, TextField, Chip, Skeleton, InputLabel, Link
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { format } from 'date-fns';
 import axios from 'axios';
 
-// --- Helper Functions (No changes) ---
+// --- Helper Functions ---
 const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth();
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -29,8 +28,28 @@ const generateMonthOptions = (selectedYear) => {
     return monthNames.slice(0, currentMonth + 1);
 };
 
+// --- Helper component for status display ---
+const StatusChip = ({ status }) => {
+    let color;
+    switch (status.toLowerCase()) {
+        case 'approved':
+            color = 'success';
+            break;
+        case 'pending':
+            color = 'warning';
+            break;
+        case 'rejected':
+            color = 'error';
+            break;
+        default:
+            color = 'default';
+    }
+    return <Chip label={status} color={color} size="small" variant="outlined" />;
+};
+
+
 // --- Main Component ---
-export default function ApproveExpenses() {
+export default function MyExpenses() {
     const [year, setYear] = useState(String(currentYear));
     const [month, setMonth] = useState(monthNames[currentMonth]);
     const [expenses, setExpenses] = useState([]);
@@ -56,7 +75,8 @@ export default function ApproveExpenses() {
         const fetchExpenses = async () => {
             setIsLoading(true);
             try {
-                const response = await axios.get('http://localhost:8080/api/expense/all-expense', axiosConfig);
+                // ## 1. API endpoint changed to 'my-expense'
+                const response = await axios.get('http://localhost:8080/api/expense/my-expense', axiosConfig);
                 const result = response.data;
 
                 if (result.success && Array.isArray(result.data)) {
@@ -85,30 +105,6 @@ export default function ApproveExpenses() {
 
         fetchExpenses();
     }, [axiosConfig]);
-
-    // --- ## Updated Approval Logic ---
-    const handleApprove = async (expenseId) => {
-        const originalExpenses = [...expenses];
-        setExpenses(
-            expenses.map(exp =>
-                exp.id === expenseId ? { ...exp, status: 'Approved' } : exp
-            )
-        );
-
-        try {
-            // **1. Construct the new URL with the query parameter**
-            const API_URL = `http://localhost:8080/api/expense/${expenseId}/status?status=APPROVED`;
-            
-            // **2. Make the PATCH request with a `null` body**
-            // The second argument to axios.patch is the request body, which is not needed here.
-            await axios.patch(API_URL, null, axiosConfig);
-
-        } catch (error) {
-            console.error("Error approving expense:", error);
-            setExpenses(originalExpenses);
-            alert("Failed to approve the expense. Please try again.");
-        }
-    };
 
     const filteredExpenses = useMemo(() => {
         if (!expenses) return [];
@@ -140,13 +136,13 @@ export default function ApproveExpenses() {
                     >
                         <Stack direction="row" spacing={1.5} alignItems="center">
                             <ReceiptLongIcon color="primary" />
-                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Approve Expenses</Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>My Expenses</Typography>
                         </Stack>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ width: { xs: '100%', md: 'auto' } }}>
                             <TextField
                                 variant="outlined"
                                 size="small"
-                                placeholder="Search by User, ID, Category..."
+                                placeholder="Search by ID, Category..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 InputProps={{
@@ -167,17 +163,18 @@ export default function ApproveExpenses() {
                             <FormControl size="small" sx={{ minWidth: 150 }}>
                                 <InputLabel>Month</InputLabel>
                                 <Select value={month} label="Month" onChange={(e) => setMonth(e.target.value)}>
-                                    {monthOptions.map(m => <MenuItem key={m} value={m}>{m}</MenuItem>)}
+                                    {monthNames.map(m => <MenuItem key={m} value={m}>{m}</MenuItem>)}
                                 </Select>
                             </FormControl>
                         </Stack>
                     </Stack>
-                </CardContent>
+                    </CardContent>
                 <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
                     <Table stickyHeader size="medium">
                         <TableHead>
                             <TableRow>
-                                {['Expense ID', 'User Name', 'Date', 'Category', 'Amount', 'Receipt', 'Remarks', 'Approval'].map(head => (
+                                {/* ## 2. Header changed from 'Approval' to 'Status' */}
+                                {['Expense ID', 'User Name', 'Date', 'Category', 'Amount', 'Receipt', 'Remarks', 'Status'].map(head => (
                                     <TableCell key={head} sx={{ whiteSpace: 'nowrap' }}>{head}</TableCell>
                                 ))}
                             </TableRow>
@@ -205,25 +202,9 @@ export default function ApproveExpenses() {
                                             ) : 'N/A'}
                                         </TableCell>
                                         <TableCell>{expense.remarks}</TableCell>
+                                        {/* ## 3. Approve button removed, now displays status chip */}
                                         <TableCell>
-                                            {expense.status === 'Pending' ? (
-                                                <Button
-                                                    variant="contained"
-                                                    size="small"
-                                                    onClick={() => handleApprove(expense.id)}
-                                                    color="primary"
-                                                >
-                                                    Approve
-                                                </Button>
-                                            ) : (
-                                                <Chip
-                                                    label="Approved"
-                                                    color="success"
-                                                    size="small"
-                                                    icon={<CheckCircleIcon />}
-                                                    variant="outlined"
-                                                />
-                                            )}
+                                            <StatusChip status={expense.status} />
                                         </TableCell>
                                     </TableRow>
                                 ))

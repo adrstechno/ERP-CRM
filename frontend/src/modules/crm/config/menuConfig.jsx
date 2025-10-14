@@ -52,6 +52,7 @@ export const crmMenuConfig = {
   { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
   { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
   { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, 
+  { label: "getexpenses", path: "/crm/getexpenses", icon: <HistoryIcon /> },
  
   ],
   engineer: [
