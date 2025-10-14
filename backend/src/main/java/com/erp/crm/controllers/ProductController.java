@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
-@PreAuthorize("hasAnyRole('ADMIN','SUBADMIN','MARKETER')")
 public class ProductController {
 
     private final ProductService productService;
@@ -22,11 +21,13 @@ public class ProductController {
 
     // Create a new product
     @PostMapping("/create")
+    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN')")
     public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody ProductRequestDTO dto) {
         return ResponseEntity.ok(productService.createProduct(dto));
     }
 
     @PostMapping("/create-bulk")
+    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN')")
     public ResponseEntity<List<ProductResponseDTO>> createProducts(@RequestBody List<ProductRequestDTO> dtos) {
         return ResponseEntity.ok(productService.createProducts(dtos));
     }
@@ -45,6 +46,7 @@ public class ProductController {
 
     // Update a product
     @PutMapping("/{id}/update")
+    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN')")
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable Long id,
             @RequestBody ProductRequestDTO dto) {
@@ -53,6 +55,7 @@ public class ProductController {
 
     // Delete a product
     @DeleteMapping("/{id}/delete")
+    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
