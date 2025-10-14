@@ -217,52 +217,36 @@ export default function UserManagement() {
         setFormData(prevState => ({ ...prevState, [name]: value }));
     };
 
-    const handleCreateUser = async () => {
-        try {
-            const result = await createUserApi(formData);
-            console.log('User created:', result);
-            handleClose();
-            // Optionally, refresh user list or show a success message
-        } catch (error) {
-            console.error('Create user failed:', error);
-            // Optionally, show error message to user
+   const handleCreateUser = async () => {
+    try {
+        const result = await createUserApi(formData);
+        console.log('User created:', result);
+
+        // Close the dialog
+        handleClose();
+
+        // ✅ Option 1: Update the table instantly with the new user
+        // (Ensure your backend returns the newly created user object)
+        if (result && result.user) {
+            setUsersData((prev) => [...prev, result.user]);
+        } else if (result && result.name) {
+            // fallback in case backend directly returns user data
+            setUsersData((prev) => [...prev, result]);
+        } else {
+            // ✅ Option 2 (more reliable): Re-fetch users to ensure table sync
+            const authKey = localStorage.getItem("authKey");
+            const response = await axios.get(`${VITE_API_BASE_URL}/admin/users`, {
+                headers: { Authorization: `Bearer ${authKey}` },
+            });
+            setUsersData(response.data);
         }
-    };
 
-    //    const handleViewOpen = async (user) => {
-    //         // This console.log is the most important tool to debug this.
-    //         // Please check your browser's developer console to see what the 'user' object contains.
-    //         console.log("Inspecting user object on click:", user);
+    } catch (error) {
+        console.error('Create user failed:', error);
+        alert("Failed to create user. Please try again.");
+    }
+};
 
-    //         setViewOpen(true);
-    //         setViewLoading(true);
-    //         setViewUser(null);
-
-    //         // Ensure we have a valid ID before making the call.
-    //         const userId = user.userId;
-    //         if (!userId) {
-    //             console.error("User ID is missing or invalid", user);
-    //             setViewLoading(false);
-    //             return;
-    //         }
-
-    //         try {
-    //             const authKey = localStorage.getItem("authKey");
-    //             const response = await axios.get(
-    //                 `${REACT_APP_BASE_URL}/profiles/${userId}`, {
-    //                     headers: {
-    //                         Authorization: `Bearer ${authKey}`,
-    //                     },
-    //                 }
-    //             );
-    //             setViewUser(response.data);
-    //         } catch (error) {
-    //             console.error("Failed to fetch user profile:", error);
-    //             setViewUser(null);
-    //         } finally {
-    //             setViewLoading(false);
-    //         }
-    //     };
     const [profileMissing, setProfileMissing] = useState(false);
 
     const handleViewOpen = async (user) => {
@@ -402,7 +386,7 @@ export default function UserManagement() {
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>
                                             <TextField
-                                                type={showPassword[user.id] ? "text" : "password"}
+                                                type={showPassword[user.userId] ? "text" : "password"}
                                                 value={user.password}
                                                 size="small"
                                                 variant="standard"
@@ -410,8 +394,8 @@ export default function UserManagement() {
                                                     readOnly: true,
                                                     endAdornment: (
                                                         <InputAdornment position="end">
-                                                            <IconButton size="small" onClick={() => handleTogglePassword(user.userid)} edge="end">
-                                                                {showPassword[user.userid] ? <VisibilityOff /> : <Visibility />}
+                                                            <IconButton size="small" onClick={() => handleTogglePassword(user.userId)} edge="end">
+                                                                {showPassword[user.userId] ? <VisibilityOff /> : <Visibility />}
                                                             </IconButton>
                                                         </InputAdornment>
                                                     ),
@@ -545,8 +529,7 @@ export default function UserManagement() {
                     )}
                 </DialogContent>
                 <DialogActions sx={{ p: '16px 24px' }}>
-                    <Button onClick={handleViewClose}>Close</Button>
-                    <Button onClick={handleEditExtraOpen} variant="contained" disabled={!viewUser}>Edit Details</Button>
+                    
                 </DialogActions>
             </Dialog>
 
