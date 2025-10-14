@@ -11,7 +11,7 @@ import lombok.Setter;
 public class SaleResponseDTO {
     private Long saleId;
     private String approvedBy;
-    private String createdBy;
+        private String createdBy;
     private String customerName;
     private LocalDate saleDate;
     private Double totalAmount;

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -21,11 +22,11 @@ public class ServiceTicketService {
     private final ServiceEntitlementRepository entitlementRepo;
 
     public ServiceTicketService(ServiceTicketRepository ticketRepo,
-                               ProductRepository productRepo,
-                               UserRepository userRepo,
-                               CustomerRepository customerRepo,
-                               SaleRepository saleRepo,
-                               ServiceEntitlementRepository entitlementRepo) {
+            ProductRepository productRepo,
+            UserRepository userRepo,
+            CustomerRepository customerRepo,
+            SaleRepository saleRepo,
+            ServiceEntitlementRepository entitlementRepo) {
         this.ticketRepo = ticketRepo;
         this.productRepo = productRepo;
         this.userRepo = userRepo;
@@ -34,133 +35,85 @@ public class ServiceTicketService {
         this.entitlementRepo = entitlementRepo;
     }
 
-    // 1️⃣ Engineer opens ticket → OPEN
+    // Engineer creates ticket
     public ServiceTicketResponseDTO openTicket(ServiceTicketRequestDTO dto) {
-        Product product = productRepo.findById(dto.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        User engineer = userRepo.findById(dto.getAssignedEngineerId())
-                .orElseThrow(() -> new RuntimeException("Engineer not found"));
-
         Customer customer = customerRepo.findById(dto.getCustomerId())
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
+        Product product = productRepo.findById(dto.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        User engineer = userRepo.findById(dto.getAssignedEngineerId())
+                .orElseThrow(() -> new RuntimeException("Engineer not found"));
+        Sale sale = saleRepo.findById(dto.getSaleId())
+                .orElseThrow(() -> new RuntimeException("Sale not found"));
 
-        Sale sale = dto.getSaleId() != null
-                ? saleRepo.findById(dto.getSaleId())
-                        .orElseThrow(() -> new RuntimeException("Sale not found"))
-                : customer.getSales().stream()
-                        .filter(s -> s.getSaleItems().stream()
-                                .anyMatch(si -> si.getProduct().getProductId().equals(product.getProductId())))
-                        .findFirst()
-                        .orElseThrow(() -> new RuntimeException("No sale found for this product"));
+       List<Status> activeStatuses = List.of(Status.OPEN, Status.IN_PROGRESS , Status.APPROVED, Status.COMPLETED);
 
-        List<ServiceEntitlement> entitlements = entitlementRepo.findAllBySale_SaleId(sale.getSaleId());
+        boolean activeTicketExists = ticketRepo.existsBySale_SaleIdAndProduct_ProductIdAndStatusIn(
+                sale.getSaleId(), product.getProductId(), activeStatuses);
 
-        ServiceEntitlement entitlementToUse;
-        EntitlementType typeToUse;
-
-        ServiceEntitlement freeEntitlement = entitlements.stream()
-                .filter(e -> e.getEntitlementType() == EntitlementType.FREE)
-                .findFirst()
-                .orElse(null);
-
-        if (freeEntitlement != null && freeEntitlement.canUseService()) {
-            freeEntitlement.useService();
-            entitlementRepo.save(freeEntitlement);
-            entitlementToUse = freeEntitlement;
-            typeToUse = EntitlementType.FREE;
-        } else {
-            ServiceEntitlement paidEntitlement = entitlements.stream()
-                    .filter(e -> e.getEntitlementType() == EntitlementType.PAID)
-                    .findFirst()
-                    .orElseGet(() -> {
-                        ServiceEntitlement newPaid = new ServiceEntitlement();
-                        newPaid.setSale(sale);
-                        newPaid.setEntitlementType(EntitlementType.PAID);
-                        newPaid.setUsedCount(0);
-                        newPaid.setTotalAllowed(Integer.MAX_VALUE);
-                        newPaid.setExpiryDate(sale.getSaleDate().plusYears(1));
-                        return entitlementRepo.save(newPaid);
-                    });
-            entitlementToUse = paidEntitlement;
-            typeToUse = EntitlementType.PAID;
+        if (activeTicketExists) {
+            throw new RuntimeException("A ticket for this product in this sale is already active.");
         }
+
+        //  Find entitlement for that sale + product
+        ServiceEntitlement entitlement = entitlementRepo
+                .findBySale_SaleIdAndProduct_ProductId(dto.getSaleId(), dto.getProductId())
+                .orElseThrow(() -> new RuntimeException("No entitlement found for this product in sale"));
+
+        EntitlementType entitlementType = entitlement.canUseService() ? EntitlementType.FREE : EntitlementType.PAID;
 
         ServiceTicket ticket = new ServiceTicket();
         ticket.setCustomer(customer);
         ticket.setProduct(product);
         ticket.setAssignedEngineer(engineer);
         ticket.setSale(sale);
-        ticket.setPriority(dto.getPriority());
+        ticket.setServiceEntitlement(entitlement);
+        ticket.setEntitlementType(entitlementType);
         ticket.setStatus(Status.OPEN);
+        ticket.setPriority(dto.getPriority());
         ticket.setDueDate(dto.getDueDate());
-        ticket.setServiceEntitlement(entitlementToUse);
-        ticket.setEntitlementType(typeToUse);
 
-        return mapToDto(ticketRepo.save(ticket));
+        ticketRepo.save(ticket);
+        return ServiceTicketResponseDTO.fromEntity(ticket);
     }
 
-    // 2️⃣ Approve ticket → APPROVED
-    public ServiceTicketResponseDTO approveTicket(Long ticketId) {
-        ServiceTicket ticket = getTicket(ticketId);
-
-        if (ticket.getStatus() != Status.OPEN)
-            throw new RuntimeException("Only OPEN tickets can be approved");
-
-        ticket.setStatus(Status.APPROVED);
-        return mapToDto(ticketRepo.save(ticket));
+    // Engineer/Admin updates ticket status
+    public ServiceTicketResponseDTO updateWork(Long ticketId, Status status) {
+        ServiceTicket ticket = ticketRepo.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        ticket.setStatus(status);
+        ticketRepo.save(ticket);
+        return ServiceTicketResponseDTO.fromEntity(ticket);
     }
 
-    // 3️⃣ Engineer starts work → IN_PROGRESS
-    public ServiceTicketResponseDTO startWork(Long ticketId) {
-        ServiceTicket ticket = getTicket(ticketId);
-
-        if (ticket.getStatus() != Status.APPROVED)
-            throw new RuntimeException("Only APPROVED tickets can be started");
-
-        ticket.setStatus(Status.IN_PROGRESS);
-        return mapToDto(ticketRepo.save(ticket));
-    }
-
-    // 4️⃣ Engineer completes work → COMPLETED
-    public ServiceTicketResponseDTO completeWork(Long ticketId) {
-        ServiceTicket ticket = getTicket(ticketId);
-
-        if (ticket.getStatus() != Status.IN_PROGRESS)
-            throw new RuntimeException("Only IN_PROGRESS tickets can be completed");
-
-        ticket.setStatus(Status.COMPLETED);
-        return mapToDto(ticketRepo.save(ticket));
-    }
-
-    // 5️⃣ Admin closes ticket → CLOSED
+    // Close ticket → use FREE service if available
     public ServiceTicketResponseDTO closeTicket(Long ticketId) {
-        ServiceTicket ticket = getTicket(ticketId);
+        ServiceTicket ticket = ticketRepo.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
-        if (ticket.getStatus() != Status.COMPLETED)
-            throw new RuntimeException("Only COMPLETED tickets can be closed");
+        ServiceEntitlement entitlement = ticket.getServiceEntitlement();
+
+        // When closing, use FREE entitlement if available
+        if (entitlement != null) {
+            if (entitlement.canUseService()) {
+                entitlement.useService(); // consume one free service
+                ticket.setEntitlementType(EntitlementType.FREE);
+            } else {
+                ticket.setEntitlementType(EntitlementType.PAID);
+            }
+            entitlementRepo.save(entitlement);
+        }
 
         ticket.setStatus(Status.CLOSED);
-        return mapToDto(ticketRepo.save(ticket));
+        ticketRepo.save(ticket);
+
+        return ServiceTicketResponseDTO.fromEntity(ticket);
     }
 
-    private ServiceTicket getTicket(Long id) {
-        return ticketRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket not found: " + id));
-    }
-
-    private ServiceTicketResponseDTO mapToDto(ServiceTicket ticket) {
-        ServiceTicketResponseDTO dto = new ServiceTicketResponseDTO();
-        dto.setTicketId(ticket.getId());
-        dto.setCustomerName(ticket.getCustomer().getCustomerName());
-        dto.setProductName(ticket.getProduct().getName());
-        dto.setAssignedEngineerName(ticket.getAssignedEngineer().getName());
-        dto.setPriority(ticket.getPriority());
-        dto.setStatus(ticket.getStatus());
-        dto.setDueDate(ticket.getDueDate());
-        dto.setEntitlementType(ticket.getEntitlementType());
-        dto.setSaleId(ticket.getSale().getSaleId());
-        dto.setServiceEntitlementId(ticket.getServiceEntitlement() != null ? ticket.getServiceEntitlement().getServiceEntitlementId() : null);
-        return dto;
+    // Get all tickets
+    public List<ServiceTicketResponseDTO> getAllServiceTicket() {
+        return ticketRepo.findAll().stream()
+                .map(ServiceTicketResponseDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 }
