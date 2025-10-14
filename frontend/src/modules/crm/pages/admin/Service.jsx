@@ -103,8 +103,8 @@ if (!engineersRes.ok || !customersRes.ok || !salesRes.ok) {
 const engineersData = await engineersRes.json();
 const customersData = await customersRes.json();
 const salesData = await salesRes.json();
-
-                setEngineers(engineersData);
+const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER');
+                setEngineers(engineerUsers);
                 setCustomers(customersData);
                 setSales(salesData);
             } catch (err) {
