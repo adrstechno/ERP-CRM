@@ -18,6 +18,7 @@ import Setting from "./pages/admin/settings"
 
 
 
+
 //Dealer
 import DealerDashboard from "./pages/dealers/DealerDashboard";
 import DealerStockRequests from "./pages/dealers/DealerStockRequest";
@@ -60,10 +61,10 @@ export default function CRMModule() {
     <Routes>
       <Route path="/crm" element={<Navigate to="/login" replace />} />
       <Route element={<CRMLayout />}>
-
+      <Route path="invoice" element ={<InvoicePage />}/>
     
       
-
+            
 
         {crmUser?.role === "admin" && (
           <>
@@ -74,6 +75,7 @@ export default function CRMModule() {
             <Route path="sales" element={<Sales />} />
             <Route path="service" element={<Service />} />
             <Route path="invoices" element={<BillingNInvoice />} />
+            <Route path="expenses/approve" element={<ApproveExpenses />} />
             <Route path="settings" element={<Setting />} />
 
           </>
