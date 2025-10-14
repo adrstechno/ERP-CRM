@@ -639,6 +639,7 @@ export default function InventoryManagementContent() {
       ]);
       handleClose();
     } catch (err) { 
+      console.error(err);
       
     } finally {
       setLoading(false);
@@ -768,125 +769,100 @@ export default function InventoryManagementContent() {
   return (
     <Box>
       {/* KPI Cards */}
-      <Grid container spacing={3} mb={3}>
-        {kpiData.map((kpi, index) => (
-          <Grid item key={index} xs={12} sm={6} md={3}>
-            <KpiCard
-              title={kpi.title}
-              value={kpi.value}
-              icon={kpi.icon}
-              color={kpi.color}
-            />
-          </Grid>
-        ))}
-      </Grid>
+        <Grid container spacing={4} mb={3}>
+          {kpiData.map((kpi, index) => (
+            <Grid item key={index} xs={12} sm={6} md={3}>
+              <KpiCard
+                title={kpi.title}
+                value={kpi.value}
+                icon={kpi.icon}
+                color={kpi.color}
+              />
+            </Grid>
+          ))} 
+        </Grid>
 
+     
       {/* Products Table */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <Card sx={{ height: "calc(100vh - 280px)" }}>
-            <CardHeader
-              title="Product Inventory"
-              action={
-                <Button
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={handleClickOpen}
+<Box sx={{ width: '100%', mt: 2 }}>
+  <Card >
+    <CardHeader
+      title="Product Inventory"
+      action={
+        <Button
+          variant="contained"
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={handleClickOpen}
+        >
+          Add Product
+        </Button>
+      }
+    />
+    <TableContainer
+      sx={{
+        height: "calc(100vh - 280px)",
+        overflowY: "auto",
+        overflowX: "auto",
+      }}
+    >
+      <Table stickyHeader size="small">
+        <TableHead>
+          <TableRow>
+            {[
+              "Product Name",
+              "Category",
+              "Price",
+              "Stock",
+              "Warranty (Months)",
+              "Status",
+              "Action",
+            ].map((head) => (
+              <TableCell key={head}>{head}</TableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {products.map((product) => (
+            <TableRow key={product.id} hover>
+              <TableCell>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <Avatar variant="rounded">
+                    <InventoryIcon />
+                  </Avatar>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {product.name}
+                  </Typography>
+                </Stack>
+              </TableCell>
+              <TableCell>{product.category}</TableCell>
+              <TableCell>
+                ₹{product.price.toLocaleString("en-IN")}
+              </TableCell>
+              <TableCell sx={{ fontWeight: 500 }}>{product.stock}</TableCell>
+              <TableCell>{product.warrantyMonths}</TableCell>
+              <TableCell>{getStatusChip(product.status)}</TableCell>
+              <TableCell>
+                <IconButton
+                  size="small"
+                  onClick={() => handleEditProduct(product)}
                 >
-                  Add Product
-                </Button>
-              }
-            />
-            <TableContainer
-              sx={{ height: "calc(100% - 72px)", overflowY: "auto" }}
-            >
-              <Table stickyHeader size="small">
-                <TableHead>
-                  <TableRow>
-                    {[
-                      "Product Name",
-                      "Category",
-                      "Price",
-                      "Stock",
-                      "Warranty (Months)",
-                      "Status",
-                      "Action",
-                    ].map((head) => (
-                      <TableCell key={head}>{head}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id} hover>
-                      <TableCell>
-                        <Stack direction="row" alignItems="center" spacing={2}>
-                          <Avatar variant="rounded">
-                            <InventoryIcon />
-                          </Avatar>
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            {product.name}
-                          </Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>{product.category}</TableCell>
-                      <TableCell>
-                        ₹{product.price.toLocaleString("en-IN")}
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 500 }}>
-                        {product.stock}
-                      </TableCell>
-                      <TableCell>{product.warrantyMonths}</TableCell>
-                      <TableCell>{getStatusChip(product.status)}</TableCell>
-                      <TableCell>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEditProduct(product)}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDeleteProduct(product.id)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-        </Grid>
+                  <EditIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => handleDeleteProduct(product.id)}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  </Card>
+</Box>
 
-        {/* Stock Movement Table (placeholder) */}
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: "calc(100vh - 280px)" }}>
-            <CardHeader title="Recent Stock Movement" />
-            <TableContainer
-              sx={{ height: "calc(100% - 72px)", overflowY: "auto" }}
-            >
-              <Table stickyHeader size="small">
-                <TableHead>
-                  <TableRow>
-                    {["Product", "Type", "Qty"].map((head) => (
-                      <TableCell key={head}>{head}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell colSpan={3} align="center">
-                      Stock movements will appear here.
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-        </Grid>
-      </Grid>
 
       {/* Add / Edit Product Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
