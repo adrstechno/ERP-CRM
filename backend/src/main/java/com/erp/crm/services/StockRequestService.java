@@ -3,6 +3,8 @@ package com.erp.crm.services;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import com.erp.crm.models.User;
 import com.erp.crm.repositories.ProductRepository;
 import com.erp.crm.repositories.StockRequestRepository;
 import com.erp.crm.repositories.UserRepository;
+import com.erp.crm.security.UserPrincipal;
 
 import lombok.AllArgsConstructor;
 
@@ -26,12 +29,19 @@ public class StockRequestService {
     private final ProductRepository productRepository;
     private final UserRepository userRepo;
 
-    public StockRequestResponseDTO createRequest(Long userId, StockRequestDTO dto) {
+    public StockRequestResponseDTO createRequest( StockRequestDTO dto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        String email = principal.getUsername();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
         StockRequest request = new StockRequest();
         request.setProduct(product);
