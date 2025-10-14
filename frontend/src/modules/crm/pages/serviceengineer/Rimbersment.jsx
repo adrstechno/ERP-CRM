@@ -1,168 +1,3 @@
-// import React, { useState } from "react";
-// import {
-//   Box,
-//   Card,
-//   CardContent,
-//   Typography,
-//   TextField,
-//   MenuItem,
-//   Button,
-//   useTheme,
-// } from "@mui/material";
-// import { CloudUpload } from "@mui/icons-material";
-
-// const categories = [
-//   { value: "Food", label: "Food" },
-//   { value: "Travel", label: "Travel" },
-//   { value: "Stay", label: "Stay" },
-//   { value: "Other", label: "Other" },
-// ];
-
-// export default function Rimbersment() {
-//   const theme = useTheme();
-//   const [form, setForm] = useState({
-//     date: "",
-//     category: "",
-//     amount: "",
-//     distance: "",
-//     area: "",
-//     note: "",
-//   });
-//   const [receipt, setReceipt] = useState(null);
-
-//   const handleChange = (field) => (e) => {
-//     setForm({ ...form, [field]: e.target.value });
-//   };
-
-//   const handleFileChange = (e) => {
-//     setReceipt(e.target.files[0]);
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     // Submit logic here
-//   };
-
-//   return (
-//     <Box sx={{ p: 3, background: theme.palette.background.default, minHeight: "100vh" }}>
-//       <Typography variant="h6" fontWeight="bold" mb={1}>
-//         Reimbursement
-//       </Typography>
-//       <Typography variant="body2" color="text.secondary" mb={3}>
-//         Lorem ipsum dolor sit amet consectetur adipisicing.
-//       </Typography>
-//       <Box display="flex" justifyContent="center">
-//         <Card sx={{ width: 600, background: theme.palette.background.paper, borderRadius: 3 }}>
-//           <CardContent>
-//             <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-//               <TextField
-//                 label="Date"
-//                 type="date"
-//                 value={form.date}
-//                 onChange={handleChange("date")}
-//                 InputLabelProps={{ shrink: true }}
-//                 fullWidth
-//                 size="small"
-//               />
-//               <TextField
-//                 select
-//                 label="Category"
-//                 value={form.category}
-//                 onChange={handleChange("category")}
-//                 fullWidth
-//                 size="small"
-//               >
-//                 {categories.map((opt) => (
-//                   <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-//                 ))}
-//               </TextField>
-//               <TextField
-//                 label="Amount"
-//                 value={form.amount}
-//                 onChange={handleChange("amount")}
-//                 fullWidth
-//                 size="small"
-//               />
-//               <TextField
-//                 label="Distance travelled"
-//                 value={form.distance}
-//                 onChange={handleChange("distance")}
-//                 fullWidth
-//                 size="small"
-//                 placeholder="distance in kms"
-//               />
-//               <TextField
-//                 label="Area"
-//                 value={form.area}
-//                 onChange={handleChange("area")}
-//                 fullWidth
-//                 size="small"
-//               />
-//               <TextField
-//                 label="Note"
-//                 value={form.note}
-//                 onChange={handleChange("note")}
-//                 fullWidth
-//                 multiline
-//                 rows={2}
-//                 size="small"
-//               />
-//               <Box mt={2} mb={2}>
-//                 <input
-//                   accept="image/*,application/pdf"
-//                   style={{ display: "none" }}
-//                   id="upload-receipt"
-//                   type="file"
-//                   onChange={handleFileChange}
-//                 />
-//                 <label htmlFor="upload-receipt">
-//                   <Button
-//                     component="span"
-//                     startIcon={<CloudUpload />}
-//                     sx={{
-//                       background: "none",
-//                       color: theme.palette.text.secondary,
-//                       border: "1px dashed",
-//                       borderRadius: 2,
-//                       py: 2,
-//                       px: 4,
-//                       fontWeight: 600,
-//                       width: "100%",
-//                     }}
-//                   >
-//                     Upload Receipt
-//                   </Button>
-//                 </label>
-//                 <Typography variant="caption" color="text.secondary" mt={1} display="block" align="center">
-//                   {receipt ? receipt.name : "Upload Receipt"}
-//                 </Typography>
-//               </Box>
-//               <Button
-//                 type="submit"
-//                 variant="contained"
-//                 sx={{
-//                   width: "50%",
-//                   mx: "auto",
-//                   py: 1.5,
-//                   borderRadius: 3,
-//                   background: "linear-gradient(90deg,#434343 0%,#000000 100%)",
-//                   color: "white",
-//                   fontWeight: 700,
-//                   fontSize: "1rem",
-//                   boxShadow: 2,
-//                   mt: 2,
-//                 }}
-//               >
-//                 ADD
-//               </Button>
-//             </Box>
-//           </CardContent>
-//         </Card>
-//       </Box>
-//     </Box>
-//   );
-// }
-
 import React, { useRef, useState } from "react";
 import {
   Box,
@@ -176,37 +11,39 @@ import {
   InputLabel,
   FormControl,
   useTheme,
+  CircularProgress,
 } from "@mui/material";
 import CloudUploadOutlined from "@mui/icons-material/CloudUploadOutlined";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
+import { VITE_API_BASE_URL } from "../../utils/State"; // Ensure this path is correct
 
-// Categories for the engineer's reimbursement form
+// Categories updated to match typical API conventions (uppercase)
 const engineerCategories = [
-  { value: "Food", label: "Food" },
-  { value: "Travel", label: "Travel" },
-  { value: "Stay", label: "Stay" },
-  { value: "Other", label: "Other" },
+  { value: "TRAVEL", label: "Travel" },
+  { value: "SUPPLIES", label: "Supplies" },
+  { value: "UTILITIES", label: "Utilities" },
+  { value: "MAINTENANCE", label: "Maintenance" },
+  { value: "SALARY", label: "Salary" },
+  { value: "OTHER", label: "Other" },
 ];
 
 export default function EngineerReimbursement() {
   const theme = useTheme();
   const fileInputRef = useRef(null);
 
-  // State for all form fields in a single object
+  // State updated to match API fields
   const [formData, setFormData] = useState({
-    category: "Food",
+    category: "FOOD",
     amount: "",
-    distance: "",
-    area: "",
-    note: "",
+    remarks: "",
   });
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [receipt, setReceipt] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Generic handler for text fields
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -217,23 +54,57 @@ export default function EngineerReimbursement() {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      console.log("Selected file:", file.name);
       setReceipt(file);
     }
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const submissionData = {
-        ...formData,
-        date: selectedDate.format("YYYY-MM-DD"),
-        receipt: receipt ? receipt.name : null,
-    };
-    console.log("Submitting Reimbursement:", submissionData);
-    // Add your submission logic here (e.g., API call)
-  };
+    setIsSubmitting(true);
+    
+    const token = localStorage.getItem("authKey"); // Get auth token
 
-  // --- Styles copied from MarketerExpenses for consistency ---
+    // FormData is required for sending files
+    const apiFormData = new FormData();
+    apiFormData.append("date", selectedDate.format("YYYY-MM-DD"));
+    apiFormData.append("category", formData.category);
+    apiFormData.append("amount", formData.amount);
+    apiFormData.append("remarks", formData.remarks);
+    if (receipt) {
+      apiFormData.append("receipt", receipt);
+    }
+
+    try {
+      const response = await fetch(`${VITE_API_BASE_URL}/expense/add-expense`, {
+        method: "POST",
+        headers: {
+          // Do NOT set 'Content-Type': The browser sets it automatically for FormData
+          Authorization: `Bearer ${token}`,
+        },
+        body: apiFormData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to submit expense.");
+      }
+
+      console.log("Expense submitted successfully:", result);
+      // Optionally, show a success message to the user (e.g., using a snackbar)
+      alert("Reimbursement submitted successfully!");
+      // Reset form after successful submission
+      setFormData({ category: "FOOD", amount: "", remarks: "" });
+      setSelectedDate(dayjs());
+      setReceipt(null);
+      
+    } catch (error) {
+      console.error("Submission Error:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const cardStyle = {
     backgroundColor: theme.palette.background.paper,
@@ -247,9 +118,7 @@ export default function EngineerReimbursement() {
   };
 
   const uploadBoxStyle = {
-    border: `2px dashed ${
-      theme.palette.mode === "dark" ? "#475569" : "#CBD5E1"
-    }`,
+    border: `2px dashed ${theme.palette.mode === "dark" ? "#475569" : "#CBD5E1"}`,
     borderRadius: "12px",
     padding: theme.spacing(5),
     textAlign: "center",
@@ -257,10 +126,7 @@ export default function EngineerReimbursement() {
     color: theme.palette.text.secondary,
     transition: "all 0.3s ease",
     "&:hover": {
-      backgroundColor:
-        theme.palette.mode === "dark"
-          ? "rgba(255, 255, 255, 0.05)"
-          : "rgba(0, 0, 0, 0.03)",
+      backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.03)",
       borderColor: theme.palette.primary.main,
     },
   };
@@ -273,7 +139,7 @@ export default function EngineerReimbursement() {
   };
 
   const fieldItem = {
-    flex: "1 1 45%", // half width on desktop, full on mobile
+    flex: "1 1 45%",
     minWidth: "200px",
   };
 
@@ -333,13 +199,14 @@ export default function EngineerReimbursement() {
               </Box>
             </Box>
 
-            {/* Amount + Distance */}
+            {/* Amount + Remarks */}
             <Box sx={fieldRow}>
               <Box sx={fieldItem}>
                 <TextField
                   fullWidth
                   name="amount"
                   label="Amount"
+                  type="number"
                   value={formData.amount}
                   onChange={handleChange}
                   placeholder="Enter amount"
@@ -348,48 +215,20 @@ export default function EngineerReimbursement() {
               <Box sx={fieldItem}>
                 <TextField
                   fullWidth
-                  name="distance"
-                  label="Distance Travelled"
-                  value={formData.distance}
-                  onChange={handleChange}
-                  placeholder="in kms"
-                />
-              </Box>
-            </Box>
-
-            {/* Area + Note */}
-            <Box sx={fieldRow}>
-              <Box sx={fieldItem}>
-                <TextField
-                  fullWidth
-                  name="area"
-                  label="Area"
-                  value={formData.area}
-                  onChange={handleChange}
-                  placeholder="Enter area"
-                />
-              </Box>
-              <Box sx={fieldItem}>
-                <TextField
-                  fullWidth
-                  name="note"
-                  label="Note"
-                  value={formData.note}
+                  name="remarks"
+                  label="Remarks"
+                  value={formData.remarks}
                   onChange={handleChange}
                   multiline
-                  rows={3} // Adjusted for better alignment
-                  placeholder="Add additional notes..."
+                  rows={3}
+                  placeholder="Add additional remarks..."
                 />
               </Box>
             </Box>
 
             {/* Upload Receipt */}
             <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mb: 1 }}
-              >
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 Upload Receipt
               </Typography>
               <Box sx={uploadBoxStyle} onClick={handleUploadClick}>
@@ -417,6 +256,7 @@ export default function EngineerReimbursement() {
                 variant="contained"
                 color="primary"
                 size="large"
+                disabled={isSubmitting}
                 sx={{
                   px: 10,
                   py: 1.5,
@@ -425,7 +265,7 @@ export default function EngineerReimbursement() {
                   fontWeight: "bold",
                 }}
               >
-                Submit
+                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Submit"}
               </Button>
             </Box>
           </Box>

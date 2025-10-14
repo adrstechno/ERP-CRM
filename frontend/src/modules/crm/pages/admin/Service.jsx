@@ -129,22 +129,32 @@ const salesData = await salesRes.json();
 
     if (name === 'saleId') {
         const selectedSale = sales.find(sale => sale.saleId === value);
+        
         if (selectedSale) {
-            // Find the customer from your /customer API list that matches the name from the sale
-          const matchingCustomer = customers.find(cust => cust.name.trim().toLowerCase() === selectedSale.customerName.trim().toLowerCase());
+            const matchingCustomer = customers.find(cust => 
+                cust.customerName?.trim().toLowerCase() === selectedSale.customerName?.trim().toLowerCase()
+            );
+
+            // --- NEW DEBUGGING LOG ---
+            // This will show us the exact object that was found, or undefined if no match.
+            console.log("Result of find operation (matchingCustomer):", matchingCustomer);
+            
+            const finalCustomerId = matchingCustomer ? matchingCustomer.customerId : null;
+
+            // This will tell us the exact ID being set.
+            console.log("Final customerId being set to state:", finalCustomerId);
+            // --- END NEW LOGS ---
 
             setNewTicket(prev => ({
                 ...prev,
                 saleId: value,
-                // IMPORTANT: Set the customerId from the matched customer object
-                customerId: matchingCustomer ? matchingCustomer.id :,
-                customerName: selectedSale.customerName, // Keep this for display
-                productId: '', // Reset product selection
+                customerId: finalCustomerId, // Use the variable to be sure
+                customerName: selectedSale.customerName,
+                productId: '', 
             }));
             setProductsForSelectedSale(selectedSale.items || []);
         } else {
-            // Reset if the sale is deselected
-            setNewTicket(initialState); // Use initialState to reset fully
+            setNewTicket(initialState); 
             setProductsForSelectedSale([]);
         }
     } else {

@@ -1,215 +1,3 @@
-// import React, { useRef, useState } from "react";
-// import {
-//   Box,
-//   Card,
-//   CardContent,
-//   Typography,
-//   TextField,
-//   Button,
-//   Select,
-//   MenuItem,
-//   InputLabel,
-//   FormControl,
-//   useTheme,
-//   Grid,
-// } from "@mui/material";
-// import CloudUploadOutlined from "@mui/icons-material/CloudUploadOutlined";
-// import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-// import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-// import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-// import dayjs from "dayjs";
-
-// // Categories for dropdown
-// const expenseCategories = [
-//   "Food",
-//   "Travel",
-//   "Accommodation",
-//   "Utilities",
-//   "Other",
-// ];
-
-// export default function MarketerExpenses() {
-//   const theme = useTheme();
-//   const fileInputRef = useRef(null);
-//   const [selectedDate, setSelectedDate] = useState(dayjs());
-
-//   const handleUploadClick = () => {
-//     fileInputRef.current.click();
-//   };
-
-//   const handleFileChange = (event) => {
-//     const file = event.target.files[0];
-//     if (file) {
-//       console.log("Selected file:", file.name);
-//     }
-//   };
-
-//   const cardStyle = {
-//     backgroundColor: theme.palette.background.paper,
-//     borderRadius: "16px",
-//     maxWidth: "800px",
-//     width: "100%",
-//     boxShadow:
-//       theme.palette.mode === "dark"
-//         ? "0px 4px 20px rgba(0,0,0,0.6)"
-//         : "0px 4px 20px rgba(0,0,0,0.1)",
-//   };
-
-//   const uploadBoxStyle = {
-//     border: `2px dashed ${
-//       theme.palette.mode === "dark" ? "#475569" : "#CBD5E1"
-//     }`,
-//     borderRadius: "12px",
-//     padding: theme.spacing(5),
-//     textAlign: "center",
-//     cursor: "pointer",
-//     color: theme.palette.text.secondary,
-//     transition: "all 0.3s ease",
-//     "&:hover": {
-//       backgroundColor:
-//         theme.palette.mode === "dark"
-//           ? "rgba(255, 255, 255, 0.05)"
-//           : "rgba(0, 0, 0, 0.03)",
-//       borderColor: theme.palette.primary.main,
-//     },
-//   };
-
-//   return (
-//     <Box
-//       display="flex"
-//       flexDirection="column"
-//       alignItems="center"
-//       justifyContent="center"
-//       p={3}
-//       sx={{
-//         backgroundColor: theme.palette.background.default,
-//         minHeight: "calc(100vh - 64px)", // adjust for navbar
-//       }}
-//     >
-//       <Card sx={cardStyle}>
-//         <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-//           <Typography variant="h5" fontWeight="bold" gutterBottom>
-//             Reimbursement Request
-//           </Typography>
-//           <Typography variant="body2" color="text.secondary" mb={4}>
-//             Fill the details below to claim your expenses.
-//           </Typography>
-
-//           <Box component="form" noValidate autoComplete="off">
-//             <Grid container spacing={3}>
-//               {/* Date Picker */}
-//               <Grid item xs={12} md={6}>
-//                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-//                   <DatePicker
-//                     label="Date"
-//                     value={selectedDate}
-//                     onChange={(newValue) => setSelectedDate(newValue)}
-//                     slotProps={{
-//                       textField: {
-//                         fullWidth: true,
-//                         size: "medium",
-//                       },
-//                     }}
-//                   />
-//                 </LocalizationProvider>
-//               </Grid>
-
-//               {/* Category */}
-//               <Grid item xs={12} md={6}>
-//                 <FormControl fullWidth>
-//                   <InputLabel>Category</InputLabel>
-//                   <Select defaultValue="Food" label="Category">
-//                     {expenseCategories.map((category) => (
-//                       <MenuItem key={category} value={category}>
-//                         {category}
-//                       </MenuItem>
-//                     ))}
-//                   </Select>
-//                 </FormControl>
-//               </Grid>
-
-//               {/* Amount */}
-//               <Grid item xs={12} md={6}>
-//                 <TextField fullWidth label="Amount" placeholder="Enter amount" />
-//               </Grid>
-
-//               {/* Distance */}
-//               <Grid item xs={12} md={6}>
-//                 <TextField
-//                   fullWidth
-//                   label="Distance Travelled"
-//                   placeholder="in kms"
-//                 />
-//               </Grid>
-
-//               {/* Area */}
-//               <Grid item xs={12}>
-//                 <TextField fullWidth label="Area" placeholder="Enter area" />
-//               </Grid>
-
-//               {/* Notes */}
-//               <Grid item xs={12}>
-//                 <TextField
-//                   fullWidth
-//                   label="Note"
-//                   multiline
-//                   rows={3}
-//                   placeholder="Add additional notes..."
-//                 />
-//               </Grid>
-
-//               {/* Upload Receipt */}
-//               <Grid item xs={12}>
-//                 <Typography
-//                   variant="body2"
-//                   color="text.secondary"
-//                   sx={{ mb: 1 }}
-//                 >
-//                   Upload Receipt
-//                 </Typography>
-//                 <Box sx={uploadBoxStyle} onClick={handleUploadClick}>
-//                   <CloudUploadOutlined sx={{ fontSize: "2.5rem", mb: 1 }} />
-//                   <Typography variant="body2" fontWeight="600">
-//                     Upload Receipt
-//                   </Typography>
-//                   <Typography variant="caption">
-//                     Drag & drop or click to upload
-//                   </Typography>
-//                   <input
-//                     type="file"
-//                     ref={fileInputRef}
-//                     onChange={handleFileChange}
-//                     style={{ display: "none" }}
-//                     accept="image/*,.pdf"
-//                   />
-//                 </Box>
-//               </Grid>
-//             </Grid>
-
-//             {/* Submit Button */}
-//             <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-//               <Button
-//                 variant="contained"
-//                 color="primary"
-//                 size="large"
-//                 sx={{
-//                   px: 10,
-//                   py: 1.5,
-//                   borderRadius: "12px",
-//                   textTransform: "none",
-//                   fontWeight: "bold",
-//                 }}
-//               >
-//                 Submit
-//               </Button>
-//             </Box>
-//           </Box>
-//         </CardContent>
-//       </Card>
-//     </Box>
-//   );
-// }
-
 import React, { useRef, useState } from "react";
 import {
   Box,
@@ -223,32 +11,102 @@ import {
   InputLabel,
   FormControl,
   useTheme,
+  CircularProgress,
 } from "@mui/material";
 import CloudUploadOutlined from "@mui/icons-material/CloudUploadOutlined";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
+import { VITE_API_BASE_URL } from "../../utils/State"; // Ensure this path is correct
 
+// Categories must match the backend Enum exactly
 const expenseCategories = [
-  "Food",
-  "Travel",
-  "Accommodation",
-  "Utilities",
-  "Other",
+    { value: "TRAVEL", label: "Travel" },
+    { value: "SUPPLIES", label: "Supplies" },
+    { value: "UTILITIES", label: "Utilities" },
+    { value: "MAINTENANCE", label: "Maintenance" },
+    { value: "SALARY", label: "Salary" },
+    { value: "OTHER", label: "Other" },
 ];
 
 export default function MarketerExpenses() {
   const theme = useTheme();
   const fileInputRef = useRef(null);
-  const [selectedDate, setSelectedDate] = useState(dayjs());
 
+  // State for all form fields
+  const [formData, setFormData] = useState({
+    category: "TRAVEL",
+    amount: "",
+    remarks: "",
+  });
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [receipt, setReceipt] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Generic handler for form field changes
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+  
   const handleUploadClick = () => fileInputRef.current.click();
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file) console.log("Selected file:", file.name);
+    if (file) {
+      setReceipt(file);
+    }
   };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    
+    const token = localStorage.getItem("authKey"); // Get auth token
+
+    // FormData is required for sending files
+    const apiFormData = new FormData();
+    apiFormData.append("date", selectedDate.format("YYYY-MM-DD"));
+    apiFormData.append("category", formData.category);
+    apiFormData.append("amount", formData.amount);
+    apiFormData.append("remarks", formData.remarks);
+    if (receipt) {
+      apiFormData.append("receipt", receipt);
+    }
+
+    try {
+      const response = await fetch(`${VITE_API_BASE_URL}/expense/add-expense`, {
+        method: "POST",
+        headers: {
+          // The browser sets Content-Type automatically for FormData
+          Authorization: `Bearer ${token}`,
+        },
+        body: apiFormData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to submit expense.");
+      }
+
+      console.log("Expense submitted successfully:", result);
+      alert("Reimbursement submitted successfully!");
+      
+      // Reset form after successful submission
+      setFormData({ category: "TRAVEL", amount: "", remarks: "" });
+      setSelectedDate(dayjs());
+      setReceipt(null);
+      
+    } catch (error) {
+      console.error("Submission Error:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
 
   const cardStyle = {
     backgroundColor: theme.palette.background.paper,
@@ -288,7 +146,7 @@ export default function MarketerExpenses() {
   };
 
   const fieldItem = {
-    flex: "1 1 45%", // half width on desktop, full on mobile
+    flex: "1 1 45%",
     minWidth: "200px",
   };
 
@@ -313,7 +171,7 @@ export default function MarketerExpenses() {
             Fill the details below to claim your expenses.
           </Typography>
 
-          <Box component="form" noValidate autoComplete="off">
+          <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
             {/* Date + Category */}
             <Box sx={fieldRow}>
               <Box sx={fieldItem}>
@@ -323,7 +181,7 @@ export default function MarketerExpenses() {
                     value={selectedDate}
                     onChange={(newValue) => setSelectedDate(newValue)}
                     slotProps={{
-                      textField: { fullWidth: true, size: "medium" },
+                      textField: { fullWidth: true, name: "date" },
                     }}
                   />
                 </LocalizationProvider>
@@ -332,10 +190,15 @@ export default function MarketerExpenses() {
               <Box sx={fieldItem}>
                 <FormControl fullWidth>
                   <InputLabel>Category</InputLabel>
-                  <Select defaultValue="Food" label="Category">
-                    {expenseCategories.map((category) => (
-                      <MenuItem key={category} value={category}>
-                        {category}
+                  <Select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    label="Category"
+                  >
+                    {expenseCategories.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
                       </MenuItem>
                     ))}
                   </Select>
@@ -343,32 +206,29 @@ export default function MarketerExpenses() {
               </Box>
             </Box>
 
-            {/* Amount + Distance */}
+            {/* Amount + Remarks */}
             <Box sx={fieldRow}>
-              <Box sx={fieldItem}>
-                <TextField fullWidth label="Amount" placeholder="Enter amount" />
-              </Box>
               <Box sx={fieldItem}>
                 <TextField
                   fullWidth
-                  label="Distance Travelled"
-                  placeholder="in kms"
+                  name="amount"
+                  label="Amount"
+                  type="number"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  placeholder="Enter amount"
                 />
               </Box>
-            </Box>
-
-            {/* Area + Note */}
-            <Box sx={fieldRow}>
-              <Box sx={fieldItem}>
-                <TextField fullWidth label="Area" placeholder="Enter area" />
-              </Box>
               <Box sx={fieldItem}>
                 <TextField
                   fullWidth
-                  label="Note"
+                  name="remarks"
+                  label="Remarks"
                   multiline
                   rows={3}
-                  placeholder="Add additional notes..."
+                  value={formData.remarks}
+                  onChange={handleChange}
+                  placeholder="Add additional remarks..."
                 />
               </Box>
             </Box>
@@ -385,10 +245,10 @@ export default function MarketerExpenses() {
               <Box sx={uploadBoxStyle} onClick={handleUploadClick}>
                 <CloudUploadOutlined sx={{ fontSize: "2.5rem", mb: 1 }} />
                 <Typography variant="body2" fontWeight="600">
-                  Upload Receipt
+                  {receipt ? receipt.name : "Upload Receipt"}
                 </Typography>
                 <Typography variant="caption">
-                  Drag & drop or click to upload
+                  {receipt ? "Click to change" : "Drag & drop or click to upload"}
                 </Typography>
                 <input
                   type="file"
@@ -403,9 +263,11 @@ export default function MarketerExpenses() {
             {/* Submit Button */}
             <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
               <Button
+                type="submit"
                 variant="contained"
                 color="primary"
                 size="large"
+                disabled={isSubmitting}
                 sx={{
                   px: 10,
                   py: 1.5,
@@ -414,7 +276,7 @@ export default function MarketerExpenses() {
                   fontWeight: "bold",
                 }}
               >
-                Submit
+                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Submit"}
               </Button>
             </Box>
           </Box>
