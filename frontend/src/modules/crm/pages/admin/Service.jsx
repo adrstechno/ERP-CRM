@@ -57,7 +57,7 @@ const useServiceTickets = () => {
     const [error, setError] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     // State for dropdown data
     const [engineers, setEngineers] = useState([]);
     const [sales, setSales] = useState([]);
@@ -65,9 +65,9 @@ const useServiceTickets = () => {
     const [customers, setCustomers] = useState([]);
     const initialState = { saleId: '', customerId: '', customerName: '', productId: '', assignedEngineerId: '', priority: '', dueDate: null };
     const [newTicket, setNewTicket] = useState(initialState);
-    
+
     const token = localStorage.getItem("authKey");
-    
+
     const axiosConfig = useMemo(() => ({
         headers: { Authorization: `Bearer ${token}` },
     }), [token]);
@@ -77,7 +77,7 @@ const useServiceTickets = () => {
         setError(null);
         try {
             // Replace this with your actual API call to fetch tickets
-            const data = await fetchTicketsAPI(); 
+            const data = await fetchTicketsAPI();
             setTickets(data);
         } catch (err) {
             setError("Failed to fetch service tickets.");
@@ -90,20 +90,20 @@ const useServiceTickets = () => {
         const fetchDropdownData = async () => {
             try {
                 const [engineersRes, customersRes, salesRes] = await Promise.all([
-    fetch(`${VITE_API_BASE_URL}/admin/users`, axiosConfig),
-    fetch(`${VITE_API_BASE_URL}/customer`, axiosConfig),
-    fetch(`${VITE_API_BASE_URL}/sales/get-all-sales`, axiosConfig)
-]);
+                    fetch(`${VITE_API_BASE_URL}/admin/users`, axiosConfig),
+                    fetch(`${VITE_API_BASE_URL}/customer`, axiosConfig),
+                    fetch(`${VITE_API_BASE_URL}/sales/get-all-sales`, axiosConfig)
+                ]);
 
-// Also, correct the validation check to include all responses
-if (!engineersRes.ok || !customersRes.ok || !salesRes.ok) {
-    throw new Error('Failed to fetch form data');
-}
+                // Also, correct the validation check to include all responses
+                if (!engineersRes.ok || !customersRes.ok || !salesRes.ok) {
+                    throw new Error('Failed to fetch form data');
+                }
 
-const engineersData = await engineersRes.json();
-const customersData = await customersRes.json();
-const salesData = await salesRes.json();
-const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER');
+                const engineersData = await engineersRes.json();
+                const customersData = await customersRes.json();
+                const salesData = await salesRes.json();
+                const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER');
                 setEngineers(engineerUsers);
                 setCustomers(customersData);
                 setSales(salesData);
@@ -117,7 +117,7 @@ const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER'
     }, [fetchTickets, axiosConfig]);
 
     const handleOpenDialog = () => setOpenDialog(true);
-    
+
     const handleCloseDialog = () => {
         setOpenDialog(false);
         setNewTicket(initialState);
@@ -125,42 +125,42 @@ const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER'
     };
 
     const handleInputChange = (e) => {
-    const { name, value } = e.target;
+        const { name, value } = e.target;
 
-    if (name === 'saleId') {
-        const selectedSale = sales.find(sale => sale.saleId === value);
-        
-        if (selectedSale) {
-            const matchingCustomer = customers.find(cust => 
-                cust.customerName?.trim().toLowerCase() === selectedSale.customerName?.trim().toLowerCase()
-            );
+        if (name === 'saleId') {
+            const selectedSale = sales.find(sale => sale.saleId === value);
 
-            // --- NEW DEBUGGING LOG ---
-            // This will show us the exact object that was found, or undefined if no match.
-            console.log("Result of find operation (matchingCustomer):", matchingCustomer);
-            
-            const finalCustomerId = matchingCustomer ? matchingCustomer.customerId : null;
+            if (selectedSale) {
+                const matchingCustomer = customers.find(cust =>
+                    cust.customerName?.trim().toLowerCase() === selectedSale.customerName?.trim().toLowerCase()
+                );
 
-            // This will tell us the exact ID being set.
-            console.log("Final customerId being set to state:", finalCustomerId);
-            // --- END NEW LOGS ---
+                // --- NEW DEBUGGING LOG ---
+                // This will show us the exact object that was found, or undefined if no match.
+                console.log("Result of find operation (matchingCustomer):", matchingCustomer);
 
-            setNewTicket(prev => ({
-                ...prev,
-                saleId: value,
-                customerId: finalCustomerId, // Use the variable to be sure
-                customerName: selectedSale.customerName,
-                productId: '', 
-            }));
-            setProductsForSelectedSale(selectedSale.items || []);
+                const finalCustomerId = matchingCustomer ? matchingCustomer.customerId : null;
+
+                // This will tell us the exact ID being set.
+                console.log("Final customerId being set to state:", finalCustomerId);
+                // --- END NEW LOGS ---
+
+                setNewTicket(prev => ({
+                    ...prev,
+                    saleId: value,
+                    customerId: finalCustomerId, // Use the variable to be sure
+                    customerName: selectedSale.customerName,
+                    productId: '',
+                }));
+                setProductsForSelectedSale(selectedSale.items || []);
+            } else {
+                setNewTicket(initialState);
+                setProductsForSelectedSale([]);
+            }
         } else {
-            setNewTicket(initialState); 
-            setProductsForSelectedSale([]);
+            setNewTicket(prev => ({ ...prev, [name]: value }));
         }
-    } else {
-        setNewTicket(prev => ({ ...prev, [name]: value }));
-    }
-};
+    };
 
     const handleDateChange = (date) => setNewTicket(prev => ({ ...prev, dueDate: date }));
 
@@ -169,7 +169,7 @@ const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER'
         try {
             // Construct the payload with only the necessary IDs and data
             const ticketData = {
-                
+
                 saleId: newTicket.saleId,
                 customerId: newTicket.customerId,
                 productId: newTicket.productId,
@@ -191,7 +191,7 @@ const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER'
                 const errorBody = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
                 throw new Error(`API Error: ${response.status} - ${errorBody.message || 'Failed to create ticket'}`);
             }
-            
+
             handleCloseDialog();
             fetchTickets(); // Refresh the list
         } catch (err) {
@@ -201,25 +201,25 @@ const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER'
         }
     };
 
-    return { 
-        tickets, isLoading, error, openDialog, isSubmitting, newTicket,customers,
+    return {
+        tickets, isLoading, error, openDialog, isSubmitting, newTicket, customers,
         engineers, sales, productsForSelectedSale,
-        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket 
+        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket
     };
 };
 
 // --- Main UI Component ---
 export default function ServiceManagement() {
     const theme = useTheme();
-    const { tickets, isLoading, error, openDialog, isSubmitting, newTicket,customers, 
-            engineers, sales, productsForSelectedSale,
-            handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket 
+    const { tickets, isLoading, error, openDialog, isSubmitting, newTicket, customers,
+        engineers, sales, productsForSelectedSale,
+        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket
     } = useServiceTickets();
-    
+
     const operatingStatusData = [
-        { month: 'Jan', tickets: 30 }, { month: 'Feb', tickets: 25 }, { month: 'Mar', tickets: 40 }, 
-        { month: 'Apr', tickets: 35 }, { month: 'May', tickets: 28 }, { month: 'Jun', tickets: 45 }, 
-        { month: 'Jul', tickets: 32 }, { month: 'Aug', tickets: 50 }, { month: 'Sep', tickets: 38 }, 
+        { month: 'Jan', tickets: 30 }, { month: 'Feb', tickets: 25 }, { month: 'Mar', tickets: 40 },
+        { month: 'Apr', tickets: 35 }, { month: 'May', tickets: 28 }, { month: 'Jun', tickets: 45 },
+        { month: 'Jul', tickets: 32 }, { month: 'Aug', tickets: 50 }, { month: 'Sep', tickets: 38 },
         { month: 'Oct', tickets: 42 }, { month: 'Nov', tickets: 27 }, { month: 'Dec', tickets: 48 },
     ];
 
@@ -243,23 +243,23 @@ export default function ServiceManagement() {
                                     </TableHead>
                                     <TableBody>
                                         {isLoading ? <TableSkeleton columns={9} /> :
-                                         error ? <TableError columns={9} message={error} /> :
-                                         tickets.map((ticket) => (
-                                            <TableRow key={ticket.id} hover>
-                                                <TableCell sx={{ fontWeight: 500 }}>{ticket.id}</TableCell>
-                                                <TableCell>{dayjs(ticket.createdDate).format('DD MMM, hh:mm A')}</TableCell>
-                                                <TableCell>{ticket.assignedTo}</TableCell>
-                                                <TableCell>{ticket.customer}</TableCell>
-                                                <TableCell>{ticket.product}</TableCell>
-                                                <TableCell>{getStatusChip(ticket.status)}</TableCell>
-                                                <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
-                                                <TableCell>{dayjs(ticket.dueDate).format('DD MMM, hh:mm A')}</TableCell>
-                                                <TableCell>
-                                                    <IconButton size="small"><EditIcon fontSize="small" /></IconButton>
-                                                    <IconButton size="small"><DeleteIcon fontSize="small" /></IconButton>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
+                                            error ? <TableError columns={9} message={error} /> :
+                                                tickets.map((ticket) => (
+                                                    <TableRow key={ticket.id} hover>
+                                                        <TableCell sx={{ fontWeight: 500 }}>{ticket.id}</TableCell>
+                                                        <TableCell>{dayjs(ticket.createdDate).format('DD MMM, hh:mm A')}</TableCell>
+                                                        <TableCell>{ticket.assignedTo}</TableCell>
+                                                        <TableCell>{ticket.customer}</TableCell>
+                                                        <TableCell>{ticket.product}</TableCell>
+                                                        <TableCell>{getStatusChip(ticket.status)}</TableCell>
+                                                        <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
+                                                        <TableCell>{dayjs(ticket.dueDate).format('DD MMM, hh:mm A')}</TableCell>
+                                                        <TableCell>
+                                                            <IconButton size="small"><EditIcon fontSize="small" /></IconButton>
+                                                            <IconButton size="small"><DeleteIcon fontSize="small" /></IconButton>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
                                     </TableBody>
                                 </Table>
                             </TableContainer>
@@ -288,7 +288,7 @@ export default function ServiceManagement() {
                 <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                     <DialogTitle>Create New Service Ticket</DialogTitle>
                     <DialogContent>
-                        <Stack spacing={2.5} sx={{mt: 2}}>
+                        <Stack spacing={2.5} sx={{ mt: 2 }}>
                             <FormControl fullWidth variant="filled">
                                 <InputLabel>Sale ID</InputLabel>
                                 <Select label="Sale ID" name="saleId" value={newTicket.saleId} onChange={handleInputChange}>
@@ -332,8 +332,8 @@ export default function ServiceManagement() {
                                     {priorities.map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
                                 </Select>
                             </FormControl>
-                            
-                            <DatePicker label="Due Date" value={newTicket.dueDate} onChange={handleDateChange} sx={{width: '100%'}} slotProps={{ textField: { variant: 'filled' } }} />
+
+                            <DatePicker label="Due Date" value={newTicket.dueDate} onChange={handleDateChange} sx={{ width: '100%' }} slotProps={{ textField: { variant: 'filled' } }} />
                         </Stack>
                     </DialogContent>
                     <DialogActions sx={{ p: '16px 24px' }}>
