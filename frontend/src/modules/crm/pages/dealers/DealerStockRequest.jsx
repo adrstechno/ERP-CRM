@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback , useMemo} from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Box, Card, CardContent, Typography,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -6,22 +6,23 @@ import {
 } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import HistoryIcon from '@mui/icons-material/History';
-
-// --- API Simulation (History is still mocked as per original code) ---
-const mockRequestHistory = [
-    { id: '#REQ-012', date: '2025-09-25T10:06:00Z', productName: '1.5 Ton 5 Star AC', qty: 10, amount: 380000, status: 'Approved' },
-    { id: '#REQ-011', date: '2025-09-24T14:59:00Z', productName: 'Cooling Coils (Set)', qty: 50, amount: 225000, status: 'Pending' },
-    { id: '#REQ-010', date: '2025-09-24T12:54:00Z', productName: 'Digital Thermostat', qty: 100, amount: 120000, status: 'Approved' },
-];
+import axios from 'axios';
 
 // --- Helper Component ---
 const StatusChip = React.memo(({ status }) => {
     let color;
-    if (status === 'Approved') color = 'success';
-    else if (status === 'Pending') color = 'warning';
-    else if (status === 'Rejected') color = 'error';
+    // Normalize status to lowercase for comparison
+    const lowerCaseStatus = status.toLowerCase();
+
+    if (lowerCaseStatus === 'approved') color = 'success';
+    else if (lowerCaseStatus === 'pending') color = 'warning';
+    else if (lowerCaseStatus === 'rejected') color = 'error';
     else color = 'default';
-    return <Chip label={status} color={color} size="small" variant="outlined" sx={{ fontWeight: 'bold' }} />;
+
+    // Capitalize first letter for display
+    const displayStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    
+    return <Chip label={displayStatus} color={color} size="small" variant="outlined" sx={{ fontWeight: 'bold' }} />;
 });
 
 // --- Main Component ---
@@ -30,90 +31,77 @@ export default function StockRequestPage() {
     const [history, setHistory] = useState([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(true);
 
-    // States for products and form
+    // Form states
     const [products, setProducts] = useState([]);
     const [isProductsLoading, setIsProductsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({ productId: '', quantity: '', notes: '' });
+
     const token = localStorage.getItem("authKey");
-            
-         const axiosConfig = useMemo(() => ({
-                    headers: { Authorization: `Bearer ${token}` },
-                }), [token]);
+    const axiosConfig = useMemo(() => ({
+        headers: { Authorization: `Bearer ${token}` },
+    }), [token]);
+
+    // 1. Updated fetchHistory to use the live API
     const fetchHistory = useCallback(async () => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || !user.id) {
+            console.error("User ID not found in local storage.");
+            setIsHistoryLoading(false);
+            return;
+        }
+
         setIsHistoryLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setHistory(mockRequestHistory);
-        setIsHistoryLoading(false);
-    }, []);
+        try {
+            const response = await axios.get(`http://localhost:8080/api/stock-requests/user/${user.id}`, axiosConfig);
+            // Assuming the API returns the array directly or in a data property
+            setHistory(response.data.data || response.data || []);
+        } catch (error) {
+            console.error("Failed to fetch request history:", error);
+            setHistory([]); // Clear history on error
+        } finally {
+            setIsHistoryLoading(false);
+        }
+    }, [axiosConfig]);
     
-    const fetchProducts = async () => {
+    const fetchProducts = useCallback(async () => {
         setIsProductsLoading(true);
         try {
-            const response = await fetch("http://localhost:8080/api/products/all",axiosConfig);
-            if (!response.ok) {
-                throw new Error('Network response was not ok while fetching products.');
-            }
-            const data = await response.json();
-            console.log("Fetched Products:", data); // DEBUG: Check the product data structure
-            setProducts(data || []);
+            const response = await axios.get("http://localhost:8080/api/products/all", axiosConfig);
+            setProducts(response.data || []);
         } catch (error) {
             console.error("Failed to fetch products:", error);
         } finally {
             setIsProductsLoading(false);
         }
-    };
+    }, [axiosConfig]);
 
     useEffect(() => {
         fetchHistory();
         fetchProducts();
-    }, [fetchHistory]);
+    }, [fetchHistory, fetchProducts]);
     
-    // --- CORRECTED EVENT HANDLER ---
-    // This function is designed to handle changes from both the <Select> and <TextField> components.
     const handleChange = (e) => {
         const { name, value } = e.target;
-        
-        // DEBUG: Log the name and value to the browser console to see what's being captured.
-        console.log(`Input changed: name='${name}', value='${value}'`);
-        
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         
-        const requestBody = {
-            productId: formData.productId,
-            quantity: formData.quantity,
-            notes: formData.notes,
-        };
-        
-        console.log("Submitting Stock Request:", requestBody);
-
         try {
-            const response = await fetch("http://localhost:8080/api/stock-requests/create", {
-                method: 'POST',
-                axiosConfig,
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Failed to create stock request: ${errorText}`);
-            }
-            
-            await response.json();
+            await axios.post(
+                "http://localhost:8080/api/stock-requests/create",
+                { ...formData },
+                axiosConfig
+            );
             alert('Stock request submitted successfully!');
             setFormData({ productId: '', quantity: '', notes: '' });
-            fetchHistory();
+            fetchHistory(); // Refresh history table after successful submission
         } catch (error) {
-            console.error("Error submitting stock request:", error);
-            alert(`Error: ${error.message}`);
+            const errorMessage = error.response?.data?.message || "Failed to create stock request.";
+            alert(`Error: ${errorMessage}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -136,9 +124,8 @@ export default function StockRequestPage() {
                             <Stack spacing={2} sx={{ flexGrow: 1 }}>
                                 <FormControl fullWidth required disabled={isProductsLoading}>
                                     <InputLabel>Product</InputLabel>
-                                    {/* This Select component now correctly uses the handleChange function */}
                                     <Select 
-                                        name="productId" // This 'name' MUST match the state key: formData.productId
+                                        name="productId"
                                         label="Product" 
                                         value={formData.productId} 
                                         onChange={handleChange}
@@ -147,7 +134,6 @@ export default function StockRequestPage() {
                                             <MenuItem disabled><em>Loading products...</em></MenuItem>
                                         ) : (
                                             products.map(product => (
-                                                // Ensure product.id and product.name exist in your API response
                                                 <MenuItem key={product.productId} value={product.productId}>
                                                     {product.name}
                                                 </MenuItem>
@@ -158,7 +144,7 @@ export default function StockRequestPage() {
                                 <TextField 
                                     fullWidth 
                                     required 
-                                    name="quantity" // This 'name' MUST match the state key: formData.quantity
+                                    name="quantity"
                                     label="Quantity" 
                                     type="number" 
                                     value={formData.quantity} 
@@ -169,7 +155,7 @@ export default function StockRequestPage() {
                                     fullWidth 
                                     multiline 
                                     rows={4} 
-                                    name="notes" // This 'name' MUST match the state key: formData.notes
+                                    name="notes"
                                     label="Notes (Optional)" 
                                     value={formData.notes} 
                                     onChange={handleChange} 
@@ -197,6 +183,7 @@ export default function StockRequestPage() {
                             <Table stickyHeader size="medium">
                                 <TableHead>
                                     <TableRow>
+                                        {/* Headers match the data structure */}
                                         {['Date', 'Product Name', 'Qty', 'Status'].map(head => <TableCell key={head}>{head}</TableCell>)}
                                     </TableRow>
                                 </TableHead>
@@ -206,11 +193,12 @@ export default function StockRequestPage() {
                                             <TableRow key={index}><TableCell colSpan={4}><Skeleton animation="wave" /></TableCell></TableRow>
                                         ))
                                     ) : (
+                                        // 2. Mapped table rows to the API response fields
                                         history.map((row) => (
-                                            <TableRow key={row.id} hover>
-                                                <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(row.date).toLocaleDateString()}</TableCell>
+                                            <TableRow key={row.requestId} hover>
+                                                <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(row.requestDate).toLocaleDateString()}</TableCell>
                                                 <TableCell sx={{ fontWeight: 500 }}>{row.productName}</TableCell>
-                                                <TableCell>{row.qty}</TableCell>
+                                                <TableCell>{row.quantity}</TableCell>
                                                 <TableCell><StatusChip status={row.status} /></TableCell>
                                             </TableRow>
                                         ))
@@ -223,4 +211,4 @@ export default function StockRequestPage() {
             </Grid>
         </Box>
     );
-}
+} 
