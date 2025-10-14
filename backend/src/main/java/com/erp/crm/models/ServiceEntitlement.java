@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @Setter
 public class ServiceEntitlement {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long serviceEntitlementId;
