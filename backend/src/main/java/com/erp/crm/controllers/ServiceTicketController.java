@@ -25,7 +25,7 @@ public class ServiceTicketController {
 
     // Engineer creates a ticket
     @PostMapping("/open")
-    @PreAuthorize("hasRole('ENGINEER')")
+    @PreAuthorize("hasRole('ENGINEER','ADMIN','SUBADMIN')")
     public ResponseEntity<ServiceTicketResponseDTO> openTicket(@RequestBody ServiceTicketRequestDTO dto) {
         return ResponseEntity.ok(ticketService.openTicket(dto));
     }
