@@ -2,6 +2,7 @@ package com.erp.crm.services;
 
 import com.erp.crm.dto.ServiceEntitlementResponseDTO;
 import com.erp.crm.models.ServiceEntitlement;
+import com.erp.crm.models.Sale;
 import com.erp.crm.repositories.ServiceEntitlementRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,48 +15,37 @@ import java.util.stream.Collectors;
 @Transactional
 public class ServiceEntitlementService {
 
-    private final ServiceEntitlementRepository entitlementRepo;
+    private final ServiceEntitlementRepository serviceEntitlementRepo;
 
-    public ServiceEntitlementService(ServiceEntitlementRepository entitlementRepo) {
-        this.entitlementRepo = entitlementRepo;
+    public ServiceEntitlementService(ServiceEntitlementRepository serviceEntitlementRepo) {
+        this.serviceEntitlementRepo = serviceEntitlementRepo;
     }
 
-    //  Get entitlements by Sale
+    // ✅ Har Sale ke Har Product ke liye 2 FREE Entitlements
+    public void createServiceEntitlements(Sale sale) {
+        sale.getSaleItems().forEach(item -> {
+            ServiceEntitlement entitlement = new ServiceEntitlement();
+            entitlement.setSale(sale);
+            entitlement.setProduct(item.getProduct());
+            entitlement.setEntitlementType(com.erp.crm.models.EntitlementType.FREE);
+            entitlement.setTotalAllowed(2);
+            entitlement.setUsedCount(0);
+            entitlement.setExpiryDate(LocalDate.now().plusYears(1));
+            serviceEntitlementRepo.save(entitlement);
+        });
+    }
+
     public List<ServiceEntitlementResponseDTO> getEntitlementsBySale(Long saleId) {
-        List<ServiceEntitlement> entitlements = entitlementRepo.findAllBySale_SaleId(saleId);
-        return entitlements.stream().map(this::mapToDto).collect(Collectors.toList());
+        return serviceEntitlementRepo.findBySale_SaleId(saleId).stream()
+                .map(ServiceEntitlementResponseDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    // Helper method → Entity to DTO
-    private ServiceEntitlementResponseDTO mapToDto(ServiceEntitlement entitlement) {
-        ServiceEntitlementResponseDTO dto = new ServiceEntitlementResponseDTO();
-        dto.setEntitlementId(entitlement.getServiceEntitlementId());
-        dto.setCustomerName(
-                entitlement.getSale().getCustomer().getCustomerName());
-
-        dto.setEntitlementType(entitlement.getEntitlementType());
-        dto.setTotalAllowed(entitlement.getTotalAllowed());
-        dto.setUsedCount(entitlement.getUsedCount());
-        dto.setExpiryDate(entitlement.getExpiryDate());
-        return dto;
+    public ServiceEntitlementResponseDTO updateExpiryDate(Long entitlementId, String newExpiryDate) {
+        ServiceEntitlement entitlement = serviceEntitlementRepo.findById(entitlementId)
+                .orElseThrow(() -> new RuntimeException("Entitlement not found"));
+        entitlement.setExpiryDate(LocalDate.parse(newExpiryDate));
+        serviceEntitlementRepo.save(entitlement);
+        return ServiceEntitlementResponseDTO.fromEntity(entitlement);
     }
-
-    @Transactional
-    public ServiceEntitlementResponseDTO updateExpiryDate(Long entitlementId, String newExpiryDateStr) {
-        ServiceEntitlement entitlement = entitlementRepo.findById(entitlementId)
-                .orElseThrow(() -> new RuntimeException("Entitlement not found with id: " + entitlementId));
-
-        LocalDate newExpiryDate;
-        try {
-            newExpiryDate = LocalDate.parse(newExpiryDateStr); // yyyy-MM-dd
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid date format. Use yyyy-MM-dd.");
-        }
-
-        entitlement.setExpiryDate(newExpiryDate);
-        ServiceEntitlement saved = entitlementRepo.save(entitlement);
-
-        return mapToDto(saved);
-    }
-
 }
