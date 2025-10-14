@@ -8,6 +8,7 @@ import com.erp.crm.models.PaymentStatus;
 import com.erp.crm.services.FileUploadService;
 import com.erp.crm.services.PaymentService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,7 @@ public class PaymentController {
     @PostMapping("/add-payment")
     public ResponseEntity<ApiResponse<PaymentResponseDTO>> recordPayment(@ModelAttribute PaymentRequestDTO dto,
             @RequestParam(value = "proofFile", required = false) MultipartFile proofFile) {
-                System.out.println(proofFile + "``````````````````");
+        System.out.println(proofFile + "``````````````````");
         return ResponseEntity
                 .ok(new ApiResponse<>(true, "Payment recorded successfully",
                         paymentService.recordPayment(dto, proofFile)));
@@ -53,4 +54,27 @@ public class PaymentController {
     public ResponseEntity<List<PaymentResponseDTO>> getPaymentsByInvoice(@PathVariable Long invoiceId) {
         return ResponseEntity.ok(paymentService.getPaymentsByInvoice(invoiceId));
     }
+
+    @GetMapping("/payments/received")
+    public ResponseEntity<ApiResponse<List<PaymentResponseDTO>>> getAllPaymentsByReceivedBy() {
+        try {
+            List<PaymentResponseDTO> payments = paymentService.getPaymentsByUser();
+
+            ApiResponse<List<PaymentResponseDTO>> response = new ApiResponse<>(
+                    true,
+                    "Payments fetched successfully",
+                    payments);
+
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException ex) {
+            ApiResponse<List<PaymentResponseDTO>> response = new ApiResponse<>(
+                    false,
+                    ex.getMessage(),
+                    null);
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
 }
