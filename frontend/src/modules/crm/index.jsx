@@ -60,10 +60,10 @@ export default function CRMModule() {
     <Routes>
       <Route path="/crm" element={<Navigate to="/login" replace />} />
       <Route element={<CRMLayout />}>
-
+      <Route path="invoice" element ={<InvoicePage />}/>
     
       
-
+            
 
         {crmUser?.role === "admin" && (
           <>
