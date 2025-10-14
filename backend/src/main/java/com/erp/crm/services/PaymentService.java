@@ -5,6 +5,10 @@ import com.erp.crm.dto.PaymentRequestDTO;
 import com.erp.crm.dto.PaymentResponseDTO;
 import com.erp.crm.models.*;
 import com.erp.crm.repositories.*;
+import com.erp.crm.security.UserPrincipal;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -113,7 +117,8 @@ public class PaymentService {
         // If approved, adjust the invoice's outstanding amount
         if (newStatus == PaymentStatus.APPROVED) {
             Invoice invoice = invoiceRepo.findById(payment.getInvoice().getInvoiceId())
-                    .orElseThrow(() -> new RuntimeException("Invoice not found with ID: " + payment.getInvoice().getInvoiceId()));
+                    .orElseThrow(() -> new RuntimeException(
+                            "Invoice not found with ID: " + payment.getInvoice().getInvoiceId()));
             invoice.setOutstandingAmount(invoice.getOutstandingAmount() - payment.getAmount());
         }
 
@@ -142,6 +147,27 @@ public class PaymentService {
         return paymentRepo.findByInvoice_InvoiceId(invoiceId).stream()
                 .map(this::mapToDto)
                 .toList();
+    }
+
+    public List<PaymentResponseDTO> getPaymentsByUser() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        String email = principal.getUsername();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        List<Payment> payments = paymentRepo.findByReceivedBy(user.getUserId());
+
+        if (payments.isEmpty()) {
+            throw new RuntimeException("No payments found for userId: " + user.getUserId());
+
+        }
+        return payments.stream().map(this::mapToDto).toList();
     }
 
     private PaymentResponseDTO mapToDto(Payment payment) {
