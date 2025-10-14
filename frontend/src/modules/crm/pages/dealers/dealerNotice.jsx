@@ -1,229 +1,14 @@
-// import React from "react";
-// import {
-//   Box,
-//   Card,
-//   CardContent,
-//   Typography,
-//   Divider,
-//   List,
-//   ListItem,
-//   ListItemText,
-//   TextField,
-//   Button,
-//   InputLabel,
-//   MenuItem,
-//   Select,
-//   FormControl,
-//   useTheme,
-// } from "@mui/material";
-
-// export default function DealerNotice() {
-//   const theme = useTheme();
-//   const isDark = theme.palette.mode === "dark";
-
-//   const cardStyle = {
-//     borderRadius: 2,
-//     boxShadow: theme.shadows[3],
-//     background: isDark
-//       ? "linear-gradient(135deg, #3A414B 0%, #20262E 100%)"
-//       : "linear-gradient(135deg, #FFFFFF 0%, #F7F9FB 100%)",
-//     color: isDark ? "white" : "black",
-//   };
-
-//   return (
-//     <Box
-//       sx={{
-//         minHeight: "100vh",
-//         background: isDark ? "#23242a" : "#F5F6FA",
-//         color: isDark ? "white" : "black",
-//         display: "flex",
-//         flexDirection: "row",
-//         gap: 3,
-//         p: 3,
-//       }}
-//     >
-//       {/* Notification Sidebar */}
-//       <Box
-//         sx={{
-//           width: 260,
-//           minWidth: 200,
-//           maxWidth: 300,
-//           background: "transparent",
-//         }}
-//       >
-//         <Card sx={{ ...cardStyle, height: "100%" }}>
-//           <CardContent>
-//             <Typography variant="h6" sx={{ mb: 2 }}>
-//               Notifications
-//             </Typography>
-//             <Divider sx={{ mb: 2, borderColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)" }} />
-//             <List dense sx={{ p: 0 }}>
-//               <ListItem selected sx={{ borderRadius: 1 }}>
-//                 <ListItemText
-//                   primary="GO OLD TOWN"
-//                   secondary="7:00PM, 9/09"
-//                   primaryTypographyProps={{ sx: { color: "#fff" } }}
-//                   secondaryTypographyProps={{ sx: { color: "#aaa" } }}
-//                 />
-//               </ListItem>
-//               <Divider sx={{ bgcolor: "#333" }} />
-//               <ListItem>
-//                 <ListItemText
-//                   primary="TASK1"
-//                   secondary="7:00PM, 9/09"
-//                   primaryTypographyProps={{ sx: { color: "#fff" } }}
-//                   secondaryTypographyProps={{ sx: { color: "#aaa" } }}
-//                 />
-//               </ListItem>
-//               <Divider sx={{ bgcolor: "#333" }} />
-//               <ListItem>
-//                 <ListItemText
-//                   primary="TASK2"
-//                   secondary="11:00AM"
-//                   primaryTypographyProps={{ sx: { color: "#fff" } }}
-//                   secondaryTypographyProps={{ sx: { color: "#aaa" } }}
-//                 />
-//               </ListItem>
-//             </List>
-//           </CardContent>
-//         </Card>
-//       </Box>
-
-//       {/* Main Notice Content */}
-//       <Box
-//         sx={{
-//           flex: 1,
-//           display: "flex",
-//           flexDirection: "column",
-//           alignItems: "stretch",
-//           justifyContent: "flex-start",
-//         }}
-//       >
-//         <Card sx={{ ...cardStyle, height: "100%", display: "flex", flexDirection: "column", p: 0 }}>
-//           <CardContent sx={{ flex: 1 }}>
-//             <Typography
-//               variant="h4"
-//               sx={{ fontWeight: 700, letterSpacing: 2, mb: 2 }}
-//             >
-//               GO OLD TOWN
-//             </Typography>
-//             <Typography sx={{ mb: 2 }}>
-//               YOU HAVE TO DELIVER TO OLD TOWN CLIENT <br />
-//               <b>NAME:- LAL SINGH CHADHA</b> <br />
-//               <b>MOBILE NO:- 9898989898</b> <br />
-//               <b>ADDRESS:- WARD NO - 08, OLD TOWN</b>
-//             </Typography>
-//             <img
-//               src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80"
-//               alt="Old Town"
-//               style={{
-//                 width: "320px",
-//                 borderRadius: 8,
-//                 marginTop: 8,
-//                 marginBottom: 8,
-//                 display: "block",
-//               }}
-//             />
-
-//             {/* Reply Form at the bottom right */}
-//             <Box
-//               sx={{
-//                 display: "flex",
-//                 justifyContent: "flex-end",
-//                 mt: 4,
-//               }}
-//             >
-//               <Card
-//                 sx={{
-//                   ...cardStyle,
-//                   minWidth: 320,
-//                   maxWidth: 350,
-//                   boxShadow: "none",
-//                   background: isDark ? "#23242a" : "#fff",
-//                   color: isDark ? "#fff" : "#222",
-//                   border: isDark ? "1px solid #333" : "1px solid #eee",
-//                 }}
-//               >
-//                 <CardContent>
-//                   <Typography variant="subtitle1" sx={{ mb: 1 }}>
-//                     Reply form
-//                   </Typography>
-//                   <Typography
-//                     variant="caption"
-//                     sx={{ color: "#aaa", mb: 2, display: "block" }}
-//                   >
-//                     Lorem ipsum dolor sit amet consectetur adipisicing.
-//                   </Typography>
-//                   <FormControl fullWidth sx={{ mb: 2 }}>
-//                     <InputLabel sx={{ color: "#aaa" }}>Title</InputLabel>
-//                     <Select
-//                       label="Title"
-//                       defaultValue=""
-//                       sx={{
-//                         color: isDark ? "#fff" : "#222",
-//                         ".MuiOutlinedInput-notchedOutline": {
-//                           borderColor: "#444",
-//                         },
-//                         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-//                           borderColor: "#7A3EF3",
-//                         },
-//                       }}
-//                     >
-//                       <MenuItem value="title">title</MenuItem>
-//                     </Select>
-//                   </FormControl>
-//                   <TextField
-//                     label="Message"
-//                     multiline
-//                     minRows={3}
-//                     fullWidth
-//                     sx={{
-//                       mb: 2,
-//                       "& .MuiOutlinedInput-root": {
-//                         color: isDark ? "#fff" : "#222",
-//                         "& fieldset": { borderColor: "#444" },
-//                         "&:hover fieldset": { borderColor: "#7A3EF3" },
-//                         "&.Mui-focused fieldset": { borderColor: "#7A3EF3" },
-//                       },
-//                       "& .MuiInputLabel-root": { color: "#aaa" },
-//                     }}
-//                   />
-//                   <Button
-//                     variant="contained"
-//                     fullWidth
-//                     sx={{
-//                       mt: 2,
-//                       background: "#23242a",
-//                       color: "#fff",
-//                       border: "1px solid #7A3EF3",
-//                       "&:hover": {
-//                         background: "#7A3EF3",
-//                         color: "#fff",
-//                       },
-//                     }}
-//                   >
-//                     Submit
-//                   </Button>
-//                 </CardContent>
-//               </Card>
-//             </Box>
-//           </CardContent>
-//         </Card>
-//       </Box>
-//     </Box>
-//   );
-// }
-
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box, Card, CardContent, Typography,
     List, ListItem, ListItemButton, ListItemText,
-    Stack, Skeleton, InputLabel, Grid, Divider, FormControl, Select, MenuItem, TextField, Button, CircularProgress
+    Stack, Skeleton, InputLabel, Grid, Divider, FormControl, TextField, Button, CircularProgress, Snackbar, Alert
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SendIcon from '@mui/icons-material/Send';
+import axios from 'axios'; // Import axios
 
-// --- API Simulation ---
+// --- API Simulation for notices (remains the same) ---
 const mockNotices = [
     { 
         id: 1, 
@@ -237,7 +22,6 @@ const mockNotices = [
     },
     { id: 2, title: 'TASK1', timestamp: '2025-09-26T19:00:00Z', content: 'Details for TASK1 will be shown here.' },
     { id: 3, title: 'TASK2', timestamp: '2025-09-26T11:00:00Z', content: 'Details for TASK2 will be shown here.' },
-    { id: 4, title: 'New Stock Arrival', timestamp: '2025-09-25T15:30:00Z', content: 'New shipment of 1.5 Ton AC units has arrived. Please update your inventory.' },
 ];
 
 // --- Main Component ---
@@ -245,14 +29,20 @@ export default function DealerNotice() {
     const [notices, setNotices] = useState([]);
     const [selectedNotice, setSelectedNotice] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    // --- State for the new Stock Request Form ---
+    const [productId, setProductId] = useState('');
+    const [quantity, setQuantity] = useState('');
+    const [notes, setNotes] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [feedback, setFeedback] = useState({ open: false, message: '', severity: 'info' });
+
 
     const fetchNotices = useCallback(async () => {
         setIsLoading(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         setNotices(mockNotices);
-        setSelectedNotice(mockNotices[0]); // Select the first notice by default
+        setSelectedNotice(mockNotices[0]);
         setIsLoading(false);
     }, []);
 
@@ -260,19 +50,50 @@ export default function DealerNotice() {
         fetchNotices();
     }, [fetchNotices]);
     
-    const handleSubmitReply = async (e) => {
+    // --- 1. Function to handle the Stock Request API call ---
+    const handleStockRequestSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        console.log("Submitting reply...");
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsSubmitting(false);
-        // show success message
+        setFeedback({ open: false, message: '', severity: 'info' }); // Reset feedback
+
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('authKey');
+
+        if (!user || !user.id || !token) {
+            setFeedback({ open: true, message: 'Authentication error. Please log in again.', severity: 'error' });
+            setIsSubmitting(false);
+            return;
+        }
+
+        const API_URL = `http://localhost:8080/api/stock-requests/create/${user.id}`;
+        const requestBody = { productId, quantity, notes };
+        const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
+
+        try {
+            const response = await axios.post(API_URL, requestBody, axiosConfig);
+            setFeedback({ open: true, message: `Request #${response.data.requestId} created successfully!`, severity: 'success' });
+            // Clear the form on success
+            setProductId('');
+            setQuantity('');
+            setNotes('');
+        } catch (error) {
+            console.error("Failed to create stock request:", error);
+            const errorMessage = error.response?.data?.message || 'Failed to create request. Please try again.';
+            setFeedback({ open: true, message: errorMessage, severity: 'error' });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleCloseFeedback = (event, reason) => {
+        if (reason === 'clickaway') return;
+        setFeedback({ ...feedback, open: false });
     };
 
     return (
         <Box>
             <Grid container spacing={3} sx={{ height: { md: 'calc(100vh - 120px)' }}}>
-                {/* Left Notifications List */}
+                {/* Left Notifications List (no changes) */}
                 <Grid item xs={12} md={3} sx={{ height: '100%',width: '25%' }}>
                     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                         <CardContent>
@@ -327,21 +148,40 @@ export default function DealerNotice() {
                                     )}
                                 </CardContent>
                                 <Divider />
-                                <CardContent component="form" onSubmit={handleSubmitReply}>
-                                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'medium' }}>Reply Form</Typography>
+                                {/* --- 2. Updated Form for Stock Request --- */}
+                                <CardContent component="form" onSubmit={handleStockRequestSubmit}>
+                                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'medium' }}>Create Stock Request</Typography>
                                     <Stack spacing={2}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Title</InputLabel>
-                                            <Select label="Title" defaultValue="">
-                                                <MenuItem value="Acknowledged">Acknowledged</MenuItem>
-                                                <MenuItem value="Query">Query</MenuItem>
-                                                <MenuItem value="Completed">Completed</MenuItem>
-                                            </Select>
-                                        </FormControl>
-                                        <TextField label="Message" multiline minRows={3} fullWidth size="small"/>
+                                        <TextField 
+                                            label="Product ID" 
+                                            fullWidth 
+                                            size="small"
+                                            required
+                                            value={productId}
+                                            onChange={(e) => setProductId(e.target.value)}
+                                        />
+                                        <TextField 
+                                            label="Quantity" 
+                                            fullWidth 
+                                            size="small"
+                                            type="number"
+                                            required
+                                            value={quantity}
+                                            onChange={(e) => setQuantity(e.target.value)}
+                                            InputProps={{ inputProps: { min: 1 } }} // Ensure quantity is positive
+                                        />
+                                        <TextField 
+                                            label="Notes / Remarks" 
+                                            multiline 
+                                            minRows={2} 
+                                            fullWidth 
+                                            size="small"
+                                            value={notes}
+                                            onChange={(e) => setNotes(e.target.value)}
+                                        />
                                         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                                             <Button type="submit" variant="contained" endIcon={<SendIcon />} disabled={isSubmitting}>
-                                                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Send Reply'}
+                                                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Request'}
                                             </Button>
                                         </Box>
                                     </Stack>
@@ -351,7 +191,13 @@ export default function DealerNotice() {
                     </Card>
                 </Grid>
             </Grid>
+            
+            {/* --- 3. Snackbar for User Feedback --- */}
+            <Snackbar open={feedback.open} autoHideDuration={6000} onClose={handleCloseFeedback}>
+                <Alert onClose={handleCloseFeedback} severity={feedback.severity} sx={{ width: '100%' }}>
+                    {feedback.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }
-
