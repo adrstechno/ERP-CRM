@@ -161,7 +161,7 @@ public class PaymentService {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-        List<Payment> payments = paymentRepo.findByReceivedBy(user.getUserId());
+        List<Payment> payments = paymentRepo.findByReceivedBy(user);
 
         if (payments.isEmpty()) {
             throw new RuntimeException("No payments found for userId: " + user.getUserId());
