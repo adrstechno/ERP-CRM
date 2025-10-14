@@ -8,4 +8,6 @@ import java.util.List;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByInvoice_InvoiceId(Long invoiceId);
+
+    List<Payment> findByReceivedBy(Long receivedBy);
 }
