@@ -132,13 +132,126 @@ export default function SalesManagement() {
   return (
     <Box>
       <Stack spacing={3}>
+          <Grid container spacing={3}>
+          {/* ... (rest of the chart code is unchanged) ... */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ height: 300, width: 600 }}>
+              <CardContent
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: "bold" }}
+                  gutterBottom
+                >
+                  Dealer-wise Sales
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ flexGrow: 1 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={salesData}
+                      margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+                    >
+                      <XAxis
+                        dataKey="customerName"
+                        stroke={theme.palette.text.secondary}
+                      />
+                      <YAxis stroke={theme.palette.text.secondary} />
+                      <Tooltip
+                        content={<CustomTooltip />}
+                        cursor={{ fill: theme.palette.action.hover }}
+                      />
+                      <Legend />
+                      <Bar
+                        dataKey="totalAmount"
+                        fill={theme.palette.primary.main}
+                        barSize={30}
+                        radius={[5, 5, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ height: 300, width: 500 }}>
+              <CardContent
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: "bold" }}
+                  gutterBottom
+                >
+                  Sale Status Distribution
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ flexGrow: 1 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          {
+                            name: "Pending",
+                            value: salesData.filter(
+                              (s) => s.saleStatus === "PENDING"
+                            ).length,
+                          },
+                          {
+                            name: "APPROVED",
+                            value: salesData.filter(
+                              (s) => s.saleStatus === "APPROVED"
+                            ).length,
+                          },
+                          {
+                            name: "Cancelled",
+                            value: salesData.filter(
+                              (s) => s.saleStatus === "CANCELLED"
+                            ).length,
+                          },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={110}
+                        innerRadius={60}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {["PENDING", "COMPLETED", "CANCELLED"].map((_, i) => (
+                          <Cell
+                            key={`cell-${i}`}
+                            fill={
+                              PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]
+                            }
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
         {/* Sales Entry Table Card */}
         <Card sx={{ display: "flex", flexDirection: "column" }}>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
               Sales Entry Table
             </Typography>
-            <TableContainer sx={{ maxHeight: 280, overflowY: "auto" }}>
+            <TableContainer sx={{ maxeight: 168, overflowY: "auto" }}>
               <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
@@ -208,119 +321,7 @@ export default function SalesManagement() {
         </Card>
 
         {/* Charts Section (No changes needed here) */}
-        <Grid container spacing={3}>
-          {/* ... (rest of the chart code is unchanged) ... */}
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: 400, width: 600 }}>
-              <CardContent
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: "bold" }}
-                  gutterBottom
-                >
-                  Dealer-wise Sales
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-                <Box sx={{ flexGrow: 1 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={salesData}
-                      margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
-                    >
-                      <XAxis
-                        dataKey="customerName"
-                        stroke={theme.palette.text.secondary}
-                      />
-                      <YAxis stroke={theme.palette.text.secondary} />
-                      <Tooltip
-                        content={<CustomTooltip />}
-                        cursor={{ fill: theme.palette.action.hover }}
-                      />
-                      <Legend />
-                      <Bar
-                        dataKey="totalAmount"
-                        fill={theme.palette.primary.main}
-                        barSize={30}
-                        radius={[5, 5, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: 400, width: 500 }}>
-              <CardContent
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: "bold" }}
-                  gutterBottom
-                >
-                  Sale Status Distribution
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-                <Box sx={{ flexGrow: 1 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          {
-                            name: "Pending",
-                            value: salesData.filter(
-                              (s) => s.saleStatus === "PENDING"
-                            ).length,
-                          },
-                          {
-                            name: "APPROVED",
-                            value: salesData.filter(
-                              (s) => s.saleStatus === "APPROVED"
-                            ).length,
-                          },
-                          {
-                            name: "Cancelled",
-                            value: salesData.filter(
-                              (s) => s.saleStatus === "CANCELLED"
-                            ).length,
-                          },
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={110}
-                        innerRadius={60}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {["PENDING", "COMPLETED", "CANCELLED"].map((_, i) => (
-                          <Cell
-                            key={`cell-${i}`}
-                            fill={
-                              PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]
-                            }
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+      
       </Stack>
     </Box>
   );
