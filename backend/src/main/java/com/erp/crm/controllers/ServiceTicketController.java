@@ -1,11 +1,15 @@
 package com.erp.crm.controllers;
 
+import com.erp.crm.dto.ServiceEntitlementResponseDTO;
 import com.erp.crm.dto.ServiceTicketRequestDTO;
 import com.erp.crm.dto.ServiceTicketResponseDTO;
 import com.erp.crm.models.ServiceEntitlement;
 import com.erp.crm.models.Status;
 import com.erp.crm.repositories.ServiceEntitlementRepository;
 import com.erp.crm.services.ServiceTicketService;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -65,5 +69,4 @@ public class ServiceTicketController {
         boolean available = entitlement.canUseService();
         return ResponseEntity.ok(available);
     }
-
 }
