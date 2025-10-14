@@ -52,14 +52,15 @@ public class SaleService {
         if (oldStatus == Status.PENDING && status == Status.APPROVED) {
             generateInvoice(savedSale);
             createServiceEntitlements(savedSale);
-            createServiceEntitlements(savedSale); // Create 2 free services
+            // createServiceEntitlements(savedSale); // Create 2 free services
         }
 
         return mapToDto(savedSale);
     }
 
     private void generateInvoice(Sale sale) {
-        if (sale.getInvoice() != null) return; // idempotent
+        if (sale.getInvoice() != null)
+            return; // idempotent
         Invoice invoice = new Invoice();
         invoice.setSale(sale);
         invoice.setInvoiceNumber(generateInvoiceNumber());
@@ -77,13 +78,19 @@ public class SaleService {
     }
 
     private void createServiceEntitlements(Sale sale) {
-        ServiceEntitlement entitlement = new ServiceEntitlement();
-        entitlement.setSale(sale);
-        entitlement.setEntitlementType(EntitlementType.FREE);
-        entitlement.setTotalAllowed(2);
-        entitlement.setUsedCount(0);
-        entitlement.setExpiryDate(LocalDate.now().plusYears(1));
-        serviceEntitlementRepo.save(entitlement);
+        if (sale.getSaleItems() == null || sale.getSaleItems().isEmpty())
+            return;
+
+        for (SaleItem item : sale.getSaleItems()) {
+            ServiceEntitlement entitlement = new ServiceEntitlement();
+            entitlement.setSale(sale);
+            entitlement.setProduct(item.getProduct()); // ✅ Set product
+            entitlement.setEntitlementType(EntitlementType.FREE);
+            entitlement.setTotalAllowed(2); // 2 free services per product
+            entitlement.setUsedCount(0);
+            entitlement.setExpiryDate(LocalDate.now().plusYears(1));
+            serviceEntitlementRepo.save(entitlement);
+        }
     }
 
     public SaleResponseDTO createSale(SaleRequestDTO dto) {
