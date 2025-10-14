@@ -20,7 +20,6 @@ public class ServiceEntitlementService {
         this.entitlementRepo = entitlementRepo;
     }
 
-    // 1️⃣ Get entitlements by Sale
     public List<ServiceEntitlementResponseDTO> getEntitlementsBySale(Long saleId) {
         List<ServiceEntitlement> entitlements = entitlementRepo.findAllBySale_SaleId(saleId);
         return entitlements.stream().map(this::mapToDto).collect(Collectors.toList());
