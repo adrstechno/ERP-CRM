@@ -618,7 +618,7 @@ export default function InventoryManagementContent() {
         body,
         axiosConfig
       );
-      consol.log(token)
+     console.log(token)
       const data = response.data;
       setProducts((prev) => [
         ...prev,

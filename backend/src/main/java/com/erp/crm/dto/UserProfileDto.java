@@ -12,6 +12,6 @@ public class UserProfileDTO {
     private String state;
     private String pincode;
     private String bankName;
-    private String accountNumber;
+    private String accountNo;
     private String ifscCode;
 }

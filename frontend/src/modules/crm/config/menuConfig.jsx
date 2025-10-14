@@ -23,6 +23,7 @@ export const crmMenuConfig = {
     { label: "Inventory", path: "/crm/inventory", icon: <InventoryIcon /> },
     { label: "Sales", path: "/crm/sales", icon: <ShoppingCartIcon /> },
     { label: "Service", path: "/crm/service", icon: <AssignmentIcon /> },
+    { label: "Approve Expenses", path: "/crm/expenses/approve", icon: <ReceiptIcon /> },
     { label: "Billing & Invoices", path: "/crm/invoices", icon: <ReceiptIcon /> },
     { label: "Settings", path: "/crm/settings", icon: <SettingsIcon /> },
   ],

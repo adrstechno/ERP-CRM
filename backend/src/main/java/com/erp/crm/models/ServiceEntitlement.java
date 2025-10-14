@@ -11,8 +11,10 @@ import java.time.LocalDate;
 @Setter
 public class ServiceEntitlement {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "entitlement_id")  
     private Long serviceEntitlementId;
 
     @ManyToOne(fetch = FetchType.LAZY)

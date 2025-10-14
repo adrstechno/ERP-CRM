@@ -14,6 +14,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ExpenseResponseDTO {
+    private Long ExpenseId;
     private String userName; 
     private LocalDate expenseDate;
     private com.erp.crm.models.ExpenseCategory category;
