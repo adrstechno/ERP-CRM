@@ -1,28 +1,13 @@
-
-
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
     Box, Card, CardContent, Typography,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Button, Stack, FormControl, Select, MenuItem, InputAdornment, TextField, Chip, Skeleton, InputLabel, Grid
+    Button, Stack, FormControl, Select, MenuItem, InputAdornment, TextField, Chip, Skeleton, InputLabel, Link
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-
-// --- API Simulation ---
-const mockExpensesData = [
-    // Data for Sep 2025
-    { id: 'EXP-1023', userName: 'Ramesh Kumar', role: 'Marketer', date: '05-09-2025', category: 'Travel', amount: 1200, receipt: '[N]', remarks: 'Client visit', status: 'Pending' },
-    { id: 'EXP-1024', userName: 'Suresh Kumar', role: 'Service Engg.', date: '04-09-2025', category: 'Tools', amount: 3500, receipt: '[Y]', remarks: 'New toolkit purchase', status: 'Pending' },
-    // Data for Aug 2025
-    { id: 'EXP-1029', userName: 'Priya Singh', role: 'Marketer', date: '31-08-2025', category: 'Travel', amount: 950, receipt: '[N]', remarks: 'Local travel for meetings', status: 'Approved' },
-    { id: 'EXP-1028', userName: 'Ramesh Kumar', role: 'Marketer', date: '28-08-2025', category: 'Accommodation', amount: 4500, receipt: '[Y]', remarks: 'Hotel stay for conference', status: 'Pending' },
-    { id: 'EXP-1028', userName: 'Ramesh Kumar', role: 'Marketer', date: '28-08-2025', category: 'Accommodation', amount: 4500, receipt: '[Y]', remarks: 'Hotel stay for conference', status: 'Pending' },
-    { id: 'EXP-1028', userName: 'Ramesh Kumar', role: 'Marketer', date: '28-08-2025', category: 'Accommodation', amount: 4500, receipt: '[Y]', remarks: 'Hotel stay for conference', status: 'Pending' },
-    { id: 'EXP-1028', userName: 'Ramesh Kumar', role: 'Marketer', date: '28-08-2025', category: 'Accommodation', amount: 4500, receipt: '[Y]', remarks: 'Hotel stay for conference', status: 'Pending' },
-    { id: 'EXP-1028', userName: 'Ramesh Kumar', role: 'Marketer', date: '28-08-2025', category: 'Accommodation', amount: 4500, receipt: '[Y]', remarks: 'Hotel stay for conference', status: 'Pending' },
-];
+import { format } from 'date-fns'; // A robust library for date formatting
 
 // --- Helper Functions to Generate Date Filters ---
 const currentYear = new Date().getFullYear();
@@ -47,52 +32,142 @@ const generateMonthOptions = (selectedYear) => {
 };
 
 
+
+
 // --- Main Component ---
 export default function ApproveExpenses() {
     const [year, setYear] = useState(String(currentYear));
     const [month, setMonth] = useState(monthNames[currentMonth]);
-    const [expenses, setExpenses] = useState([]);
+    const [expenses, setExpenses] = useState([]); // This will hold all expenses fetched from the API
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
     const yearOptions = useMemo(() => generateYearOptions(), []);
     const monthOptions = useMemo(() => generateMonthOptions(year), [year]);
 
+    
+  const token = localStorage.getItem("authKey");
+  const user = JSON.parse(localStorage.getItem("user"));
+ const axiosConfig = useMemo(() => {
+  return {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+}, [token]);
+
+    // This effect ensures the month dropdown is valid when the year changes.
     useEffect(() => {
-        // When year changes, check if the current month is valid. If not, reset to the latest possible month.
         if (!generateMonthOptions(year).includes(month)) {
             const newMonths = generateMonthOptions(year);
             setMonth(newMonths[newMonths.length - 1]);
         }
     }, [year]);
 
-
+    // --- 1. API Integration: Fetching all expenses ---
     useEffect(() => {
-        // Simulate API call based on selected year and month
-        setIsLoading(true);
-        console.log(`Fetching data for ${month}, ${year}...`);
-        setTimeout(() => {
-            // In a real app, you would filter based on month and year from the API
-            setExpenses(mockExpensesData);
-            setIsLoading(false);
-        }, 100);
-    }, [month, year]);
+        const fetchExpenses = async () => {
+            setIsLoading(true);
+            try {
+                // Fetch data from your API endpoint
+                const response = await fetch('http://localhost:8080/api/expense/all-expense',axiosConfig
+                );
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const result = await response.json();
 
-    const handleApprove = (expenseId) => {
+                if (result.success && Array.isArray(result.data)) {
+                    // Map API data to the structure your component expects
+                    const formattedData = result.data.map(item => ({
+                        id: item.expenseId,
+                        userName: item.userName,
+                        // 'role' is not in the API response, so it's removed
+                        date: format(new Date(item.expenseDate), 'dd-MM-yyyy'), // Format date for display
+                        category: item.category.charAt(0).toUpperCase() + item.category.slice(1).toLowerCase(),
+                        amount: item.amount,
+                        receipt: item.invoiceUrl, // Keep the URL for creating a link
+                        remarks: item.remarks,
+                        status: item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase(), // e.g., PENDING -> Pending
+                    }));
+                    setExpenses(formattedData);
+                } else {
+                    console.error("API call was successful, but the data format is incorrect:", result);
+                    setExpenses([]); // Set to empty array on format error
+                }
+            } catch (error) {
+                console.error("Failed to fetch expenses:", error);
+                setExpenses([]); // Clear expenses on error
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchExpenses();
+    }, []); // Empty dependency array means this runs once when the component mounts
+
+    // --- 2. Approval Logic: Updating an expense's status ---
+    const handleApprove = async (expenseId) => {
+        // Optimistically update the UI first for a better user experience
         setExpenses(
             expenses.map(exp =>
                 exp.id === expenseId ? { ...exp, status: 'Approved' } : exp
             )
         );
+
+        // TODO: Implement the backend API call to approve the expense
+        /*
+        try {
+            const response = await fetch(`http://localhost:8080/api/expense/approve/${expenseId}`, {
+                method: 'PUT', // or 'PATCH', depending on your API design
+                headers: { 'Content-Type': 'application/json' },
+                // body: JSON.stringify({ status: 'APPROVED' }) // if your API requires a body
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to approve on server');
+            }
+            // If successful, the UI is already updated. You could refetch data here if needed.
+
+        } catch (error) {
+            console.error("Error approving expense:", error);
+            // If the API call fails, revert the change in the UI
+            setExpenses(
+                expenses.map(exp =>
+                    exp.id === expenseId ? { ...exp, status: 'Pending' } : exp
+                )
+            );
+            alert("Failed to approve the expense. Please try again.");
+        }
+        */
     };
 
+    // --- 3. Client-Side Filtering: By date and search term ---
     const filteredExpenses = useMemo(() => {
-        return expenses.filter(exp =>
-            exp.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            exp.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            exp.category.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [expenses, searchTerm]);
+        if (!expenses) return [];
+
+        return expenses.filter(exp => {
+            // Filter by selected month and year
+            const expenseDate = new Date(exp.date.split('-').reverse().join('-')); // Convert DD-MM-YYYY string to Date object
+            const selectedMonthIndex = monthNames.indexOf(month);
+            const isDateMatch = expenseDate.getFullYear() === parseInt(year, 10) && expenseDate.getMonth() === selectedMonthIndex;
+
+            if (!isDateMatch) {
+                return false; // Exclude if it doesn't match the selected period
+            }
+
+            // Filter by search term (if a date match was found)
+            const searchTermLower = searchTerm.toLowerCase();
+            if (!searchTermLower) {
+                return true; // Include if date matches and no search term
+            }
+            
+            return (
+                exp.userName.toLowerCase().includes(searchTermLower) ||
+                String(exp.id).toLowerCase().includes(searchTermLower) ||
+                exp.category.toLowerCase().includes(searchTermLower)
+            );
+        });
+    }, [expenses, searchTerm, month, year]);
+
 
     return (
         <Box>
@@ -142,11 +217,13 @@ export default function ApproveExpenses() {
                     </Stack>
                 </CardContent>
 
+                {/* --- 4. Table Rendering Adjustments --- */}
                 <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
                     <Table stickyHeader size="medium">
                         <TableHead>
                             <TableRow>
-                                {['Expense ID', 'User Name', 'Role', 'Date', 'Category', 'Amount', 'Receipt', 'Remarks', 'Approval'].map(head => (
+                                {/* Adjusted columns to match API data: 'Role' is removed */}
+                                {['Expense ID', 'User Name', 'Date', 'Category', 'Amount', 'Receipt', 'Remarks', 'Approval'].map(head => (
                                     <TableCell key={head} sx={{ whiteSpace: 'nowrap' }}>{head}</TableCell>
                                 ))}
                             </TableRow>
@@ -155,7 +232,7 @@ export default function ApproveExpenses() {
                             {isLoading ? (
                                 Array.from(new Array(8)).map((_, index) => (
                                     <TableRow key={index}>
-                                        <TableCell colSpan={9}><Skeleton animation="wave" /></TableCell>
+                                        <TableCell colSpan={8}><Skeleton animation="wave" /></TableCell>
                                     </TableRow>
                                 ))
                             ) : (
@@ -163,11 +240,19 @@ export default function ApproveExpenses() {
                                     <TableRow key={expense.id} hover>
                                         <TableCell sx={{ fontWeight: 500 }}>{expense.id}</TableCell>
                                         <TableCell>{expense.userName}</TableCell>
-                                        <TableCell>{expense.role}</TableCell>
                                         <TableCell>{expense.date}</TableCell>
                                         <TableCell>{expense.category}</TableCell>
                                         <TableCell>₹{expense.amount.toLocaleString('en-IN')}</TableCell>
-                                        <TableCell>{expense.receipt}</TableCell>
+                                        <TableCell>
+                                            {/* Display a clickable link for the receipt if URL exists */}
+                                            {expense.receipt ? (
+                                                <Link href={expense.receipt} target="_blank" rel="noopener noreferrer" underline="always">
+                                                    View
+                                                </Link>
+                                            ) : (
+                                                'N/A'
+                                            )}
+                                        </TableCell>
                                         <TableCell>{expense.remarks}</TableCell>
                                         <TableCell>
                                             {expense.status === 'Pending' ? (
@@ -199,4 +284,3 @@ export default function ApproveExpenses() {
         </Box>
     );
 }
-
