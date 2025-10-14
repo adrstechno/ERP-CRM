@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Box, Card, CardContent, Typography,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -7,11 +7,13 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import { format } from 'date-fns'; // A robust library for date formatting
+import { format } from 'date-fns';
+import axios from 'axios';
 
-// --- Helper Functions to Generate Date Filters ---
+// --- Helper Functions (No changes) ---
 const currentYear = new Date().getFullYear();
-const currentMonth = new Date().getMonth(); // 0-indexed (0 for Jan, 11 for Dec)
+const currentMonth = new Date().getMonth();
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 const generateYearOptions = () => {
     const years = [];
@@ -21,40 +23,28 @@ const generateYearOptions = () => {
     return years;
 };
 
-const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
 const generateMonthOptions = (selectedYear) => {
     const year = parseInt(selectedYear, 10);
-    if (year < currentYear) {
-        return monthNames; // Full year for past years
-    }
-    return monthNames.slice(0, currentMonth + 1); // Up to current month for the current year
+    if (year < currentYear) return monthNames;
+    return monthNames.slice(0, currentMonth + 1);
 };
-
-
-
 
 // --- Main Component ---
 export default function ApproveExpenses() {
     const [year, setYear] = useState(String(currentYear));
     const [month, setMonth] = useState(monthNames[currentMonth]);
-    const [expenses, setExpenses] = useState([]); // This will hold all expenses fetched from the API
+    const [expenses, setExpenses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
     const yearOptions = useMemo(() => generateYearOptions(), []);
     const monthOptions = useMemo(() => generateMonthOptions(year), [year]);
 
-    
-  const token = localStorage.getItem("authKey");
-  const user = JSON.parse(localStorage.getItem("user"));
- const axiosConfig = useMemo(() => {
-  return {
-    headers: { Authorization: `Bearer ${token}` },
-  };
-}, [token]);
+    const token = localStorage.getItem("authKey");
+    const axiosConfig = useMemo(() => ({
+        headers: { Authorization: `Bearer ${token}` },
+    }), [token]);
 
-    // This effect ensures the month dropdown is valid when the year changes.
     useEffect(() => {
         if (!generateMonthOptions(year).includes(month)) {
             const newMonths = generateMonthOptions(year);
@@ -62,104 +52,73 @@ export default function ApproveExpenses() {
         }
     }, [year]);
 
-    // --- 1. API Integration: Fetching all expenses ---
     useEffect(() => {
         const fetchExpenses = async () => {
             setIsLoading(true);
             try {
-                // Fetch data from your API endpoint
-                const response = await fetch('http://localhost:8080/api/expense/all-expense',axiosConfig
-                );
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const result = await response.json();
+                const response = await axios.get('http://localhost:8080/api/expense/all-expense', axiosConfig);
+                const result = response.data;
 
                 if (result.success && Array.isArray(result.data)) {
-                    // Map API data to the structure your component expects
                     const formattedData = result.data.map(item => ({
                         id: item.expenseId,
                         userName: item.userName,
-                        // 'role' is not in the API response, so it's removed
-                        date: format(new Date(item.expenseDate), 'dd-MM-yyyy'), // Format date for display
+                        date: format(new Date(item.expenseDate), 'dd-MM-yyyy'),
                         category: item.category.charAt(0).toUpperCase() + item.category.slice(1).toLowerCase(),
                         amount: item.amount,
-                        receipt: item.invoiceUrl, // Keep the URL for creating a link
+                        receipt: item.invoiceUrl,
                         remarks: item.remarks,
-                        status: item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase(), // e.g., PENDING -> Pending
+                        status: item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase(),
                     }));
                     setExpenses(formattedData);
                 } else {
                     console.error("API call was successful, but the data format is incorrect:", result);
-                    setExpenses([]); // Set to empty array on format error
+                    setExpenses([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch expenses:", error);
-                setExpenses([]); // Clear expenses on error
+                setExpenses([]);
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchExpenses();
-    }, []); // Empty dependency array means this runs once when the component mounts
+    }, [axiosConfig]);
 
-    // --- 2. Approval Logic: Updating an expense's status ---
+    // --- ## Updated Approval Logic ---
     const handleApprove = async (expenseId) => {
-        // Optimistically update the UI first for a better user experience
+        const originalExpenses = [...expenses];
         setExpenses(
             expenses.map(exp =>
                 exp.id === expenseId ? { ...exp, status: 'Approved' } : exp
             )
         );
 
-        // TODO: Implement the backend API call to approve the expense
-        /*
         try {
-            const response = await fetch(`http://localhost:8080/api/expense/approve/${expenseId}`, {
-                method: 'PUT', // or 'PATCH', depending on your API design
-                headers: { 'Content-Type': 'application/json' },
-                // body: JSON.stringify({ status: 'APPROVED' }) // if your API requires a body
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to approve on server');
-            }
-            // If successful, the UI is already updated. You could refetch data here if needed.
+            // **1. Construct the new URL with the query parameter**
+            const API_URL = `http://localhost:8080/api/expense/${expenseId}/status?status=APPROVED`;
+            
+            // **2. Make the PATCH request with a `null` body**
+            // The second argument to axios.patch is the request body, which is not needed here.
+            await axios.patch(API_URL, null, axiosConfig);
 
         } catch (error) {
             console.error("Error approving expense:", error);
-            // If the API call fails, revert the change in the UI
-            setExpenses(
-                expenses.map(exp =>
-                    exp.id === expenseId ? { ...exp, status: 'Pending' } : exp
-                )
-            );
+            setExpenses(originalExpenses);
             alert("Failed to approve the expense. Please try again.");
         }
-        */
     };
 
-    // --- 3. Client-Side Filtering: By date and search term ---
     const filteredExpenses = useMemo(() => {
         if (!expenses) return [];
-
         return expenses.filter(exp => {
-            // Filter by selected month and year
-            const expenseDate = new Date(exp.date.split('-').reverse().join('-')); // Convert DD-MM-YYYY string to Date object
+            const expenseDate = new Date(exp.date.split('-').reverse().join('-'));
             const selectedMonthIndex = monthNames.indexOf(month);
             const isDateMatch = expenseDate.getFullYear() === parseInt(year, 10) && expenseDate.getMonth() === selectedMonthIndex;
-
-            if (!isDateMatch) {
-                return false; // Exclude if it doesn't match the selected period
-            }
-
-            // Filter by search term (if a date match was found)
+            if (!isDateMatch) return false;
             const searchTermLower = searchTerm.toLowerCase();
-            if (!searchTermLower) {
-                return true; // Include if date matches and no search term
-            }
-            
+            if (!searchTermLower) return true;
             return (
                 exp.userName.toLowerCase().includes(searchTermLower) ||
                 String(exp.id).toLowerCase().includes(searchTermLower) ||
@@ -167,7 +126,6 @@ export default function ApproveExpenses() {
             );
         });
     }, [expenses, searchTerm, month, year]);
-
 
     return (
         <Box>
@@ -184,7 +142,6 @@ export default function ApproveExpenses() {
                             <ReceiptLongIcon color="primary" />
                             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Approve Expenses</Typography>
                         </Stack>
-
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ width: { xs: '100%', md: 'auto' } }}>
                             <TextField
                                 variant="outlined"
@@ -201,7 +158,7 @@ export default function ApproveExpenses() {
                                 }}
                                 sx={{ width: { xs: '100%', sm: 300 } }}
                             />
-                             <FormControl size="small" sx={{ minWidth: 120 }}>
+                            <FormControl size="small" sx={{ minWidth: 120 }}>
                                 <InputLabel>Year</InputLabel>
                                 <Select value={year} label="Year" onChange={(e) => setYear(e.target.value)}>
                                     {yearOptions.map(y => <MenuItem key={y} value={y}>{y}</MenuItem>)}
@@ -210,19 +167,16 @@ export default function ApproveExpenses() {
                             <FormControl size="small" sx={{ minWidth: 150 }}>
                                 <InputLabel>Month</InputLabel>
                                 <Select value={month} label="Month" onChange={(e) => setMonth(e.target.value)}>
-                                   {monthOptions.map(m => <MenuItem key={m} value={m}>{m}</MenuItem>)}
+                                    {monthOptions.map(m => <MenuItem key={m} value={m}>{m}</MenuItem>)}
                                 </Select>
                             </FormControl>
                         </Stack>
                     </Stack>
                 </CardContent>
-
-                {/* --- 4. Table Rendering Adjustments --- */}
                 <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
                     <Table stickyHeader size="medium">
                         <TableHead>
                             <TableRow>
-                                {/* Adjusted columns to match API data: 'Role' is removed */}
                                 {['Expense ID', 'User Name', 'Date', 'Category', 'Amount', 'Receipt', 'Remarks', 'Approval'].map(head => (
                                     <TableCell key={head} sx={{ whiteSpace: 'nowrap' }}>{head}</TableCell>
                                 ))}
@@ -244,14 +198,11 @@ export default function ApproveExpenses() {
                                         <TableCell>{expense.category}</TableCell>
                                         <TableCell>₹{expense.amount.toLocaleString('en-IN')}</TableCell>
                                         <TableCell>
-                                            {/* Display a clickable link for the receipt if URL exists */}
                                             {expense.receipt ? (
                                                 <Link href={expense.receipt} target="_blank" rel="noopener noreferrer" underline="always">
                                                     View
                                                 </Link>
-                                            ) : (
-                                                'N/A'
-                                            )}
+                                            ) : 'N/A'}
                                         </TableCell>
                                         <TableCell>{expense.remarks}</TableCell>
                                         <TableCell>
