@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback , useMemo } from 'react';
+import React, { useState, useEffect, useCallback , useMemo} from 'react';
 import {
     Box, Card, CardContent, Typography,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -12,11 +12,7 @@ const mockRequestHistory = [
     { id: '#REQ-012', date: '2025-09-25T10:06:00Z', productName: '1.5 Ton 5 Star AC', qty: 10, amount: 380000, status: 'Approved' },
     { id: '#REQ-011', date: '2025-09-24T14:59:00Z', productName: 'Cooling Coils (Set)', qty: 50, amount: 225000, status: 'Pending' },
     { id: '#REQ-010', date: '2025-09-24T12:54:00Z', productName: 'Digital Thermostat', qty: 100, amount: 120000, status: 'Approved' },
-    { id: '#REQ-009', date: '2025-09-23T15:32:00Z', productName: 'Window AC 1 Ton', qty: 5, amount: 132500, status: 'Rejected' },
-    { id: '#REQ-008', date: '2025-09-22T11:00:00Z', productName: '1.5 Ton 5 Star AC', qty: 15, amount: 570000, status: 'Approved' },
 ];
-// --- This is no longer needed as we fetch products from the API ---
-// const productOptions = ['1.5 Ton 5 Star AC', 'Cooling Coils (Set)', 'Digital Thermostat', 'Window AC 1 Ton'];
 
 // --- Helper Component ---
 const StatusChip = React.memo(({ status }) => {
@@ -34,40 +30,35 @@ export default function StockRequestPage() {
     const [history, setHistory] = useState([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(true);
 
-    // --- NEW: States for products and form ---
+    // States for products and form
     const [products, setProducts] = useState([]);
     const [isProductsLoading, setIsProductsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({ productId: '', quantity: '', notes: '' });
-
-    // Fetch history (simulation)
-    const fetchHistory = useCallback(async () => {
-        setIsHistoryLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulating network delay
-        setHistory(mockRequestHistory);
-        setIsHistoryLoading(false);
-    }, []);
-
     const token = localStorage.getItem("authKey");
             
          const axiosConfig = useMemo(() => ({
                     headers: { Authorization: `Bearer ${token}` },
                 }), [token]);
+    const fetchHistory = useCallback(async () => {
+        setIsHistoryLoading(true);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setHistory(mockRequestHistory);
+        setIsHistoryLoading(false);
+    }, []);
     
-    
-    // --- NEW: Function to fetch all products from the backend ---
     const fetchProducts = async () => {
         setIsProductsLoading(true);
         try {
-            const response = await fetch("http://localhost:8080/api/products/all");
+            const response = await fetch("http://localhost:8080/api/products/all",axiosConfig);
             if (!response.ok) {
                 throw new Error('Network response was not ok while fetching products.');
             }
             const data = await response.json();
-            setProducts(data || []); // Ensure products is always an array
+            console.log("Fetched Products:", data); // DEBUG: Check the product data structure
+            setProducts(data || []);
         } catch (error) {
             console.error("Failed to fetch products:", error);
-            // Optionally, set an error state here to show in the UI
         } finally {
             setIsProductsLoading(false);
         }
@@ -75,19 +66,27 @@ export default function StockRequestPage() {
 
     useEffect(() => {
         fetchHistory();
-        fetchProducts(); // Fetch products on component mount
+        fetchProducts();
     }, [fetchHistory]);
     
+    // --- CORRECTED EVENT HANDLER ---
+    // This function is designed to handle changes from both the <Select> and <TextField> components.
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        
+        // DEBUG: Log the name and value to the browser console to see what's being captured.
+        console.log(`Input changed: name='${name}', value='${value}'`);
+        
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            [name]: value
+        }));
     };
 
-    // --- MODIFIED: handleSubmit to call the create stock request API ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         
-        // The request body must match your API's expected format
         const requestBody = {
             productId: formData.productId,
             quantity: formData.quantity,
@@ -99,7 +98,7 @@ export default function StockRequestPage() {
         try {
             const response = await fetch("http://localhost:8080/api/stock-requests/create", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                axiosConfig,
                 body: JSON.stringify(requestBody),
             });
 
@@ -110,8 +109,8 @@ export default function StockRequestPage() {
             
             await response.json();
             alert('Stock request submitted successfully!');
-            setFormData({ productId: '', quantity: '', notes: '' }); // Reset form
-            fetchHistory(); // Refresh history list
+            setFormData({ productId: '', quantity: '', notes: '' });
+            fetchHistory();
         } catch (error) {
             console.error("Error submitting stock request:", error);
             alert(`Error: ${error.message}`);
@@ -135,15 +134,23 @@ export default function StockRequestPage() {
                                 Select product and quantity to request new stock.
                             </Typography>
                             <Stack spacing={2} sx={{ flexGrow: 1 }}>
-                                {/* --- MODIFIED: Product Dropdown --- */}
                                 <FormControl fullWidth required disabled={isProductsLoading}>
                                     <InputLabel>Product</InputLabel>
-                                    <Select name="productId" label="Product" value={formData.productId} onChange={handleChange}>
+                                    {/* This Select component now correctly uses the handleChange function */}
+                                    <Select 
+                                        name="productId" // This 'name' MUST match the state key: formData.productId
+                                        label="Product" 
+                                        value={formData.productId} 
+                                        onChange={handleChange}
+                                    >
                                         {isProductsLoading ? (
                                             <MenuItem disabled><em>Loading products...</em></MenuItem>
                                         ) : (
                                             products.map(product => (
-                                                <MenuItem key={product.id} value={product.id}>{product.name}</MenuItem>
+                                                // Ensure product.id and product.name exist in your API response
+                                                <MenuItem key={product.productId} value={product.productId}>
+                                                    {product.name}
+                                                </MenuItem>
                                             ))
                                         )}
                                     </Select>
@@ -151,7 +158,7 @@ export default function StockRequestPage() {
                                 <TextField 
                                     fullWidth 
                                     required 
-                                    name="quantity" 
+                                    name="quantity" // This 'name' MUST match the state key: formData.quantity
                                     label="Quantity" 
                                     type="number" 
                                     value={formData.quantity} 
@@ -162,15 +169,13 @@ export default function StockRequestPage() {
                                     fullWidth 
                                     multiline 
                                     rows={4} 
-                                    name="notes" 
+                                    name="notes" // This 'name' MUST match the state key: formData.notes
                                     label="Notes (Optional)" 
                                     value={formData.notes} 
                                     onChange={handleChange} 
                                 />
                             </Stack>
                             <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
-                                {/* The "Add More" button functionality can be implemented if needed */}
-                                {/* <Button variant="outlined">Add More</Button> */}
                                 <Button type="submit" variant="contained" disabled={isSubmitting || isProductsLoading}>
                                     {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Request'}
                                 </Button>
@@ -179,7 +184,7 @@ export default function StockRequestPage() {
                     </Card>
                 </Grid>
 
-                {/* Right History Table (Unchanged logic, still uses mock data) */}
+                {/* Right History Table */}
                 <Grid item xs={12} lg={7}>
                     <Card sx={{ height: { xs: 'auto', lg: 'calc(100vh - 120px)' }, width:770, display: 'flex', flexDirection: 'column' }}>
                         <CardContent>
