@@ -52,8 +52,9 @@ public class Sale {
     @Column(nullable = false)
     private Double totalAmount;
 
-    @Enumerated(EnumType.STRING)
-    private Status saleStatus = Status.PENDING;
+   @Enumerated(EnumType.STRING)
+   @Column(name = "sale_status") // ✅ ADD THIS LINE
+   private Status saleStatus = Status.PENDING;
 
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SaleItem> saleItems;
