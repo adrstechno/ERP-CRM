@@ -74,7 +74,7 @@ public class UserProfileService {
         profile.setCity(dto.getCity());
         profile.setState(dto.getState());
         profile.setPincode(dto.getPincode());
-        profile.setAccountNo(dto.getAccountNumber());
+        profile.setAccountNo(dto.getAccountNo());
         profile.setBankName(dto.getBankName());
         profile.setIfscCode(dto.getIfscCode());
         profile.setGstNumber(dto.getGstNumber());
