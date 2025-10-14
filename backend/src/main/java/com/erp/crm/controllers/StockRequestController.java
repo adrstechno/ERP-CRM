@@ -21,11 +21,9 @@ public class StockRequestController {
         this.stockRequestService = stockRequestService;
     }
 
-    @PostMapping("/create/{userId}")
-    public ResponseEntity<StockRequestResponseDTO> createRequest(
-            @PathVariable Long userId,
-            @RequestBody StockRequestDTO dto) {
-        return ResponseEntity.ok(stockRequestService.createRequest(userId, dto));
+    @PostMapping("/create")
+    public ResponseEntity<StockRequestResponseDTO> createRequest(@RequestBody StockRequestDTO dto) {
+        return ResponseEntity.ok(stockRequestService.createRequest(dto));
     }
 
     @GetMapping("/all")
