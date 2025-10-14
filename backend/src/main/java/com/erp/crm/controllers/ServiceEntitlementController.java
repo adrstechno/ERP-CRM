@@ -18,7 +18,7 @@ public class ServiceEntitlementController {
         this.entitlementService = entitlementService;
     }
 
-    // 1️⃣ Get entitlements by Sale
+    //  Get entitlements by Sale
     @GetMapping("/sale/{saleId}")
     public ResponseEntity<List<ServiceEntitlementResponseDTO>> getEntitlementsBySale(@PathVariable Long saleId) {
         List<ServiceEntitlementResponseDTO> entitlements = entitlementService.getEntitlementsBySale(saleId);

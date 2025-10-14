@@ -1,25 +1,18 @@
 package com.erp.crm.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.ManyToOne;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "sale_items")
 public class SaleItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="sale_item_id")
+    @Column(name = "sale_item_id")
     private Long saleItemId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,11 +26,17 @@ public class SaleItem {
     @Column(nullable = false)
     private Integer quantity;
 
-
     @Column(nullable = false)
     private Double unitPrice;
 
-   
     private Double taxRate = 0.0;
-}
 
+    // ✅ NEW FIELD — to mark if service for this item is paid or free
+    @Column(nullable = false)
+    private boolean paidService = false; // default FREE entitlement
+
+    // ✅ Optional helper method for clean code
+    public boolean isPaidService() {
+        return paidService;
+    }
+}
