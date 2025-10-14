@@ -1,5 +1,7 @@
 package com.erp.crm.services;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.erp.crm.dto.InvoiceResponseDTO;
@@ -22,6 +24,20 @@ public class InvoiceService {
         SaleResponseDTO sale  = saleService.getSale(saleId);
 
         return mapToDto(invoice,sale);
+    }
+
+    public List<InvoiceResponseDTO> getAllInvoices() {
+        List<Invoice> invoices = invoiceRepo.findAll();
+
+        if (invoices == null || invoices.isEmpty()) {
+            throw new RuntimeException("No invoices found");
+        }
+
+        return invoices.stream()
+            .map(invoice -> {
+                SaleResponseDTO sale = saleService.getSale(invoice.getSale().getSaleId());
+                return mapToDto(invoice, sale);
+            }).toList();
     }
 
     public InvoiceResponseDTO mapToDto(Invoice invoice,SaleResponseDTO sale){

@@ -1,5 +1,7 @@
 package com.erp.crm.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,16 +20,17 @@ public class InvoiceController {
 
     @Autowired
     private InvoiceService invoiceService;
-    
-    @GetMapping("/{saleId}")
-    public ResponseEntity<InvoiceResponseDTO> getInvoice(@PathVariable Long saleId){
-        return ResponseEntity.ok(invoiceService.getInvoice(saleId));
+
+    @GetMapping("/get-all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<InvoiceResponseDTO>> getAllInvoices() {
+        List<InvoiceResponseDTO> invoices = invoiceService.getAllInvoices();
+        return ResponseEntity.ok(invoices);
     }
 
-    // @GetMapping("/get-all")
-    // @PreAuthorize("hasRole('ADMIN')")
-    // public ResponseEntity<InvoiceResponseDTO> getAllInvoices() {
-    //     return
-    // }
+    @GetMapping("/{saleId}")
+    public ResponseEntity<InvoiceResponseDTO> getInvoice(@PathVariable Long saleId) {
+        return ResponseEntity.ok(invoiceService.getInvoice(saleId));
+    }
 
 }

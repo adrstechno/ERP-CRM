@@ -48,13 +48,7 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    // --------------------- Get Payments by Invoice ---------------------
-    @GetMapping("/{invoiceId}")
-    public ResponseEntity<List<PaymentResponseDTO>> getPaymentsByInvoice(@PathVariable Long invoiceId) {
-        return ResponseEntity.ok(paymentService.getPaymentsByInvoice(invoiceId));
-    }
-
-    @GetMapping("/payments/received")
+    @GetMapping("/received")
     public ResponseEntity<ApiResponse<List<PaymentResponseDTO>>> getAllPaymentsByReceivedBy() {
         try {
             List<PaymentResponseDTO> payments = paymentService.getPaymentsByUser();
@@ -74,6 +68,12 @@ public class PaymentController {
 
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+    }
+
+    // --------------------- Get Payments by Invoice ---------------------
+    @GetMapping("/{invoiceId}")
+    public ResponseEntity<List<PaymentResponseDTO>> getPaymentsByInvoice(@PathVariable Long invoiceId) {
+        return ResponseEntity.ok(paymentService.getPaymentsByInvoice(invoiceId));
     }
 
 }
