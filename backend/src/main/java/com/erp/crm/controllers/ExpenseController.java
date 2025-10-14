@@ -52,7 +52,7 @@ public class ExpenseController {
     }
 
     // Approve or reject an expense (only logged-in user can approve)
-    @PutMapping("/{expenseId}/status")
+    @PatchMapping("/{expenseId}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ExpenseResponseDTO>> updateExpenseStatus(
             @PathVariable Long expenseId,
