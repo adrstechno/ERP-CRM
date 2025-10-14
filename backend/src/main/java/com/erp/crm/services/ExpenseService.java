@@ -119,6 +119,7 @@ public class ExpenseService {
         ExpenseResponseDTO dto = new ExpenseResponseDTO();
         dto.setUserName(expense.getUser() != null ? expense.getUser().getName() : null);
         dto.setExpenseDate(expense.getExpenseDate());
+        dto.setExpenseId(expense.getExpenseId());
         dto.setCategory(expense.getCategory());
         dto.setAmount(expense.getAmount());
         dto.setRemarks(expense.getRemarks());
