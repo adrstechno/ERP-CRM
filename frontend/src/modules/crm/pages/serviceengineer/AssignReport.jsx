@@ -99,7 +99,7 @@ export default function AssignedTasks() {
             const response = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/update`, {
                 method: 'PATCH',
                 headers: { 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status: 'IN_PROGRESS' }),
+                
             });
 
             if (!response.ok) throw new Error('Failed to update ticket status');
