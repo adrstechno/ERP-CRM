@@ -9,6 +9,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { format } from 'date-fns';
 import axios from 'axios';
+import { VITE_API_BASE_URL } from '../../utils/State';
 
 // --- Helper Functions (No changes) ---
 const currentYear = new Date().getFullYear();
@@ -56,7 +57,7 @@ export default function ApproveExpenses() {
         const fetchExpenses = async () => {
             setIsLoading(true);
             try {
-                const response = await axios.get('http://localhost:8080/api/expense/all-expense', axiosConfig);
+                const response = await axios.get(`${VITE_API_BASE_URL}/expense/all-expense`, axiosConfig);
                 const result = response.data;
 
                 if (result.success && Array.isArray(result.data)) {
@@ -97,7 +98,7 @@ export default function ApproveExpenses() {
 
         try {
             // **1. Construct the new URL with the query parameter**
-            const API_URL = `http://localhost:8080/api/expense/${expenseId}/status?status=APPROVED`;
+            const API_URL = `${VITE_API_BASE_URL}/expense/${expenseId}/status?status=APPROVED`;
             
             // **2. Make the PATCH request with a `null` body**
             // The second argument to axios.patch is the request body, which is not needed here.

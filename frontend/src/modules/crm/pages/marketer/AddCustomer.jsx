@@ -12,6 +12,7 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
 import { VITE_API_BASE_URL } from '../../utils/State';
+import toast from 'react-hot-toast';
 
 
 
@@ -52,20 +53,20 @@ export default function Customers() {
   }, [fetchCustomers]);
 
   // 🔹 Get Customer By ID
-  const getCustomerById = async (id) => {
-    try {
-      const authKey = localStorage.getItem("authKey");
-      const res = await fetch(`${VITE_API_BASE_URL}/customer/${id}`, {
-        headers: { Authorization: `Bearer ${authKey}` },
-      });
-      if (!res.ok) throw new Error(`Failed to fetch customer by ID: ${res.status}`);
-      const data = await res.json();
-      console.log("Customer by ID:", data);
-      return data;
-    } catch (err) {
-      console.error("getCustomerById error:", err);
-    }
-  };
+  // const getCustomerById = async (id) => {
+  //   try {
+  //     const authKey = localStorage.getItem("authKey");
+  //     const res = await fetch(`${VITE_API_BASE_URL}/customer/${id}`, {
+  //       headers: { Authorization: `Bearer ${authKey}` },
+  //     });
+  //     if (!res.ok) throw new Error(`Failed to fetch customer by ID: ${res.status}`);
+  //     const data = await res.json();
+  //     console.log("Customer by ID:", data);
+  //     return data;
+  //   } catch (err) {
+  //     console.error("getCustomerById error:", err);
+  //   }
+  // };
 
   // 🔹 Get Customer By Name
   const getCustomerByName = async (name) => {
@@ -77,9 +78,11 @@ export default function Customers() {
       if (!res.ok) throw new Error(`Failed to fetch customer by name: ${res.status}`);
       const data = await res.json();
       console.log("Customer by name:", data);
+      toast.success("successsss")
       setCustomers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("getCustomerByName error:", err);
+      toast.error("Error")
     }
   };
 
@@ -113,8 +116,10 @@ export default function Customers() {
       const newCustomer = await res.json();
       setCustomers(prev => [newCustomer, ...prev]);
       handleCloseAddDialog();
+      toast.success("Added customer Succefully");
     } catch (err) {
       console.error('Create customer error:', err);
+      toast.error("Something Went Wrong")
     } finally {
       setIsSubmitting(false);
     }
