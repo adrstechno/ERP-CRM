@@ -234,11 +234,11 @@ export default function ServiceManagement() {
                             <TableContainer sx={{ maxHeight: 'calc(100vh - 450px)', overflowY: 'auto' }}>
                                 <Table stickyHeader size="small">
                                     <TableHead>
-                                        <TableRow>{['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date', 'Actions'].map(h => <TableCell key={h}>{h}</TableCell>)}</TableRow>
+                                        <TableRow>{['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date' ].map(h => <TableCell key={h}>{h}</TableCell>)}</TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {isLoading ? <TableSkeleton columns={8} /> :
-                                            error ? <TableError columns={8} message={error} /> :
+                                        {isLoading ? <TableSkeleton columns={7} /> :
+                                            error ? <TableError columns={7} message={error} /> :
                                                 tickets.map((ticket) => (
                                                     <TableRow key={ticket.id} hover>
                                                         <TableCell sx={{ fontWeight: 500 }}>#{String(ticket.id).padStart(3, '0')}</TableCell>
@@ -248,10 +248,10 @@ export default function ServiceManagement() {
                                                         <TableCell>{getStatusChip(ticket.status)}</TableCell>
                                                         <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
                                                         <TableCell>{dayjs(ticket.dueDate).format('DD MMM YYYY')}</TableCell>
-                                                        <TableCell>
+                                                        {/* <TableCell>
                                                             <IconButton size="small"><EditIcon fontSize="small" /></IconButton>
                                                             <IconButton size="small"><DeleteIcon fontSize="small" /></IconButton>
-                                                        </TableCell>
+                                                        </TableCell> */}
                                                     </TableRow>
                                                 ))}
                                     </TableBody>
