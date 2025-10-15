@@ -49,6 +49,7 @@ import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { VITE_API_BASE_URL } from "../../utils/State";
+import toast from "react-hot-toast";
 
 // --- Custom Tooltip for Charts ---
 const CustomTooltip = ({ active, payload, label }) => {
@@ -195,7 +196,7 @@ export default function SalesManagement() {
     setIsSubmitting(true);
 
     if (!form.entityId) {
-      alert("Please select a customer before submitting.");
+      toast.success("Please select a customer before submitting.");
       setIsSubmitting(false);
       return;
     }
@@ -218,12 +219,12 @@ export default function SalesManagement() {
         axiosConfig
       );
 
-      alert(`Sale Created Successfully for ${response.data.customerName}`);
+      toast.success(`Sale Created Successfully for ${response.data.customerName}`);
       fetchSales(); // Refresh the table
       handleCloseCreateDialog();
     } catch (error) {
       console.error("Error creating sale:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Failed to create sale.");
+      toast.error(error.response?.data?.message || "Failed to create sale.");
     } finally {
       setIsSubmitting(false);
     }
