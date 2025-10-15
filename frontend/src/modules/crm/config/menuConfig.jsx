@@ -22,6 +22,7 @@ export const crmMenuConfig = {
     { label: "Dealers Management", path: "/crm/dealers", icon: <WorkIcon /> },
     { label: "Inventory", path: "/crm/inventory", icon: <InventoryIcon /> },
     { label: "Sales", path: "/crm/sales", icon: <ShoppingCartIcon /> },
+    { label: "New Sales", path: "/crm/new-sales", icon: <AddShoppingCartIcon /> },
     { label: "Service", path: "/crm/service", icon: <AssignmentIcon /> },
     { label: "Approve Expenses", path: "/crm/expenses/approve", icon: <ReceiptIcon /> },
     { label: "Billing & Invoices", path: "/crm/invoices", icon: <ReceiptIcon /> },
@@ -39,7 +40,7 @@ export const crmMenuConfig = {
   dealer: [
     { label: "Dashboard", path: "/crm/dealer", icon: <DashboardIcon /> },
     { label: "Stock Requests", path: "/crm/stock-requests", icon: <InventoryIcon /> },
-    { label: "Notices", path: "/crm/notices", icon: <MailIcon /> },
+    // { label: "Notices", path: "/crm/notices", icon: <MailIcon /> },
     {/* label: "Sales Entry", path: "/crm/sales/entry", icon: <ShoppingCartIcon /> */},
     { /*label: "Invoices & Payments", path: "/crm/invoices", icon: <ReceiptIcon /> */},
     {/* label: "Profile", path: "/crm/profile", icon: <PersonIcon /> */},
@@ -49,9 +50,9 @@ export const crmMenuConfig = {
   { label: "Dashboard", path: "/crm/marketer", icon: <DashboardIcon /> },
   { label: "New Customer", path: "/crm/New-Customer", icon: <PersonAddIcon /> },
   { label: "New Sales", path: "/crm/new-sales", icon: <AddShoppingCartIcon /> },
-  { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
+  // { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
   { label: "Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
-  { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, 
+  // { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, 
   { label: "getexpenses", path: "/crm/getexpenses", icon: <HistoryIcon /> },
  
   ],
