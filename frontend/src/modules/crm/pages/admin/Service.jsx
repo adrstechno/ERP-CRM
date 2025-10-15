@@ -14,6 +14,7 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { VITE_API_BASE_URL } from "../../utils/State";
+import toast from 'react-hot-toast';
 
 // --- Helper Components ---
 const getStatusChip = (status) => {
@@ -189,6 +190,7 @@ const useServiceTickets = () => {
 
             handleCloseDialog();
             fetchTickets();
+            toast.success("Create Ticket successfully")
         } catch (err) {
             console.error("Failed to create ticket:", err);
         } finally {
