@@ -18,7 +18,7 @@ import { VITE_API_BASE_URL } from "../../utils/State";
 // --- Helper Components ---
 const getStatusChip = (status) => {
     let color;
-    if (status === 'Resolved') color = 'success';
+    if (status === 'Resolved' || status === 'APPROVED') color = 'success';
     else if (status === 'In Progress' || status === 'Open' || status === "OPEN") color = 'warning';
     else if (status === 'Pending') color = 'error';
     else color = 'default';
@@ -48,7 +48,6 @@ const useServiceTickets = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // State for dropdown data
     const [engineers, setEngineers] = useState([]);
     const [sales, setSales] = useState([]);
     const [productsForSelectedSale, setProductsForSelectedSale] = useState([]);
@@ -66,14 +65,12 @@ const useServiceTickets = () => {
         setIsLoading(true);
         setError(null);
         try {
-            // --- Fetching real ticket data from the API ---
             const response = await fetch(`${VITE_API_BASE_URL}/tickets/get-all`, axiosConfig);
             if (!response.ok) {
                 throw new Error('Failed to fetch service tickets from API.');
             }
             const data = await response.json();
             
-            // --- Mapping API response to the format expected by the table ---
             const formattedTickets = data.map(ticket => ({
                 id: ticket.ticketId,
                 assignedTo: ticket.assignedEngineerName,
@@ -94,6 +91,7 @@ const useServiceTickets = () => {
     }, [axiosConfig]);
 
     useEffect(() => {
+        // ... (fetchDropdownData remains the same)
         const fetchDropdownData = async () => {
             try {
                 const [engineersRes, customersRes, salesRes] = await Promise.all([
@@ -123,7 +121,6 @@ const useServiceTickets = () => {
     }, [fetchTickets, axiosConfig]);
 
     const handleOpenDialog = () => setOpenDialog(true);
-
     const handleCloseDialog = () => {
         setOpenDialog(false);
         setNewTicket(initialState);
@@ -132,36 +129,22 @@ const useServiceTickets = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-
         if (name === 'saleId') {
             const selectedSale = sales.find(sale => sale.saleId === value);
-
             if (selectedSale) {
-                const matchingCustomer = customers.find(cust =>
-                    cust.customerName?.trim().toLowerCase() === selectedSale.customerName?.trim().toLowerCase()
-                );
-                const finalCustomerId = matchingCustomer ? matchingCustomer.customerId : null;
-
-                setNewTicket(prev => ({
-                    ...prev,
-                    saleId: value,
-                    customerId: finalCustomerId,
-                    customerName: selectedSale.customerName,
-                    productId: '',
-                }));
+                const matchingCustomer = customers.find(cust => cust.customerName?.trim().toLowerCase() === selectedSale.customerName?.trim().toLowerCase());
+                setNewTicket(prev => ({...prev, saleId: value, customerId: matchingCustomer?.customerId || null, customerName: selectedSale.customerName, productId: ''}));
                 setProductsForSelectedSale(selectedSale.items || []);
-            } else {
-                setNewTicket(initialState);
-                setProductsForSelectedSale([]);
             }
         } else {
             setNewTicket(prev => ({ ...prev, [name]: value }));
         }
     };
-
+    
     const handleDateChange = (date) => setNewTicket(prev => ({ ...prev, dueDate: date }));
 
     const handleCreateTicket = async () => {
+        // ... (this function remains the same)
         setIsSubmitting(true);
         try {
             const ticketData = {
@@ -175,10 +158,7 @@ const useServiceTickets = () => {
 
             const response = await fetch(`${VITE_API_BASE_URL}/tickets/open`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
                 body: JSON.stringify(ticketData),
             });
 
@@ -186,7 +166,6 @@ const useServiceTickets = () => {
                 const errorBody = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
                 throw new Error(`API Error: ${response.status} - ${errorBody.message || 'Failed to create ticket'}`);
             }
-
             handleCloseDialog();
             fetchTickets();
         } catch (err) {
@@ -195,11 +174,37 @@ const useServiceTickets = () => {
             setIsSubmitting(false);
         }
     };
+    
+    // --- New Handler for Approving Tickets ---
+    const handleApproveTicket = async (ticketId) => {
+        try {
+            const response = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/approve`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to approve ticket');
+            }
+            const updatedTicket = await response.json();
+
+            // Update the state locally for instant UI feedback
+            setTickets(prevTickets => 
+                prevTickets.map(ticket => 
+                    ticket.id === ticketId ? { ...ticket, status: updatedTicket.status } : ticket
+                )
+            );
+        } catch (err) {
+            console.error(`Error approving ticket ${ticketId}:`, err);
+            // Optionally, set an error state to show a user-facing message
+        }
+    };
 
     return {
         tickets, isLoading, error, openDialog, isSubmitting, newTicket,
         engineers, sales, productsForSelectedSale,
-        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket
+        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
+        handleApproveTicket // Export the new handler
     };
 };
 
@@ -208,7 +213,8 @@ export default function ServiceManagement() {
     const theme = useTheme();
     const { tickets, isLoading, error, openDialog, isSubmitting, newTicket,
         engineers, sales, productsForSelectedSale,
-        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket
+        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
+        handleApproveTicket // Destructure the new handler
     } = useServiceTickets();
 
     const operatingStatusData = [
@@ -245,13 +251,22 @@ export default function ServiceManagement() {
                                                         <TableCell>{ticket.assignedTo}</TableCell>
                                                         <TableCell>{ticket.customer}</TableCell>
                                                         <TableCell>{ticket.product}</TableCell>
-                                                        <TableCell>{getStatusChip(ticket.status)}</TableCell>
+                                                        <TableCell>
+                                                            {/* --- Conditional Rendering for Approve Button --- */}
+                                                            {ticket.status === 'OPEN' ? (
+                                                                <Button 
+                                                                    variant="contained" 
+                                                                    size="small" 
+                                                                    onClick={() => handleApproveTicket(ticket.id)}
+                                                                >
+                                                                    Approve
+                                                                </Button>
+                                                            ) : (
+                                                                getStatusChip(ticket.status)
+                                                            )}
+                                                        </TableCell>
                                                         <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
                                                         <TableCell>{dayjs(ticket.dueDate).format('DD MMM YYYY')}</TableCell>
-                                                        {/* <TableCell>
-                                                            <IconButton size="small"><EditIcon fontSize="small" /></IconButton>
-                                                            <IconButton size="small"><DeleteIcon fontSize="small" /></IconButton>
-                                                        </TableCell> */}
                                                     </TableRow>
                                                 ))}
                                     </TableBody>
@@ -260,6 +275,7 @@ export default function ServiceManagement() {
                         </CardContent>
                     </Card>
 
+                    {/* Operating Status Chart Card */}
                     <Card>
                         <CardContent>
                             <Typography variant="h6" sx={{ fontWeight: 'bold' }} gutterBottom>Service Projects - Operating Status</Typography>
@@ -279,54 +295,37 @@ export default function ServiceManagement() {
                     </Card>
                 </Stack>
 
+                {/* Create New Ticket Dialog */}
                 <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                     <DialogTitle>Create New Service Ticket</DialogTitle>
                     <DialogContent>
                         <Stack spacing={2.5} sx={{ mt: 2 }}>
+                            {/* Form Controls... */}
                             <FormControl fullWidth variant="filled">
                                 <InputLabel>Sale ID</InputLabel>
                                 <Select label="Sale ID" name="saleId" value={newTicket.saleId} onChange={handleInputChange}>
-                                    {sales.map(s => (
-                                        <MenuItem key={s.saleId} value={s.saleId}>
-                                            {`Sale #${s.saleId} (${s.customerName})`}
-                                        </MenuItem>
-                                    ))}
+                                    {sales.map(s => ( <MenuItem key={s.saleId} value={s.saleId}>{`Sale #${s.saleId} (${s.customerName})`}</MenuItem> ))}
                                 </Select>
                             </FormControl>
-
-                            <TextField
-                                label="Customer"
-                                value={newTicket.customerName}
-                                fullWidth
-                                variant="filled"
-                                InputProps={{ readOnly: true }}
-                            />
-
+                            <TextField label="Customer" value={newTicket.customerName} fullWidth variant="filled" InputProps={{ readOnly: true }} />
                             <FormControl fullWidth variant="filled" disabled={!newTicket.saleId}>
                                 <InputLabel>Product</InputLabel>
                                 <Select label="Product" name="productId" value={newTicket.productId} onChange={handleInputChange}>
-                                    {productsForSelectedSale.map(p => (
-                                        <MenuItem key={p.productId} value={p.productId}>
-                                            {p.productName}
-                                        </MenuItem>
-                                    ))}
+                                    {productsForSelectedSale.map(p => ( <MenuItem key={p.productId} value={p.productId}>{p.productName}</MenuItem> ))}
                                 </Select>
                             </FormControl>
-
                             <FormControl fullWidth variant="filled">
                                 <InputLabel>Assigned Engineer</InputLabel>
                                 <Select label="Assigned Engineer" name="assignedEngineerId" value={newTicket.assignedEngineerId} onChange={handleInputChange}>
                                     {engineers.map(e => <MenuItem key={e.userId} value={e.userId}>{e.name}</MenuItem>)}
                                 </Select>
                             </FormControl>
-
                             <FormControl fullWidth variant="filled">
                                 <InputLabel>Priority</InputLabel>
                                 <Select label="Priority" name="priority" value={newTicket.priority} onChange={handleInputChange}>
                                     {['LOW', 'MEDIUM', 'HIGH', 'URGENT'].map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
                                 </Select>
                             </FormControl>
-
                             <DatePicker label="Due Date" value={newTicket.dueDate} onChange={handleDateChange} sx={{ width: '100%' }} slotProps={{ textField: { variant: 'filled' } }} />
                         </Stack>
                     </DialogContent>
