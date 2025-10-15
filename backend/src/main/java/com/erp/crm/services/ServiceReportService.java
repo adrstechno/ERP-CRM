@@ -52,8 +52,7 @@ public class ServiceReportService {
         }
 
          // Only completed tickets allowed
-        ticket.setStatus(Status.COMPLETED);
-        ticketRepo.save(ticket);
+        serviceReportService.updateWork(ticket.getId(),Status.COMPLETED);
 
         ServiceReport report = new ServiceReport();
         report.setTicket(ticket);
