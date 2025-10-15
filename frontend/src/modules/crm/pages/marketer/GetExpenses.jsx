@@ -8,6 +8,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { format } from 'date-fns';
 import axios from 'axios';
+import { VITE_API_BASE_URL } from '../../utils/State';
 
 // --- Helper Functions ---
 const currentYear = new Date().getFullYear();
@@ -76,7 +77,7 @@ export default function MyExpenses() {
             setIsLoading(true);
             try {
                 // ## 1. API endpoint changed to 'my-expense'
-                const response = await axios.get('http://localhost:8080/api/expense/my-expense', axiosConfig);
+                const response = await axios.get(`${VITE_API_BASE_URL}/expense/my-expense`, axiosConfig);
                 const result = response.data;
 
                 if (result.success && Array.isArray(result.data)) {

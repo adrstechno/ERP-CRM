@@ -52,7 +52,7 @@ import { VITE_API_BASE_URL } from "../../utils/State";
 
 // --- Custom Tooltip for Charts ---
 const CustomTooltip = ({ active, payload, label }) => {
-  const theme = useTheme();
+  // const theme = useTheme();
   if (active && payload && payload.length) {
     return (
       <Card sx={{ p: 1 }}>

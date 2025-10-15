@@ -28,7 +28,7 @@ import {
 import BusinessIcon from '@mui/icons-material/Business';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import SearchIcon from '@mui/icons-material/Search';
-import { VITE_API_BASE_URL } from '../../utils/State'; // Assuming this is 'http://localhost:8080/api'
+import { VITE_API_BASE_URL } from '../../utils/State'; 
 
 // Reusable Helper Component
 const DetailItem = ({ label, value }) => (
