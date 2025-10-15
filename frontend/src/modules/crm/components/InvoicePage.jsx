@@ -500,12 +500,12 @@ import { useParams } from "react-router-dom";
 import { VITE_API_BASE_URL } from "../utils/State";
 
 const InvoicePage = () => {
-  const { invoiceId } = useParams();
+  // const { invoiceId } = useParams();
   const invoiceRef = useRef();
   const [paymentData, setPaymentData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const invoiceId = 2;
   const fetchPayments = async () => {
     try {
       setLoading(true);
