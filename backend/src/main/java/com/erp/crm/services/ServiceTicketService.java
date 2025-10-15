@@ -4,6 +4,10 @@ import com.erp.crm.dto.ServiceTicketRequestDTO;
 import com.erp.crm.dto.ServiceTicketResponseDTO;
 import com.erp.crm.models.*;
 import com.erp.crm.repositories.*;
+import com.erp.crm.security.UserPrincipal;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +50,7 @@ public class ServiceTicketService {
         Sale sale = saleRepo.findById(dto.getSaleId())
                 .orElseThrow(() -> new RuntimeException("Sale not found"));
 
-       List<Status> activeStatuses = List.of(Status.OPEN, Status.IN_PROGRESS , Status.APPROVED, Status.COMPLETED);
+        List<Status> activeStatuses = List.of(Status.OPEN, Status.IN_PROGRESS, Status.APPROVED, Status.COMPLETED);
 
         boolean activeTicketExists = ticketRepo.existsBySale_SaleIdAndProduct_ProductIdAndStatusIn(
                 sale.getSaleId(), product.getProductId(), activeStatuses);
@@ -55,7 +59,7 @@ public class ServiceTicketService {
             throw new RuntimeException("A ticket for this product in this sale is already active.");
         }
 
-        //  Find entitlement for that sale + product
+        // Find entitlement for that sale + product
         ServiceEntitlement entitlement = entitlementRepo
                 .findBySale_SaleIdAndProduct_ProductId(dto.getSaleId(), dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("No entitlement found for this product in sale"));
@@ -113,6 +117,22 @@ public class ServiceTicketService {
     // Get all tickets
     public List<ServiceTicketResponseDTO> getAllServiceTicket() {
         return ticketRepo.findAll().stream()
+                .map(ServiceTicketResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    public List<ServiceTicketResponseDTO> getServiceTicketByUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        String email = principal.getUsername();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        return ticketRepo.findByAssignedEngineer(user).stream()
                 .map(ServiceTicketResponseDTO::fromEntity)
                 .collect(Collectors.toList());
     }

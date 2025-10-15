@@ -62,4 +62,9 @@ public class ServiceTicketController {
     public ResponseEntity<List<ServiceTicketResponseDTO>> getAllServiceTicket() {
         return ResponseEntity.ok(ticketService.getAllServiceTicket());
     }
+
+    @GetMapping("/get-services-by-user")
+    public ResponseEntity<List<ServiceTicketResponseDTO>> getServiceTicketByUser() {
+        return ResponseEntity.ok(ticketService.getServiceTicketByUser());
+    }
 }
