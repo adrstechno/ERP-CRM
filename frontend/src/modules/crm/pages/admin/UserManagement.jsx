@@ -21,6 +21,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Visibility from '@mui/icons-material/Visibility';
 import { VITE_API_BASE_URL } from "../../utils/State";
+import toast from "react-hot-toast";
 
 
 
@@ -30,25 +31,21 @@ import { VITE_API_BASE_URL } from "../../utils/State";
 
 
 async function createUserApi(userData) {
-    try {
-        const authKey = localStorage.getItem("authKey");
-        const response = await axios.post(
-            `${VITE_API_BASE_URL}/admin/create-user?`,
-            userData,
-            {
-                headers: {
-                    Authorization: `Bearer ${authKey}`,
-                },
-            }
-        );
-        const returnedAuthKey = response.data.authKey || response.data.token;
-        if (returnedAuthKey) {
-            localStorage.setItem("authKey", returnedAuthKey);
+    const authKey = localStorage.getItem("authKey");
+    const response = await axios.post(
+        `${VITE_API_BASE_URL}/admin/create-user?`,
+        userData,
+        {
+            headers: {
+                Authorization: `Bearer ${authKey}`,
+            },
         }
-        return response.data;
-    } catch (error) {
-        throw error;
+    );
+    const returnedAuthKey = response.data.authKey || response.data.token;
+    if (returnedAuthKey) {
+        localStorage.setItem("authKey", returnedAuthKey);
     }
+    return response.data;
 }
 async function createProfileApi(userId, profileData) {
     try {
@@ -245,7 +242,7 @@ export default function UserManagement() {
 
     } catch (error) {
         console.error('Create user failed:', error);
-        alert("Failed to create user. Please try again.");
+        toast.error("Failed to create user. Please try again.");
     }
 };
 
@@ -319,10 +316,10 @@ export default function UserManagement() {
             // Remove the deleted user from the table
             setUsersData((prev) => prev.filter((u) => u.userId !== userId));
 
-            alert("Profile deleted successfully!");
+              toast.success("Profile Deleted Successful!");
         } catch (error) {
             console.error("Failed to delete profile:", error);
-            alert("Error deleting profile. Please try again.");
+            toast.error("Error deleting profile. Please try again.");
         }
     };
 
