@@ -217,6 +217,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
+import { VITE_API_BASE_URL } from "../../utils/State";
 
 // --- Mock Data for Chart (API data will be used for the table) ---
 const generateGstData = () => {
@@ -287,7 +288,7 @@ export default function BillingAndInvoice() {
       setIsLoading(true);
       try {
         const response = await fetch(
-          "http://localhost:8080/api/invoices/get-all",
+          `${VITE_API_BASE_URL}/invoices/get-all`,
           axiosConfig
         );
         if (!response.ok) throw new Error("Network response was not ok");
