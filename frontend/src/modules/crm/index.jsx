@@ -59,9 +59,10 @@ export default function CRMModule() {
 
   return (
     <Routes>
+      <Route path="invoice/:saleId" element={<InvoicePage />} />
       <Route path="/crm" element={<Navigate to="/login" replace />} />
       <Route element={<CRMLayout />}>
-      <Route path="invoice" element ={<InvoicePage />}/>
+     
     
       
             
