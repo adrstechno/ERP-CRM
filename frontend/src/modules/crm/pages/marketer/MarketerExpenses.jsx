@@ -19,7 +19,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import { VITE_API_BASE_URL } from "../../utils/State"; // Ensure this path is correct
-
+import toast from "react-hot-toast";
 // Categories must match the backend Enum exactly
 const expenseCategories = [
     { value: "TRAVEL", label: "Travel" },
@@ -92,7 +92,8 @@ export default function MarketerExpenses() {
       }
 
       console.log("Expense submitted successfully:", result);
-      alert("Reimbursement submitted successfully!");
+      toast.success("Reimbursement submitted successfully!")
+      
       
       // Reset form after successful submission
       setFormData({ category: "TRAVEL", amount: "", remarks: "" });
@@ -101,7 +102,8 @@ export default function MarketerExpenses() {
       
     } catch (error) {
       console.error("Submission Error:", error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`)
+      // alert(`Error: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

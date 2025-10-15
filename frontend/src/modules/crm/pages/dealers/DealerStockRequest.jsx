@@ -7,6 +7,7 @@ import {
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import HistoryIcon from '@mui/icons-material/History';
 import axios from 'axios';
+import { VITE_API_BASE_URL } from "../../utils/State";
 
 // --- Helper Component ---
 const StatusChip = React.memo(({ status }) => {
@@ -53,7 +54,7 @@ export default function StockRequestPage() {
 
         setIsHistoryLoading(true);
         try {
-            const response = await axios.get(`http://localhost:8080/api/stock-requests/user/${user.id}`, axiosConfig);
+            const response = await axios.get(`${VITE_API_BASE_URL}/stock-requests/user/${user.id}`, axiosConfig);
             // Assuming the API returns the array directly or in a data property
             setHistory(response.data.data || response.data || []);
         } catch (error) {
@@ -67,7 +68,7 @@ export default function StockRequestPage() {
     const fetchProducts = useCallback(async () => {
         setIsProductsLoading(true);
         try {
-            const response = await axios.get("http://localhost:8080/api/products/all", axiosConfig);
+            const response = await axios.get(`${VITE_API_BASE_URL}/products/all`, axiosConfig);
             setProducts(response.data || []);
         } catch (error) {
             console.error("Failed to fetch products:", error);
@@ -92,7 +93,7 @@ export default function StockRequestPage() {
         
         try {
             await axios.post(
-                "http://localhost:8080/api/stock-requests/create",
+                `${VITE_API_BASE_URL}/stock-requests/create`,
                 { ...formData },
                 axiosConfig
             );
