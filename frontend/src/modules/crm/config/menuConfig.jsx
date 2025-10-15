@@ -22,7 +22,7 @@ export const crmMenuConfig = {
     { label: "Dealers Management", path: "/crm/dealers", icon: <WorkIcon /> },
     { label: "Inventory", path: "/crm/inventory", icon: <InventoryIcon /> },
     { label: "Sales", path: "/crm/sales", icon: <ShoppingCartIcon /> },
-    { label: "New Sales", path: "/crm/new-sales", icon: <AddShoppingCartIcon /> },
+    // { label: "New Sales", path: "/crm/new-sales", icon: <AddShoppingCartIcon /> },
     { label: "Service", path: "/crm/service", icon: <AssignmentIcon /> },
     { label: "Approve Expenses", path: "/crm/expenses/approve", icon: <ReceiptIcon /> },
     { label: "Billing & Invoices", path: "/crm/invoices", icon: <ReceiptIcon /> },
