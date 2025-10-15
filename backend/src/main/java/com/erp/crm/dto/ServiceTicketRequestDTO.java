@@ -1,15 +1,17 @@
 package com.erp.crm.dto;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDate;
-
-import com.erp.crm.models.EntitlementType;
 import com.erp.crm.models.Priority;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ServiceTicketRequestDTO {
     
     @NotNull
