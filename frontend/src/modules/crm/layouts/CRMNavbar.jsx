@@ -19,6 +19,7 @@ import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import { useCRMAuth } from "../context/CRMAuthContext";
 import { useNavigate } from "react-router-dom";
 import { useThemeContext } from "../../../core/theme/ThemeProvider";
+import toast from "react-hot-toast";
 
 const notifications = [
   { id: 1, primary: "New lead assigned", secondary: "John Doe - Tech Corp" },
@@ -73,6 +74,7 @@ export default function CRMNavbar({ onMenuClick }) {
     localStorage.removeItem("authKey");
     handleClose();
     handleNotificationClose();
+    toast.success("Logout Succesfully");
     navigate("/login", { replace: true });
   };
 
