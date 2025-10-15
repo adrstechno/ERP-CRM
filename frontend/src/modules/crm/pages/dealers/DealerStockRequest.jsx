@@ -8,6 +8,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import HistoryIcon from '@mui/icons-material/History';
 import axios from 'axios';
 import { VITE_API_BASE_URL } from "../../utils/State";
+import toast from 'react-hot-toast';
 
 // --- Helper Component ---
 const StatusChip = React.memo(({ status }) => {
@@ -102,7 +103,7 @@ export default function StockRequestPage() {
             fetchHistory(); // Refresh history table after successful submission
         } catch (error) {
             const errorMessage = error.response?.data?.message || "Failed to create stock request.";
-            alert(`Error: ${errorMessage}`);
+            toast.error(`Error: ${errorMessage}`);
         } finally {
             setIsSubmitting(false);
         }
