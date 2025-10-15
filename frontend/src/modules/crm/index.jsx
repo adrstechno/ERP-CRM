@@ -73,6 +73,7 @@ export default function CRMModule() {
             <Route path="dealers" element={<DealerManagement />} />
             <Route path="inventory" element={<InventoryManagement />} />
             <Route path="sales" element={<Sales />} />
+             <Route path="new-sales" element={<NewSales />} />
             <Route path="service" element={<Service />} />
             <Route path="invoices" element={<BillingNInvoice />} />
             <Route path="expenses/approve" element={<ApproveExpenses />} />
