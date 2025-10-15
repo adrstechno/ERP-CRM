@@ -243,7 +243,7 @@ export default function DealersManagement() {
         <Grid item xs={12} md={9}>
           <Stack spacing={3}>
             {/* Dealer Information Card */}
-            <Card sx={{ width: '100%' }}>
+            <Card sx={{ width: '100%', minWidth:'830px' }} >
               <CardContent>
                 <Stack direction="row" spacing={2} alignItems="center" mb={2}>
                   <BusinessIcon color="primary" />
