@@ -46,10 +46,13 @@ public class ServiceReportService {
         reportRepo.findByTicket_Id(ticket.getId())
                 .ifPresent(r -> { throw new RuntimeException("Report already exists for this ticket"); });
         
-        // Only completed tickets allowed
-        if (ticket.getStatus() != Status.COMPLETED) {
-            throw new RuntimeException("You can submit a report only after ticket completion");
+        
+        if (ticket.getStatus() != Status.IN_PROGRESS) {
+            throw new RuntimeException("You can submit a report only after ticket is in progress");
         }
+
+         // Only completed tickets allowed
+        serviceReportService.updateWork(ticket.getId(),Status.COMPLETED);
 
         ServiceReport report = new ServiceReport();
         report.setTicket(ticket);

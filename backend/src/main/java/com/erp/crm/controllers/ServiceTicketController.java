@@ -39,7 +39,8 @@ public class ServiceTicketController {
 
     @PatchMapping("/{ticketId}/update")
     @PreAuthorize("hasRole('ENGINEER')")
-    public ResponseEntity<ServiceTicketResponseDTO> updateWork(@PathVariable Long ticketId, @RequestParam Status status) {
+    public ResponseEntity<ServiceTicketResponseDTO> updateWork(@PathVariable Long ticketId) {
+        Status status = Status.IN_PROGRESS;
         return ResponseEntity.ok(ticketService.updateWork(ticketId, status));
     }
 

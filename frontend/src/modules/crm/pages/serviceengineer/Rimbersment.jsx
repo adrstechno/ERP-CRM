@@ -18,7 +18,8 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
-import { VITE_API_BASE_URL } from "../../utils/State"; // Ensure this path is correct
+import { VITE_API_BASE_URL } from "../../utils/State"; 
+import toast from "react-hot-toast";
 
 // Categories updated to match typical API conventions (uppercase)
 const engineerCategories = [
@@ -92,7 +93,7 @@ export default function EngineerReimbursement() {
 
       console.log("Expense submitted successfully:", result);
       // Optionally, show a success message to the user (e.g., using a snackbar)
-      alert("Reimbursement submitted successfully!");
+      toast.success("Reimbursement submitted successfully!");
       // Reset form after successful submission
       setFormData({ category: "FOOD", amount: "", remarks: "" });
       setSelectedDate(dayjs());
