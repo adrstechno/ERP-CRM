@@ -21,14 +21,6 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { VITE_API_BASE_URL } from '../../utils/State';
 
-// --- Helper Components ---
-const statusChip = (status) => {
-  if (status?.toUpperCase() === 'RESOLVED' || status?.toUpperCase() === 'COMPLETED') {
-    return <Chip label="Resolved" sx={{ background: 'rgba(76,175,80,0.15)', color: '#4CAF50', fontWeight: 600 }} />;
-  }
-  return <Chip label="Pending" sx={{ background: 'rgba(255,193,7,0.15)', color: '#FFC107', fontWeight: 600 }} />;
-};
-
 // --- Main Component ---
 export default function ServiceReport() {
   const theme = useTheme();
@@ -44,7 +36,7 @@ export default function ServiceReport() {
   
   const [ticketOptions, setTicketOptions] = useState([]);
   const [partsOptions, setPartsOptions] = useState([]);
-  const [recentServices, setRecentServices] = useState([]);
+  const [recentReports, setRecentReports] = useState([]); // State for the reports table
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -58,43 +50,45 @@ export default function ServiceReport() {
   }, [token]);
 
   const fetchInitialData = useCallback(async () => {
-    setIsLoadingData(true);
-    setError(null);
     try {
-        // CORRECTED: Used axios for both calls for consistency
         const [ticketsRes, productsRes] = await Promise.all([
             axios.get(`${VITE_API_BASE_URL}/tickets/get-services-by-user`, axiosConfig),
             axios.get(`${VITE_API_BASE_URL}/products/all`, axiosConfig),
         ]);
 
-        // CORRECTED: axios response body is in the .data property
-        const ticketsData = ticketsRes.data;
-        const productsData = productsRes.data;
-
-        // CORRECTED: Map directly over the array from the API response
-        if (Array.isArray(ticketsData)) {
-            setTicketOptions(ticketsData.map(t => ({ value: t.ticketId, label: `#${t.ticketId}` })));
-        } else {
-            console.error("Ticket API response is not an array:", ticketsData);
+        if (Array.isArray(ticketsRes.data)) {
+            setTicketOptions(ticketsRes.data.map(t => ({ value: t.ticketId, label: `#${t.ticketId}` })));
         }
         
-        // CORRECTED: Map directly over the array from the API response
-        if (Array.isArray(productsData)) {
-            setPartsOptions(productsData.map(p => ({ value: p.name, label: p.name })));
-        } else {
-             console.error("Products API response is not an array:", productsData);
+        if (Array.isArray(productsRes.data)) {
+            setPartsOptions(productsRes.data.map(p => ({ value: p.name, label: p.name })));
         }
     } catch (err) {
-        console.error("Error fetching initial data:", err);
+        console.error("Error fetching dropdown data:", err);
         setError(err.message);
-    } finally {
-        setIsLoadingData(false);
     }
-  }, [axiosConfig]); // CORRECTED: Added axiosConfig dependency
+  }, [axiosConfig]);
+
+  const fetchRecentReports = useCallback(async () => {
+    try {
+      const response = await axios.get(`${VITE_API_BASE_URL}/reports/engineer`, axiosConfig);
+      if (response.data && Array.isArray(response.data.data)) {
+        setRecentReports(response.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching recent reports:", err);
+      setError(err.message);
+    }
+  }, [axiosConfig]);
 
   useEffect(() => {
-    fetchInitialData();
-  }, [fetchInitialData]);
+    const loadAllData = async () => {
+      setIsLoadingData(true);
+      await Promise.all([fetchInitialData(), fetchRecentReports()]);
+      setIsLoadingData(false);
+    };
+    loadAllData();
+  }, [fetchInitialData, fetchRecentReports]);
 
 
   const handleChange = (field) => (e) => {
@@ -125,24 +119,20 @@ export default function ServiceReport() {
     formData.append('description', form.description);
 
     try {
-      // Create the report
       await axios.post(`${VITE_API_BASE_URL}/reports/create`, formData, {
         headers: {
             ...axiosConfig.headers,
             'Content-Type': 'multipart/form-data',
         },
-
-      }
-    );
-
-      // Update the status
-      await axios.patch(`${VITE_API_BASE_URL}/tickets/${form.ticketId}/update?status=COMPLETED`, null, axiosConfig);
+      });
 
       alert('Service report submitted successfully!');
       
+      // Reset form and refresh the reports table
       setForm({ ticketId: '', partsUsed: '', address: '', additionalCharges: '', description: '' });
       setReceipt(null);
       document.getElementById('upload-receipt').value = '';
+      fetchRecentReports(); // <-- Refresh the table data
 
     } catch (err) {
       console.error("Submission failed:", err);
@@ -244,9 +234,7 @@ export default function ServiceReport() {
                   <Button
                     component="span"
                     startIcon={<CloudUpload />}
-                    sx={{
-                      border: '1px dashed', borderRadius: 2, py: 2, px: 4,
-                    }}
+                    sx={{ border: '1px dashed', borderRadius: 2, py: 2, px: 4 }}
                   >
                     Upload Receipt
                   </Button>
@@ -272,7 +260,7 @@ export default function ServiceReport() {
         <Card sx={{ background: theme.palette.background.paper, borderRadius: 2, mt: 2 }}>
           <CardContent>
             <Typography variant="h6" fontWeight="bold" mb={2}>
-              Recent services
+              Recent Reports
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box display="flex" justifyContent="flex-end" mb={1}>
@@ -282,41 +270,47 @@ export default function ServiceReport() {
                 slotProps={{ textField: { size: 'small' } }}
               />
             </Box>
-            <Box sx={{ overflow: 'auto', minWidth: '900px' }}>
-              <Box display="flex" fontWeight={600} p={1} sx={{ color: theme.palette.text.secondary }}>
-                <Box sx={{ flexBasis: '12%' }}>Ticket id</Box>
-                <Box sx={{ flexBasis: '16%' }}>DATE</Box>
-                <Box sx={{ flexBasis: '18%' }}>CUSTOMER</Box>
-                <Box sx={{ flexBasis: '12%' }}>STATUS</Box>
-                <Box sx={{ flexBasis: '14%' }}>PARTS USED</Box>
-                <Box sx={{ flexBasis: '18%' }}>PRODUCT</Box>
-                <Box sx={{ flexBasis: '10%', textAlign: 'center' }}>DOWNLOAD</Box>
-              </Box>
-              {isLoadingData ? (
-                Array.from(new Array(5)).map((_, idx) => (
-                    <Skeleton key={idx} height={40} animation="wave" sx={{ my: 1 }} />
-                ))
-              ) : (
-                recentServices.map((row, idx) => (
-                  <Box
-                    key={idx}
-                    display="flex"
-                    alignItems="center"
-                    p={1}
-                    sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}
-                  >
-                    <Box sx={{ flexBasis: '12%', fontWeight: 600 }}>{row.id}</Box>
-                    <Box sx={{ flexBasis: '16%', color: theme.palette.text.secondary }}>{row.date}</Box>
-                    <Box sx={{ flexBasis: '18%' }}>{row.customer}</Box>
-                    <Box sx={{ flexBasis: '12%' }}>{statusChip(row.status)}</Box>
-                    <Box sx={{ flexBasis: '14%' }}>{row.parts}</Box>
-                    <Box sx={{ flexBasis: '18%' }}>{row.product}</Box>
-                    <Box sx={{ flexBasis: '10%', textAlign: 'center' }}>
-                      <IconButton><ArrowDownward sx={{ color: theme.palette.text.secondary }} /></IconButton>
+            <Box sx={{ overflowX: 'auto' }}>
+              <Box sx={{ minWidth: '900px' }}>
+                <Box display="flex" fontWeight={600} p={1} sx={{ color: theme.palette.text.secondary, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                  <Box sx={{ flexBasis: '10%' }}>Ticket ID</Box>
+                  <Box sx={{ flexBasis: '20%' }}>Date</Box>
+                  <Box sx={{ flexBasis: '15%' }}>Engineer</Box>
+                  <Box sx={{ flexBasis: '15%' }}>Parts Used</Box>
+                  <Box sx={{ flexBasis: '15%' }}>Charges</Box>
+                  <Box sx={{ flexBasis: '15%' }}>Description</Box>
+                  <Box sx={{ flexBasis: '10%', textAlign: 'center' }}>Receipt</Box>
+                </Box>
+                {isLoadingData ? (
+                  Array.from(new Array(5)).map((_, idx) => (
+                      <Skeleton key={idx} height={48} animation="wave" sx={{ my: 0.5 }} />
+                  ))
+                ) : (
+                  recentReports.map((report) => (
+                    <Box
+                      key={report.reportId}
+                      display="flex"
+                      alignItems="center"
+                      p={1}
+                      sx={{ borderBottom: `1px solid ${theme.palette.divider}`, '&:hover': { backgroundColor: 'action.hover' } }}
+                    >
+                      <Box sx={{ flexBasis: '10%', fontWeight: 600 }}>#{report.ticketId}</Box>
+                      <Box sx={{ flexBasis: '20%', color: theme.palette.text.secondary }}>{dayjs(report.createdAt).format('DD MMM YYYY, h:mm A')}</Box>
+                      <Box sx={{ flexBasis: '15%' }}>{report.engineerName}</Box>
+                      <Box sx={{ flexBasis: '15%' }}>{report.partsUsed || 'N/A'}</Box>
+                      <Box sx={{ flexBasis: '15%' }}>₹{report.additionalCharges.toFixed(2)}</Box>
+                      <Box sx={{ flexBasis: '15%' }}>{report.description}</Box>
+                      <Box sx={{ flexBasis: '10%', textAlign: 'center' }}>
+                        {report.receiptURL ? (
+                          <IconButton component="a" href={report.receiptURL} target="_blank" rel="noopener noreferrer" size="small">
+                            <ArrowDownward fontSize="small" />
+                          </IconButton>
+                        ) : 'N/A' }
+                      </Box>
                     </Box>
-                  </Box>
-                ))
-              )}
+                  ))
+                )}
+              </Box>
             </Box>
           </CardContent>
         </Card>
