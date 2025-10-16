@@ -31,9 +31,9 @@ public class StockRequestController {
         return ResponseEntity.ok(stockRequestService.getAllRequests());
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<StockRequestResponseDTO>> getUserRequests(@PathVariable Long userId) {
-        return ResponseEntity.ok(stockRequestService.getRequestsByUser(userId));
+    @GetMapping("/user")
+    public ResponseEntity<List<StockRequestResponseDTO>> getUserRequests() {
+        return ResponseEntity.ok(stockRequestService.getRequestsByUser());
     }
 
     @PatchMapping("/update-status/{requestId}")
