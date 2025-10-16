@@ -10,7 +10,10 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-import { VITE_API_BASE_URL } from '../../utils/State';
+
+import { VITE_API_BASE_URL } from '../../utils/State'; 
+import toast from 'react-hot-toast';
+
 
 // --- Helper Components ---
 const PriorityChip = React.memo(({ priority }) => {
@@ -80,11 +83,15 @@ export default function AssignedTasks() {
 
         } catch (err) {
             console.error("Error fetching tasks:", err);
+            toast.error("something went Wrong");
             setError(err.message);
         } finally {
             setIsLoading(false);
         }
-    }, []); 
+
+        
+    }, [selectedDate]); // Keeping selectedDate dependency if you plan to use it for filtering
+
 
     useEffect(() => {
         fetchTasks();
