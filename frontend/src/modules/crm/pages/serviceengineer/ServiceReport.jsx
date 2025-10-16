@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import axios from "axios";
 import {
   Box,
   Card,
@@ -11,114 +12,136 @@ import {
   Divider,
   Chip,
   useTheme,
+  CircularProgress,
+  Skeleton
 } from '@mui/material';
 import { CloudUpload, ArrowDownward } from '@mui/icons-material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { VITE_API_BASE_URL } from '../../utils/State';
 
-// --- Mock Data ---
-const ticketOptions = [
-  { value: '#1532', label: '#1532' },
-  { value: '#1531', label: '#1531' },
-  { value: '#1530', label: '#1530' },
-  { value: '#1529', label: '#1529' },
-  { value: '#1528', label: '#1528' },
-  { value: '#1527', label: '#1527' },
-];
-
-const partsOptions = [
-  { value: 'Wire', label: 'Wire' },
-  { value: 'Compressor', label: 'Compressor' },
-  { value: 'Fan', label: 'Fan' },
-];
-
-const recentServices = [
-  {
-    id: '#1532',
-    date: 'Dec 30, 10:06 AM',
-    customer: 'Lal Singh Chaddha',
-    status: 'Resolved',
-    parts: 'Wire',
-    product: '1.5 Ton 5 Star Inverter AC',
-  },
-  {
-    id: '#1531',
-    date: 'Dec 29, 2:59 AM',
-    customer: 'Lal Singh Chaddha',
-    status: 'Pending',
-    parts: 'Wire',
-    product: '1.5 Ton 5 Star Inverter AC',
-  },
-  {
-    id: '#1530',
-    date: 'Dec 29, 12:54 AM',
-    customer: 'Lal Singh Chaddha',
-    status: 'Pending',
-    parts: 'Wire',
-    product: '1.5 Ton 5 Star Inverter AC',
-  },
-  {
-    id: '#1529',
-    date: 'Dec 28, 3:32 PM',
-    customer: 'Lal Singh Chaddha',
-    status: 'Resolved',
-    parts: 'Wire',
-    product: '1.5 Ton 5 Star Inverter AC',
-  },
-  {
-    id: '#1528',
-    date: 'Dec 27, 2:20 PM',
-    customer: 'Lal Singh Chaddha',
-    status: 'Pending',
-    parts: 'Wire',
-    product: '1.5 Ton 5 Star Inverter AC',
-  },
-  {
-    id: '#1527',
-    date: 'Dec 26, 9:48 AM',
-    customer: 'Lal Singh Chaddha',
-    status: 'Resolved',
-    parts: 'Wire',
-    product: '1.5 Ton 5 Star Inverter AC',
-  },
-];
-
-const statusChip = (status) => {
-  if (status === 'Resolved') {
-    return <Chip label="Resolved" sx={{ background: 'rgba(76,175,80,0.15)', color: '#4CAF50', fontWeight: 600 }} />;
-  }
-  return <Chip label="Pending" sx={{ background: 'rgba(255,193,7,0.15)', color: '#FFC107', fontWeight: 600 }} />;
-};
-
+// --- Main Component ---
 export default function ServiceReport() {
   const theme = useTheme();
   const [form, setForm] = useState({
-    ticket: '',
-    parts: '',
+    ticketId: '',
+    partsUsed: '',
     address: '',
-    charges: '',
-    status: '',
+    additionalCharges: '',
     description: '',
-    date: dayjs(),
   });
+  const [date, setDate] = useState(dayjs());
   const [receipt, setReceipt] = useState(null);
+  
+  const [ticketOptions, setTicketOptions] = useState([]);
+  const [partsOptions, setPartsOptions] = useState([]);
+  const [recentReports, setRecentReports] = useState([]); // State for the reports table
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [error, setError] = useState(null);
+
+  const token = localStorage.getItem("authKey");
+  const axiosConfig = useMemo(() => {
+    return {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+  }, [token]);
+
+  const fetchInitialData = useCallback(async () => {
+    try {
+        const [ticketsRes, productsRes] = await Promise.all([
+            axios.get(`${VITE_API_BASE_URL}/tickets/get-services-by-user`, axiosConfig),
+            axios.get(`${VITE_API_BASE_URL}/products/all`, axiosConfig),
+        ]);
+
+        if (Array.isArray(ticketsRes.data)) {
+            setTicketOptions(ticketsRes.data.map(t => ({ value: t.ticketId, label: `#${t.ticketId}` })));
+        }
+        
+        if (Array.isArray(productsRes.data)) {
+            setPartsOptions(productsRes.data.map(p => ({ value: p.name, label: p.name })));
+        }
+    } catch (err) {
+        console.error("Error fetching dropdown data:", err);
+        setError(err.message);
+    }
+  }, [axiosConfig]);
+
+  const fetchRecentReports = useCallback(async () => {
+    try {
+      const response = await axios.get(`${VITE_API_BASE_URL}/reports/engineer`, axiosConfig);
+      if (response.data && Array.isArray(response.data.data)) {
+        setRecentReports(response.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching recent reports:", err);
+      setError(err.message);
+    }
+  }, [axiosConfig]);
+
+  useEffect(() => {
+    const loadAllData = async () => {
+      setIsLoadingData(true);
+      await Promise.all([fetchInitialData(), fetchRecentReports()]);
+      setIsLoadingData(false);
+    };
+    loadAllData();
+  }, [fetchInitialData, fetchRecentReports]);
+
 
   const handleChange = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
   };
 
-  const handleDateChange = (date) => {
-    setForm({ ...form, date });
-  };
-
   const handleFileChange = (e) => {
-    setReceipt(e.target.files[0]);
+    if (e.target.files && e.target.files[0]) {
+      setReceipt(e.target.files[0]);
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Submit logic here
+    if (!form.ticketId || !receipt) {
+      alert("Please select a ticket ID and upload a receipt.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    
+    const formData = new FormData();
+    formData.append('receipt', receipt);
+    formData.append('ticketId', form.ticketId);
+    formData.append('partsUsed', form.partsUsed);
+    formData.append('additionalCharges', form.additionalCharges);
+    formData.append('description', form.description);
+
+    try {
+      await axios.post(`${VITE_API_BASE_URL}/reports/create`, formData, {
+        headers: {
+            ...axiosConfig.headers,
+            'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      alert('Service report submitted successfully!');
+      
+      // Reset form and refresh the reports table
+      setForm({ ticketId: '', partsUsed: '', address: '', additionalCharges: '', description: '' });
+      setReceipt(null);
+      document.getElementById('upload-receipt').value = '';
+      fetchRecentReports(); // <-- Refresh the table data
+
+    } catch (err) {
+      console.error("Submission failed:", err);
+      const errorMessage = err.response?.data?.message || err.message || "An unknown error occurred.";
+      setError(errorMessage);
+      alert(`Error: ${errorMessage}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -128,7 +151,7 @@ export default function ServiceReport() {
           Service Report
         </Typography>
         <Typography variant="body2" color="text.secondary" mb={3}>
-          Lorem ipsum dolor sit amet consectetur adipisicing.
+          Create and submit a new service report for a ticket.
         </Typography>
         <Box display="flex" gap={3} mb={6}>
           {/* Left Form */}
@@ -138,26 +161,31 @@ export default function ServiceReport() {
                 <TextField
                   select
                   label="Ticket id"
-                  value={form.ticket}
-                  onChange={handleChange('ticket')}
+                  value={form.ticketId}
+                  onChange={handleChange('ticketId')}
                   fullWidth
                   size="small"
                   sx={{ gridColumn: '1/2' }}
+                  disabled={isLoadingData}
+                  required
                 >
-                  {ticketOptions.map((opt) => (
+                  {isLoadingData ? <MenuItem disabled>Loading...</MenuItem> :
+                   ticketOptions.map((opt) => (
                     <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
                   ))}
                 </TextField>
                 <TextField
                   select
                   label="Parts used"
-                  value={form.parts}
-                  onChange={handleChange('parts')}
+                  value={form.partsUsed}
+                  onChange={handleChange('partsUsed')}
                   fullWidth
                   size="small"
                   sx={{ gridColumn: '2/3' }}
+                  disabled={isLoadingData}
                 >
-                  {partsOptions.map((opt) => (
+                   {isLoadingData ? <MenuItem disabled>Loading...</MenuItem> :
+                    partsOptions.map((opt) => (
                     <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
                   ))}
                 </TextField>
@@ -171,19 +199,12 @@ export default function ServiceReport() {
                 />
                 <TextField
                   label="Additional charges"
-                  value={form.charges}
-                  onChange={handleChange('charges')}
+                  value={form.additionalCharges}
+                  onChange={handleChange('additionalCharges')}
+                  type="number"
                   fullWidth
                   size="small"
-                  sx={{ gridColumn: '1/2' }}
-                />
-                <TextField
-                  label="Status"
-                  value={form.status}
-                  onChange={handleChange('status')}
-                  fullWidth
-                  size="small"
-                  sx={{ gridColumn: '2/3' }}
+                  sx={{ gridColumn: '1/3' }}
                 />
                 <TextField
                   label="Description"
@@ -198,7 +219,7 @@ export default function ServiceReport() {
               </Box>
             </CardContent>
           </Card>
-          {/* Right Upload */}
+          {/* Right Upload & Submit */}
           <Box flex={1} display="flex" flexDirection="column" alignItems="center" justifyContent="center" gap={2}>
             <Card sx={{ width: '100%', background: theme.palette.background.paper, borderRadius: 2, mb: 2 }}>
               <CardContent sx={{ textAlign: 'center' }}>
@@ -213,108 +234,83 @@ export default function ServiceReport() {
                   <Button
                     component="span"
                     startIcon={<CloudUpload />}
-                    sx={{
-                      background: 'none',
-                      color: theme.palette.text.secondary,
-                      border: '1px dashed',
-                      borderRadius: 2,
-                      py: 2,
-                      px: 4,
-                      fontWeight: 600,
-                    }}
+                    sx={{ border: '1px dashed', borderRadius: 2, py: 2, px: 4 }}
                   >
                     Upload Receipt
                   </Button>
                 </label>
-                <Typography variant="caption" color="text.secondary" mt={1} display="block">
-                  {receipt ? receipt.name : 'Upload Receipt'}
+                <Typography variant="caption" color="text.secondary" mt={1} display="block" noWrap>
+                  {receipt ? receipt.name : 'No file selected'}
                 </Typography>
               </CardContent>
             </Card>
             <Button
               type="submit"
               variant="contained"
-              sx={{
-                width: '100%',
-                py: 1.5,
-                borderRadius: 3,
-                background: 'linear-gradient(90deg,#434343 0%,#000000 100%)',
-                color: 'white',
-                fontWeight: 700,
-                fontSize: '1rem',
-                boxShadow: 2,
-              }}
+              sx={{ width: '100%', py: 1.5, borderRadius: 3, fontWeight: 700 }}
               onClick={handleSubmit}
+              disabled={isSubmitting || isLoadingData}
             >
-              submit
+              {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Report'}
             </Button>
           </Box>
         </Box>
+        
         {/* Recent Services Table */}
         <Card sx={{ background: theme.palette.background.paper, borderRadius: 2, mt: 2 }}>
           <CardContent>
             <Typography variant="h6" fontWeight="bold" mb={2}>
-              Recent services
+              Recent Reports
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box display="flex" justifyContent="flex-end" mb={1}>
               <DatePicker
-                value={form.date}
-                onChange={handleDateChange}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    sx: {
-                      backgroundColor: theme.palette.background.paper,
-                      borderRadius: 1,
-                      width: 140,
-                      input: { color: theme.palette.text.primary },
-                      svg: { color: theme.palette.text.secondary },
-                    },
-                  },
-                }}
+                value={date}
+                onChange={(newDate) => setDate(newDate)}
+                slotProps={{ textField: { size: 'small' } }}
               />
             </Box>
-            <Box
-              sx={{
-                maxHeight: 320,
-                overflow: 'auto',
-                minWidth: '900px',
-              }}
-            >
-              <Box display="flex" fontWeight={600} p={1} sx={{ color: theme.palette.text.secondary }}>
-                <Box sx={{ flexBasis: '12%' }}>Ticket id</Box>
-                <Box sx={{ flexBasis: '16%' }}>DATE</Box>
-                <Box sx={{ flexBasis: '18%' }}>CUSTOMER</Box>
-                <Box sx={{ flexBasis: '12%' }}>STATUS</Box>
-                <Box sx={{ flexBasis: '14%' }}>PARTS USED</Box>
-                <Box sx={{ flexBasis: '18%' }}>PRODUCT</Box>
-                <Box sx={{ flexBasis: '10%', textAlign: 'center' }}>DOWNLOAD TICKET</Box>
-              </Box>
-              {recentServices.map((row, idx) => (
-                <Box
-                  key={idx}
-                  display="flex"
-                  alignItems="center"
-                  p={1}
-                  sx={{
-                    borderBottom: `1px solid ${theme.palette.divider}`,
-                    fontSize: '0.95rem',
-                  }}
-                >
-                  <Box sx={{ flexBasis: '12%', fontWeight: 600 }}>{row.id}</Box>
-                  <Box sx={{ flexBasis: '16%', color: theme.palette.text.secondary }}>{row.date}</Box>
-                  <Box sx={{ flexBasis: '18%' }}>{row.customer}</Box>
-                  <Box sx={{ flexBasis: '12%' }}>{statusChip(row.status)}</Box>
-                  <Box sx={{ flexBasis: '14%' }}>{row.parts}</Box>
-                  <Box sx={{ flexBasis: '18%' }}>{row.product}</Box>
-                  <Box sx={{ flexBasis: '10%', textAlign: 'center' }}>
-                    <IconButton>
-                      <ArrowDownward sx={{ color: theme.palette.text.secondary }} />
-                    </IconButton>
-                  </Box>
+            <Box sx={{ overflowX: 'auto' }}>
+              <Box sx={{ minWidth: '900px' }}>
+                <Box display="flex" fontWeight={600} p={1} sx={{ color: theme.palette.text.secondary, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                  <Box sx={{ flexBasis: '10%' }}>Ticket ID</Box>
+                  <Box sx={{ flexBasis: '20%' }}>Date</Box>
+                  <Box sx={{ flexBasis: '15%' }}>Engineer</Box>
+                  <Box sx={{ flexBasis: '15%' }}>Parts Used</Box>
+                  <Box sx={{ flexBasis: '15%' }}>Charges</Box>
+                  <Box sx={{ flexBasis: '15%' }}>Description</Box>
+                  <Box sx={{ flexBasis: '10%', textAlign: 'center' }}>Receipt</Box>
                 </Box>
-              ))}
+                {isLoadingData ? (
+                  Array.from(new Array(5)).map((_, idx) => (
+                      <Skeleton key={idx} height={48} animation="wave" sx={{ my: 0.5 }} />
+                  ))
+                ) : (
+                  recentReports.map((report) => (
+                    <Box
+                      key={report.reportId}
+                      display="flex"
+                      alignItems="center"
+                      p={1}
+                      sx={{ borderBottom: `1px solid ${theme.palette.divider}`, '&:hover': { backgroundColor: 'action.hover' } }}
+                    >
+                      <Box sx={{ flexBasis: '10%', fontWeight: 600 }}>#{report.ticketId}</Box>
+                      <Box sx={{ flexBasis: '20%', color: theme.palette.text.secondary }}>{dayjs(report.createdAt).format('DD MMM YYYY, h:mm A')}</Box>
+                      <Box sx={{ flexBasis: '15%' }}>{report.engineerName}</Box>
+                      <Box sx={{ flexBasis: '15%' }}>{report.partsUsed || 'N/A'}</Box>
+                      <Box sx={{ flexBasis: '15%' }}>₹{report.additionalCharges.toFixed(2)}</Box>
+                      <Box sx={{ flexBasis: '15%' }}>{report.description}</Box>
+                      <Box sx={{ flexBasis: '10%', textAlign: 'center' }}>
+                        {report.receiptURL ? (
+                          <IconButton component="a" href={report.receiptURL} target="_blank" rel="noopener noreferrer" size="small">
+                            <ArrowDownward fontSize="small" />
+                          </IconButton>
+                        ) : 'N/A' }
+                      </Box>
+                    </Box>
+                  ))
+                )}
+              </Box>
             </Box>
           </CardContent>
         </Card>
