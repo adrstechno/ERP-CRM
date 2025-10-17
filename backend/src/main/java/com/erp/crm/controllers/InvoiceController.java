@@ -22,7 +22,7 @@ public class InvoiceController {
     private InvoiceService invoiceService;
 
     @GetMapping("/get-all")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN','MARKETER')")
     public ResponseEntity<List<InvoiceResponseDTO>> getAllInvoices() {
         List<InvoiceResponseDTO> invoices = invoiceService.getAllInvoices();
         return ResponseEntity.ok(invoices);

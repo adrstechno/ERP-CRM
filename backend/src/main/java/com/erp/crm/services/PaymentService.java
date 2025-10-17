@@ -60,9 +60,17 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.PENDING);
         payment.setNotes(dto.getNotes());
         payment.setRemainingAmount(remaining);
-        User user = userRepo.findById(dto.getReceivedById())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getReceivedById()));
-        payment.setReceivedBy(user);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        String email = principal.getUsername();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
 
         if (proofFile != null && !proofFile.isEmpty()) {
             String uploadedUrl = fileUploadService.uploadReceipt(proofFile, payment.getInvoice().getInvoiceId());
@@ -70,7 +78,7 @@ public class PaymentService {
             payment.setProofUrl(uploadedUrl);
         }
 
-        if (dto.getReceivedById() != null) {
+        if (user != null) {
 
             payment.setReceivedBy(user);
         }
