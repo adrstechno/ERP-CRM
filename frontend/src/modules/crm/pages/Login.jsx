@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -9,7 +8,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import axios from "axios";
 import { useCRMAuth } from "../context/CRMAuthContext";
 import { VITE_API_BASE_URL } from "../utils/State";
