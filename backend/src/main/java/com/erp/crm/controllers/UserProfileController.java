@@ -36,9 +36,8 @@ public class UserProfileController {
     }
 
     // ✅ Get profile by userId
-    @GetMapping("/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN','DEALER','MARKETER','ENGINEER')")
-    public ResponseEntity<UserProfile> getProfile(@PathVariable Long userId) {
+    @GetMapping("/get-my-profile")
+    public ResponseEntity<UserProfile> getMyProfile(@PathVariable Long userId) {
         return ResponseEntity.ok(userProfileService.getProfileByUserId(userId));
     }
 
