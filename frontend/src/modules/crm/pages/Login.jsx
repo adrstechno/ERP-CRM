@@ -1,3 +1,4 @@
+
 import toast from "react-hot-toast";
 import React, { useState, useEffect } from "react";
 import {
@@ -28,7 +29,7 @@ export default function Login() {
     if (crmUser?.role) {
       redirectToDashboard(crmUser.role);
     }
-  }, [crmUser, navigate]);
+  }, [crmUser]);
 
   const redirectToDashboard = (role) => {
     let dashboardPath = "";
@@ -58,50 +59,70 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+//  const handleSubmit = async (e) => {
+//   e.preventDefault();
+//   setError("");
+//   setLoading(true);
 
-    try {
-      const response = await axios.post(`${VITE_API_BASE_URL}/auth/login`, {
-        email: form.email,
-        password: form.password,
-      });
+//   try {
+//     const response = await axios.post(`${VITE_API_BASE_URL}/auth/login`, {
+//       email: form.email, 
+//        // ✅ Correct field
+//       password: form.password,
+//     });
+   
+//     const { token, username, role } = response.data;
 
-      // 1. Destructure userId from the API response
-      const { token, username, role, userId } = response.data;
+//     const normalizedRole = role.toLowerCase();
+//     localStorage.setItem("authKey", token); 
+//     login({ email: username, role: normalizedRole, token });
+// toast.success("login Successfully ")
+//     redirectToDashboard(normalizedRole);
+//   } catch (err) {
+//     console.error("Login error:", err);
+//     setError(err.response?.data || "Invalid email or password!");
+//     toast.error("errorr")
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
-      const normalizedRole = role.toLowerCase();
-      
-      // 2. Create a user object to store
-      const userPayload = { 
-        userId: userId, 
-        name: username, // Storing username as name
-        role: normalizedRole 
-        
-      };
 
-      // 3. Store the token and the stringified user object
-      localStorage.setItem("authKey", token);
-      localStorage.setItem("user", JSON.stringify(userPayload));
 
-      // Update the auth context state
-      login({ ...userPayload, token });
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-      toast.success("Login successful!");
-      redirectToDashboard(normalizedRole);
+  try {
+    const response = await axios.post(`${VITE_API_BASE_URL}/auth/login`, {
+      email: form.email, // ✅ Correct
+      password: form.password,
+    });
 
-    } catch (err) {
-      console.error("Login error:", err);
-      const errorMessage =
-        err.response?.data?.message || "Invalid email or password!";
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const { token, username, role } = response.data;
+
+    const normalizedRole = role.toLowerCase();
+    localStorage.setItem("authKey", token); 
+    login({ email: username, role: normalizedRole, token });
+
+    // Show success toast
+    toast.success("Login successful!");
+
+    redirectToDashboard(normalizedRole);
+  } catch (err) {
+    console.error("Login error:", err);
+
+    const errorMessage =
+      err.response?.data?.message || "Invalid email or password!";
+
+    setError(errorMessage);
+    // Show error toast
+    toast.error(errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box
