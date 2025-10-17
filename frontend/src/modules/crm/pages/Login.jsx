@@ -59,71 +59,39 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-//  const handleSubmit = async (e) => {
-//   e.preventDefault();
-//   setError("");
-//   setLoading(true);
-
-//   try {
-//     const response = await axios.post(`${VITE_API_BASE_URL}/auth/login`, {
-//       email: form.email, 
-//        // ✅ Correct field
-//       password: form.password,
-//     });
-   
-//     const { token, username, role } = response.data;
-
-//     const normalizedRole = role.toLowerCase();
-//     localStorage.setItem("authKey", token); 
-//     login({ email: username, role: normalizedRole, token });
-// toast.success("login Successfully ")
-//     redirectToDashboard(normalizedRole);
-//   } catch (err) {
-//     console.error("Login error:", err);
-//     setError(err.response?.data || "Invalid email or password!");
-//     toast.error("errorr")
-//   } finally {
-//     setLoading(false);
-//   }
-// };
-
-
-
-const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
   setError("");
   setLoading(true);
 
   try {
     const response = await axios.post(`${VITE_API_BASE_URL}/auth/login`, {
-      email: form.email, // ✅ Correct
+      email: form.email,
       password: form.password,
     });
-
+   
     const { token, username, role } = response.data;
 
+    // This is the correct flow:
+    // 1. Set the token in localStorage
+    // 2. Update the context state
+    // 3. Let the useEffect handle the redirect
     const normalizedRole = role.toLowerCase();
     localStorage.setItem("authKey", token); 
-    login({ email: username, role: normalizedRole, token });
+    login({ email: username, role: normalizedRole, token }); // This updates crmUser
+    toast.success("Login Successfully!");
 
-    // Show success toast
-    toast.success("Login successful!");
+    // REMOVE THIS LINE - The useEffect will handle the redirect now
+    // redirectToDashboard(normalizedRole); 
 
-    redirectToDashboard(normalizedRole);
   } catch (err) {
     console.error("Login error:", err);
-
-    const errorMessage =
-      err.response?.data?.message || "Invalid email or password!";
-
-    setError(errorMessage);
-    // Show error toast
-    toast.error(errorMessage);
+    setError(err.response?.data?.message || "Invalid email or password!");
+    toast.error(err.response?.data?.message || "Login failed!");
   } finally {
     setLoading(false);
   }
 };
-
   return (
     <Box
       display="flex"
