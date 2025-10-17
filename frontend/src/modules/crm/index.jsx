@@ -51,6 +51,7 @@ import PayStatus from "./pages/marketer/PayStatus";
 import AddCustomer from "./pages/marketer/AddCustomer";
 import InvoicePage from "./components/InvoicePage";
 import GetExpenses from "./pages/marketer/GetExpenses";
+import Profile from "./components/Profile";
 
 
 
@@ -65,7 +66,7 @@ export default function CRMModule() {
      
     
       
-            
+              <Route path="profile" element={<Profile />} />
 
         {crmUser?.role === "admin" && (
           <>
