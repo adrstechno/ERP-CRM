@@ -377,9 +377,9 @@ import {
   XCircle,
   Camera,
 } from 'lucide-react';
-
+import { VITE_API_BASE_URL } from '../utils/State';
 // Base URL for your API. Centralizing this makes it easy to change.
-const API_BASE_URL = 'http://localhost:8080/api';
+
 
 // Main Profile Component
 const Profile = () => {
@@ -401,6 +401,8 @@ const Profile = () => {
     
 
     const token = localStorage.getItem('authKey');
+    console.log(token);
+    
     if (token) {
       fetchProfileData();
     } else {
@@ -422,7 +424,7 @@ const Profile = () => {
 
       // 1. Fetch the primary user data based on the token.
       // Assumption: The API has an endpoint like '/users/me' that identifies the user from the token.
-      const userResponse = await fetch(`${API_BASE_URL}/users/me`, { headers });
+      const userResponse = await fetch(`${VITE_API_BASE_URL}/profiles/me`, { headers });
       if (!userResponse.ok) {
         throw new Error(`Failed to fetch user data (HTTP ${userResponse.status})`);
       }
@@ -430,7 +432,7 @@ const Profile = () => {
       const userId = fetchedUserData.userId;
 
       // 2. Once we have the userId, fetch the associated detailed profile.
-      const profileResponse = await fetch(`${API_BASE_URL}/profiles/user/${userId}`, { headers });
+      const profileResponse = await fetch(`${VITE_API_BASE_URL}/profiles/user/${userId}`, { headers });
       
       let fetchedProfileData = {};
       if (profileResponse.ok) {
@@ -488,14 +490,14 @@ const Profile = () => {
       };
       
       // 2. Define the API update calls
-      const updateUserCall = fetch(`${API_BASE_URL}/users/${userData.userId}`, {
+      const updateUserCall = fetch(`${VITE_API_BASE_URL}/users/${userData.userId}`, {
         method: 'PUT', headers, body: JSON.stringify(userPayload)
       });
       
       // Only attempt to update the profile if a profile ID exists.
       // If not, we might need a POST to create one, but for this scope, we'll stick to PUT.
       const updateProfileCall = profileData?.id
-        ? fetch(`${API_BASE_URL}/profiles/${profileData.id}`, { method: 'PUT', headers, body: JSON.stringify(profilePayload) })
+        ? fetch(`${VITE_API_BASE_URL}/profiles/${profileData.id}`, { method: 'PUT', headers, body: JSON.stringify(profilePayload) })
         : Promise.resolve({ ok: true, json: () => Promise.resolve(profilePayload) }); // If no profile, resolve immediately
 
       // 3. Execute both calls in parallel
