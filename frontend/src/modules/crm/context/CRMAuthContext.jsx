@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
-import {jwtDecode} from "jwt-decode";
+import * as jwt from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import SessionWarningModal from "../components/SessionWarningModel";
 
@@ -46,7 +46,7 @@ export function CRMAuthProvider({ children }) {
   const scheduleTimers = (token) => {
     clearAllTimeouts();
     try {
-      const decoded = jwtDecode(token);
+     const decoded = jwt.default(token);
       const expiryTime = decoded.exp * 1000;
       const now = Date.now();
       const remaining = expiryTime - now;
