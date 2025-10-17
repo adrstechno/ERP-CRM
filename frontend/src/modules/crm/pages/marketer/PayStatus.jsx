@@ -1,104 +1,283 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Box, Card, CardContent, Typography,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Stack, Chip, IconButton, Skeleton
+    Stack, Chip, Button, Skeleton, Dialog, DialogActions,
+    DialogContent, DialogTitle, TextField, CircularProgress,
 } from '@mui/material';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'; // Corrected Import
 import PaymentsIcon from '@mui/icons-material/Payments';
-import dayjs from 'dayjs'; // Added for consistent date formatting
-
-// --- API Simulation ---
-const mockPaymentData = [
-    { id: '#1532', date: '2025-09-24T10:08:00Z', customer: 'Lal Singh Chaddha', status: 'Paid', amount: 326.50 },
-    { id: '#1531', date: '2025-09-23T14:59:00Z', customer: 'ACME Corp', status: 'Pending', amount: 87.24 },
-    { id: '#1530', date: '2025-09-23T10:56:00Z', customer: 'Global Tech', status: 'Pending', amount: 52.16 },
-    { id: '#1529', date: '2025-09-22T14:33:00Z', customer: 'Home Essentials', status: 'Paid', amount: 356.52 },
-    { id: '#1528', date: '2025-09-21T14:20:00Z', customer: 'Sunrise Apartments', status: 'Pending', amount: 246.78 },
-    { id: '#1527', date: '2025-09-20T09:48:00Z', customer: 'Lal Singh Chaddha', status: 'Paid', amount: 46.00 },
-    { id: '#1526', date: '2025-09-19T11:00:00Z', customer: 'ACME Corp', status: 'Paid', amount: 1024.00 },
-];
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+import axios from 'axios';
+import { VITE_API_BASE_URL } from '../../utils/State'; // Assuming you have this utility
+import toast from 'react-hot-toast';
 
 // --- Helper Component ---
 const StatusChip = React.memo(({ status }) => {
+    // Standardize status text for consistent color mapping
+    const normalizedStatus = status ? status.toLowerCase() : '';
+    let color;
+    if (normalizedStatus === 'paid') {
+        color = 'success';
+    } else if (normalizedStatus === 'unpaid') {
+        color = 'warning';
+    } else {
+        color = 'default';
+    }
+
     return (
         <Chip
             label={status}
             size="small"
             variant="outlined"
-            color={status === 'Paid' ? 'success' : 'warning'}
-            sx={{ fontWeight: 600 }}
+            color={color}
+            sx={{ fontWeight: 600, textTransform: 'capitalize' }}
         />
     );
 });
 
+
 // --- Main Component ---
 export default function PayStatus() {
-    const [payments, setPayments] = useState([]);
+    const [invoices, setInvoices] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-    const fetchPayments = useCallback(async () => {
+    // State for the payment form
+    const [paymentForm, setPaymentForm] = useState({
+        amount: '',
+        paymentMethod: 'UPI',
+        referenceNo: '',
+        paymentDate: dayjs(),
+        notes: '',
+        proofFile: null,
+    });
+
+    const token = localStorage.getItem("authKey");
+    const user = JSON.parse(localStorage.getItem("user"));
+    const axiosConfig = useMemo(() => ({
+        headers: { Authorization: `Bearer ${token}` }
+    }), [token]);
+
+    // Fetch all invoices
+    const fetchInvoices = useCallback(async () => {
         setIsLoading(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 100));
-        setPayments(mockPaymentData);
-        setIsLoading(false);
-    }, []);
+        try {
+            const response = await axios.get(`${VITE_API_BASE_URL}/invoices/get-all`, axiosConfig);
+             const formattedData = response.data.map((item) => ({
+                id: item.invoiceId,
+                invoiceNo: item.invoiceNumber,
+                date: item.invoiceDate,
+                customerName: item.sale.customerName,
+                amount: item.totalAmount,
+                status: item.paymentStatus,
+            }));
+            setInvoices(formattedData);
+        } catch (error) {
+            console.error("Failed to fetch invoices:", error);
+            toast.error("Could not fetch invoices.");
+            setInvoices([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [axiosConfig]);
 
     useEffect(() => {
-        fetchPayments();
-    }, [fetchPayments]);
+        fetchInvoices();
+    }, [fetchInvoices]);
+
+    // --- Dialog and Form Handlers ---
+    const handleOpenDialog = (invoice) => {
+        setSelectedInvoice(invoice);
+        setPaymentForm(prev => ({ ...prev, amount: invoice.amount }));
+        setIsDialogOpen(true);
+    };
+
+    const handleCloseDialog = () => {
+        setIsDialogOpen(false);
+        setSelectedInvoice(null);
+        // Reset form
+        setPaymentForm({
+            amount: '', paymentMethod: 'UPI', referenceNo: '',
+            paymentDate: dayjs(), notes: '', proofFile: null,
+        });
+    };
+
+    const handleFormChange = (e) => {
+        const { name, value } = e.target;
+        setPaymentForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleFileChange = (e) => {
+        setPaymentForm(prev => ({ ...prev, proofFile: e.target.files[0] }));
+    };
+
+    // --- API Call to Add Payment ---
+    const handleSubmitPayment = async (e) => {
+        e.preventDefault();
+        if (!selectedInvoice || !user?._id) {
+            toast.error("Missing invoice or user information.");
+            return;
+        }
+        setIsSubmitting(true);
+
+        const formData = new FormData();
+        formData.append('invoiceId', selectedInvoice.id);
+        formData.append('amount', paymentForm.amount);
+        formData.append('paymentMethod', paymentForm.paymentMethod);
+        formData.append('referenceNo', paymentForm.referenceNo);
+        formData.append('paymentDate', paymentForm.paymentDate.format('YYYY-MM-DD'));
+        formData.append('receivedById', user._id);
+        formData.append('notes', paymentForm.notes);
+        if (paymentForm.proofFile) {
+            formData.append('proofFile', paymentForm.proofFile);
+        }
+
+        try {
+            const response = await axios.post(
+                `${VITE_API_BASE_URL}/payments/add-payment`,
+                formData,
+                { headers: { ...axiosConfig.headers, 'Content-Type': 'multipart/form-data' } }
+            );
+
+            if (response.data.success) {
+                toast.success(response.data.message);
+                handleCloseDialog();
+                fetchInvoices(); // Refresh the invoice list
+            } else {
+                 throw new Error(response.data.message || "An unknown error occurred.");
+            }
+
+        } catch (error) {
+            console.error("Payment submission error:", error);
+            const errorMessage = error.response?.data?.message || error.message;
+            toast.error(`Payment failed: ${errorMessage}`);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
-        <Box>
-            <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
-                <CardContent>
-                    <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
-                        <PaymentsIcon color="primary" />
-                        <Typography variant="h6" fontWeight="bold">Pay Status</Typography>
-                    </Stack>
-                     <Typography variant="body2" color="text.secondary">
-                        Here is a summary of your recent payment statuses.
-                    </Typography>
-                </CardContent>
-                
-                <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
-                    <Table stickyHeader size="large">
-                        <TableHead>
-                            <TableRow>
-                                {['Order ID', 'Date', 'Customer Name', 'Amount', 'Status', 'Download Invoice'].map(head => (
-                                    <TableCell key={head} sx={{ whiteSpace: 'nowrap' }}>{head}</TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {isLoading ? (
-                                Array.from(new Array(6)).map((_, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell colSpan={6}><Skeleton animation="wave" /></TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                payments.map((row) => (
-                                    <TableRow key={row.id} hover>
-                                        <TableCell sx={{ fontWeight: '600' }}>{row.id}</TableCell>
-                                        <TableCell>{dayjs(row.date).format('DD MMM YYYY, hh:mm A')}</TableCell>
-                                        <TableCell>{row.customer}</TableCell>
-                                        <TableCell>₹{row.amount.toLocaleString('en-IN')}</TableCell>
-                                        <TableCell><StatusChip status={row.status} /></TableCell>
-                                        <TableCell align="center">
-                                            <IconButton size="small" aria-label="download invoice">
-                                                <ArrowDownwardIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Card>
-        </Box>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Box>
+                <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+                    <CardContent>
+                        <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
+                            <PaymentsIcon color="primary" />
+                            <Typography variant="h6" fontWeight="bold">Pay Status</Typography>
+                        </Stack>
+                        <Typography variant="body2" color="text.secondary">
+                            Summary of all customer invoices and their payment statuses.
+                        </Typography>
+                    </CardContent>
+                    
+                    <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
+                        <Table stickyHeader size="medium">
+                            <TableHead>
+                                <TableRow>
+                                    {['Invoice No', 'Date', 'Customer', 'Amount', 'Status', 'Action'].map(head => (
+                                        <TableCell key={head} sx={{ whiteSpace: 'nowrap' }}>{head}</TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {isLoading ? (
+                                    Array.from(new Array(6)).map((_, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell colSpan={6}><Skeleton animation="wave" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    invoices.map((row) => (
+                                        <TableRow key={row.id} hover>
+                                            <TableCell sx={{ fontWeight: '600' }}>{row.invoiceNo}</TableCell>
+                                            <TableCell>{dayjs(row.date).format('DD MMM YYYY')}</TableCell>
+                                            <TableCell>{row.customerName}</TableCell>
+                                            <TableCell>₹{row.amount.toLocaleString('en-IN')}</TableCell>
+                                            <TableCell><StatusChip status={row.status} /></TableCell>
+                                            <TableCell>
+                                                {row.status.toLowerCase() === 'unpaid' && (
+                                                    <Button
+                                                        variant="contained"
+                                                        size="small"
+                                                        onClick={() => handleOpenDialog(row)}
+                                                    >
+                                                        Make Payment
+                                                    </Button>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Card>
+
+                {/* --- Payment Dialog --- */}
+                <Dialog open={isDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+                    <DialogTitle>Record Payment for {selectedInvoice?.invoiceNo}</DialogTitle>
+                    <DialogContent>
+                        <Box component="form" id="payment-form" onSubmit={handleSubmitPayment} sx={{ mt: 2 }}>
+                            <Stack spacing={2.5}>
+                                <TextField
+                                    required
+                                    name="amount"
+                                    label="Amount"
+                                    type="number"
+                                    value={paymentForm.amount}
+                                    onChange={handleFormChange}
+                                />
+                                <DatePicker
+                                    label="Payment Date"
+                                    value={paymentForm.paymentDate}
+                                    onChange={(newValue) => setPaymentForm(prev => ({...prev, paymentDate: newValue}))}
+                                />
+                                <TextField
+                                    required
+                                    name="paymentMethod"
+                                    label="Payment Method"
+                                    value={paymentForm.paymentMethod}
+                                    onChange={handleFormChange}
+                                />
+                                <TextField
+                                    name="referenceNo"
+                                    label="Reference No (e.g., Transaction ID)"
+                                    value={paymentForm.referenceNo}
+                                    onChange={handleFormChange}
+                                />
+                                <TextField
+                                    name="notes"
+                                    label="Notes"
+                                    multiline
+                                    rows={2}
+                                    value={paymentForm.notes}
+                                    onChange={handleFormChange}
+                                />
+                                <Button component="label" variant="outlined">
+                                    Upload Proof
+                                    <input type="file" hidden onChange={handleFileChange} />
+                                </Button>
+                                {paymentForm.proofFile && <Typography variant="body2">{paymentForm.proofFile.name}</Typography>}
+                            </Stack>
+                        </Box>
+                    </DialogContent>
+                    <DialogActions sx={{ p: '16px 24px' }}>
+                        <Button onClick={handleCloseDialog} disabled={isSubmitting}>Cancel</Button>
+                        <Button
+                            type="submit"
+                            form="payment-form"
+                            variant="contained"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Payment'}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </Box>
+        </LocalizationProvider>
     );
 }
-
