@@ -57,8 +57,18 @@ public class StockRequestService {
         return stockRequestRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
-    public List<StockRequestResponseDTO> getRequestsByUser(Long userId) {
-        return stockRequestRepository.findByRequestedBy_UserId(userId).stream().map(this::mapToDto)
+    public List<StockRequestResponseDTO> getRequestsByUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        String email = principal.getUsername();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        return stockRequestRepository.findByRequestedBy_UserId(user.getUserId()).stream().map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 

@@ -238,8 +238,8 @@ const mockApiData = {
     kpis: [
         { title: "Allocated Stock", value: "7,000", change: "+1.01%", trend: "up" },
         { title: "Stock Sold", value: "2,360", change: "-0.03%", trend: "down" },
-        { title: "Revenue Generated", value: "₹70,00,000", change: "+1.01%", trend: "up" },
-        { title: "Pending Payments", value: "₹36,00,000", change: "-0.03%", trend: "down" },
+        // { title: "Revenue Generated", value: "₹70,00,000", change: "+1.01%", trend: "up" },
+        // { title: "Pending Payments", value: "₹36,00,000", change: "-0.03%", trend: "down" },
     ],
     salesOverview: [
         { month: "Jan", sold: 4000, unsold: 2400 },

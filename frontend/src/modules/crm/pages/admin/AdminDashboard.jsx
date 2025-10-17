@@ -342,7 +342,7 @@ import {
   CartesianGrid,
   Legend,
 } from 'recharts';
-import KPI from '../../components/KPIs'; // Adjust path based on your project structure
+import KPI from '../../components/KPIs'; 
 
 // Static data
 const chartData = [
