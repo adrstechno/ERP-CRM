@@ -52,7 +52,7 @@ export const crmMenuConfig = {
   { label: "New Sales", path: "/crm/new-sales", icon: <AddShoppingCartIcon /> },
   // { label: "My Sales", path: "/crm/mysales", icon: <ShoppingCartIcon /> },
   { label: "Create-Expenses", path: "/crm/expenses", icon: <ReceiptIcon /> },
-  // { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, 
+   { label: "Pay Status", path: "/crm/paystatus", icon: <PaymentIcon /> }, 
   { label: "Expenses", path: "/crm/getexpenses", icon: <HistoryIcon /> },
  
   ],
