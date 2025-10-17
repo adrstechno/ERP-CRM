@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
-import jwtDecode from "jwt-decode";
+import {jwtDecode} from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import SessionWarningModal from "../components/SessionWarningModel";
+
 
 export const CRMAuthContext = createContext();
 
