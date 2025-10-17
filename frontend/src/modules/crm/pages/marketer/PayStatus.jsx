@@ -15,20 +15,21 @@ import toast from 'react-hot-toast';
 
 // --- Helper Component ---
 const StatusChip = React.memo(({ status }) => {
-    // Standardize status text for consistent color mapping
     const normalizedStatus = status ? status.toLowerCase() : '';
     let color;
     if (normalizedStatus === 'paid') {
         color = 'success';
     } else if (normalizedStatus === 'unpaid') {
         color = 'warning';
+    } else if (normalizedStatus === 'partially_paid') {
+        color = 'info';
     } else {
         color = 'default';
     }
 
     return (
         <Chip
-            label={status}
+            label={status.replace('_', ' ')}
             size="small"
             variant="outlined"
             color={color}
@@ -46,7 +47,6 @@ export default function PayStatus() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-    // State for the payment form
     const [paymentForm, setPaymentForm] = useState({
         amount: '',
         paymentMethod: 'UPI',
@@ -57,12 +57,10 @@ export default function PayStatus() {
     });
 
     const token = localStorage.getItem("authKey");
-    const user = JSON.parse(localStorage.getItem("user"));
     const axiosConfig = useMemo(() => ({
         headers: { Authorization: `Bearer ${token}` }
     }), [token]);
 
-    // Fetch all invoices
     const fetchInvoices = useCallback(async () => {
         setIsLoading(true);
         try {
@@ -72,7 +70,8 @@ export default function PayStatus() {
                 invoiceNo: item.invoiceNumber,
                 date: item.invoiceDate,
                 customerName: item.sale.customerName,
-                amount: item.totalAmount,
+                // ## Changed from totalAmount to remainingBalance ##
+                amount: item.outstandingAmount || 0,
                 status: item.paymentStatus,
             }));
             setInvoices(formattedData);
@@ -89,9 +88,9 @@ export default function PayStatus() {
         fetchInvoices();
     }, [fetchInvoices]);
 
-    // --- Dialog and Form Handlers ---
     const handleOpenDialog = (invoice) => {
         setSelectedInvoice(invoice);
+        // This will now pre-fill the dialog with the remaining balance
         setPaymentForm(prev => ({ ...prev, amount: invoice.amount }));
         setIsDialogOpen(true);
     };
@@ -99,7 +98,6 @@ export default function PayStatus() {
     const handleCloseDialog = () => {
         setIsDialogOpen(false);
         setSelectedInvoice(null);
-        // Reset form
         setPaymentForm({
             amount: '', paymentMethod: 'UPI', referenceNo: '',
             paymentDate: dayjs(), notes: '', proofFile: null,
@@ -115,11 +113,10 @@ export default function PayStatus() {
         setPaymentForm(prev => ({ ...prev, proofFile: e.target.files[0] }));
     };
 
-    // --- API Call to Add Payment ---
     const handleSubmitPayment = async (e) => {
         e.preventDefault();
-        if (!selectedInvoice || !user?._id) {
-            toast.error("Missing invoice or user information.");
+        if (!selectedInvoice) {
+            toast.error("No invoice selected.");
             return;
         }
         setIsSubmitting(true);
@@ -130,7 +127,6 @@ export default function PayStatus() {
         formData.append('paymentMethod', paymentForm.paymentMethod);
         formData.append('referenceNo', paymentForm.referenceNo);
         formData.append('paymentDate', paymentForm.paymentDate.format('YYYY-MM-DD'));
-        formData.append('receivedById', user._id);
         formData.append('notes', paymentForm.notes);
         if (paymentForm.proofFile) {
             formData.append('proofFile', paymentForm.proofFile);
@@ -146,7 +142,7 @@ export default function PayStatus() {
             if (response.data.success) {
                 toast.success(response.data.message);
                 handleCloseDialog();
-                fetchInvoices(); // Refresh the invoice list
+                fetchInvoices();
             } else {
                  throw new Error(response.data.message || "An unknown error occurred.");
             }
@@ -178,7 +174,8 @@ export default function PayStatus() {
                         <Table stickyHeader size="medium">
                             <TableHead>
                                 <TableRow>
-                                    {['Invoice No', 'Date', 'Customer', 'Amount', 'Status', 'Action'].map(head => (
+                                    {/* ## Updated header text ## */}
+                                    {['Invoice No', 'Date', 'Customer', 'Remaining Amount', 'Status', 'Action'].map(head => (
                                         <TableCell key={head} sx={{ whiteSpace: 'nowrap' }}>{head}</TableCell>
                                     ))}
                                 </TableRow>
@@ -196,10 +193,10 @@ export default function PayStatus() {
                                             <TableCell sx={{ fontWeight: '600' }}>{row.invoiceNo}</TableCell>
                                             <TableCell>{dayjs(row.date).format('DD MMM YYYY')}</TableCell>
                                             <TableCell>{row.customerName}</TableCell>
-                                            <TableCell>₹{row.amount.toLocaleString('en-IN')}</TableCell>
+                                              <TableCell>₹{row.amount.toLocaleString('en-IN')}</TableCell>
                                             <TableCell><StatusChip status={row.status} /></TableCell>
                                             <TableCell>
-                                                {row.status.toLowerCase() === 'unpaid' && (
+                                                {(row.status.toLowerCase() === 'unpaid' || row.status.toLowerCase() === 'partially_paid') && (
                                                     <Button
                                                         variant="contained"
                                                         size="small"
