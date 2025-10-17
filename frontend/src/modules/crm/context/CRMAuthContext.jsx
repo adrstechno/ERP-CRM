@@ -3,6 +3,7 @@ import * as jwt from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import SessionWarningModal from "../components/SessionWarningModel";
 
+
 export const CRMAuthContext = createContext();
 
 export function CRMAuthProvider({ children }) {
