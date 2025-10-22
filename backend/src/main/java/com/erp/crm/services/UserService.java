@@ -3,16 +3,22 @@ package com.erp.crm.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.erp.crm.dto.AdminCreateUserDTO;
 import com.erp.crm.dto.LoginRequestDTO;
 import com.erp.crm.dto.UserDTO;
+import com.erp.crm.dto.UserResponseDTO;
 import com.erp.crm.models.Role;
 import com.erp.crm.models.User;
 import com.erp.crm.repositories.RoleRepository;
 import com.erp.crm.repositories.UserRepository;
+import com.erp.crm.security.UserPrincipal;
 
 @Service
 public class UserService {
@@ -82,6 +88,22 @@ public class UserService {
         return userRepo.findByUserIdGreaterThanEqualOrderByUserIdDesc(2L);
     }
 
+    public UserResponseDTO getMyUserData() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        }
+
+        String email = principal.getUsername();
+
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // Convert to DTO to avoid exposing sensitive data
+        return mapToDTO(user);
+    }
+
     public List<User> getAllUserByRole(String role) {
         return userRepo.findByRoleName(role);
     }
@@ -115,6 +137,17 @@ public class UserService {
 
         user.setPhone(dto.getPhone());
         return user;
+    }
+
+    private UserResponseDTO mapToDTO(User user) {
+        return new UserResponseDTO(
+                user.getUserId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole().getName(),
+                user.getPassword(),
+                user.getPhone(),
+                user.getIsActive());
     }
 
 }
