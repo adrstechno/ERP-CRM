@@ -66,6 +66,8 @@ export const crmMenuConfig = {
       path: "/crm/stock-requests",
       icon: <InventoryIcon />,
     },
+        { label: "Profile", path: "/crm/profile", icon: <AssignmentIndIcon /> },
+
     // { label: "Notices", path: "/crm/notices", icon: <MailIcon /> },
     {
       /* label: "Sales Entry", path: "/crm/sales/entry", icon: <ShoppingCartIcon /> */
@@ -76,7 +78,6 @@ export const crmMenuConfig = {
     {
       /* label: "Profile", path: "/crm/profile", icon: <PersonIcon /> */
     },
-    { label: "Profile", path: "/crm/profile", icon: <AssignmentIndIcon /> },
   ],
 
   marketer: [
