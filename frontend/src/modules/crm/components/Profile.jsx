@@ -1,347 +1,324 @@
+// import React, { useState, useEffect, useRef } from 'react';
+// import {
+//   Box,
+//   Card,
+//   CardContent,
+//   Typography,
+//   TextField,
+//   Button,
+//   Grid,
+//   Avatar,
+//   Chip,
+//   Divider,
+//   CircularProgress,
+//   Alert,
+//   useTheme,
+//   Badge,
+//   IconButton,
+//   alpha,
+// } from '@mui/material';
+// import {
+//   Edit,
+//   Save,
+//   X,
+//   MapPin,
+//   Building2,
+//   FileText,
+//   CreditCard,
+//   Landmark,
+//   Mail,
+//   Phone,
+//   Shield,
+//   Calendar,
+//   CheckCircle,
+//   XCircle,
+//   Camera,
+// } from 'lucide-react';
+// import { VITE_API_BASE_URL } from '../utils/State';
 
-    // import React, { useState, useEffect } from 'react';
-    // import {
-    // Box,
-    // Card,
-    // CardContent,
-    // Typography,
-    // TextField,
-    // Button,
-    // Grid,
-    // Avatar,
-    // Chip,
-    // Divider,
-    // CircularProgress,
-    // Alert,
-    // useTheme,
-    // Badge,
-    // IconButton,
-    // alpha, 
-    // } from '@mui/material';
-    // import {
-    // Edit,
-    // Save,
-    // X,
-    // MapPin,
-    // Building2,
-    // FileText,
-    // CreditCard,
-    // Landmark,
-    // User,
-    // Mail,
-    // Phone,
-    // Shield,
-    // Calendar,
-    // CheckCircle,
-    // XCircle,
+// const Profile = () => {
+//   const theme = useTheme();
+//   const [isEditing, setIsEditing] = useState(false);
+//   const [loading, setLoading] = useState(true);
+//   const [saveLoading, setSaveLoading] = useState(false);
+//   const [error, setError] = useState(null);
+//   const [success, setSuccess] = useState(null);
 
-    // } from 'lucide-react';
+//   const [userData, setUserData] = useState(null);
+//   const [profileData, setProfileData] = useState(null);
+//   const [editedData, setEditedData] = useState({});
+//   const fileInputRef = useRef(null);
 
-    // // Main Profile Component
-    // const Profile = () => {
-    // const theme = useTheme();
-    // const [isEditing, setIsEditing] = useState(false);
-    // const [loading, setLoading] = useState(true); // Start with loading true
-    // const [error, setError] = useState(null);
-    // const [success, setSuccess] = useState(false);
-    
-    // // Mock data - in a real app, this would come from an API
-    // const [userData] = useState({
-    //     userId: 4,
-    //     role: { id: 4, name: "MARKETER" },
-    //     name: "marketer",
-    //     email: "marketer@gmail.com",
-    //     phone: "8007894805",
-    //     isActive: true,
-    //     createdAt: "2025-09-29T17:28:55.8483",
-    //     updatedAt: "2025-09-29T17:28:55.8483",
-    // });
+//   // Fetch profile data on mount
+//   useEffect(() => {
+//     const token = localStorage.getItem('authKey');
+//     if (token) fetchProfileData();
+//     else {
+//       setError("No authentication token found. Please log in again.");
+//       setLoading(false);
+//     }
+//   }, []);
 
-    // const [profileData, setProfileData] = useState({
-    //     id: 1,
-    //     address: "123 Main Street",
-    //     city: "Mumbai",
-    //     state: "Maharashtra",
-    //     pincode: "400001",
-    //     gstNumber: "22AAAAA0000A1Z5",
-    //     panNumber: "AAAAA0000A",
-    //     accountNo: "1234567890",
-    //     bankName: "State Bank of India",
-    //     ifscCode: "SBIN0000123"
-    // });
+//   const fetchProfileData = async () => {
+//     setLoading(true);
+//     setError(null);
+//     try {
+//       const token = localStorage.getItem('authKey');
+//       if (!token) throw new Error('No auth token found');
 
-    // const [editedData, setEditedData] = useState({});
+//       const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-    // // Effect to fetch data on component mount
-    // useEffect(() => {
-    //     fetchProfileData();
-    // }, []);
+//       const userRes = await fetch(`${VITE_API_BASE_URL}/user/me`, { headers });
+//       if (!userRes.ok) throw new Error('Failed to fetch user data');
+//       const user = await userRes.json();
 
-    // // Simulates fetching profile data from an API
-    // const fetchProfileData = async () => {
-    //     setLoading(true);
-    //     setError(null);
-    //     try {
-    //     // Simulate API call delay
-    //     await new Promise(resolve => setTimeout(resolve, 800));
-    //     setProfileData(profileData);
-    //     setEditedData(profileData);
-    //     } catch (err) {
-    //     setError('Failed to load profile data. Please refresh the page.');
-    //     } finally {
-    //     setLoading(false);
-    //     }
-    // };
+//       const profileRes = await fetch(`${VITE_API_BASE_URL}/profiles/me`, { headers });
+//       const profile = profileRes.ok ? await profileRes.json() : {};
 
-    // const handleEdit = () => {
-    //     setIsEditing(true);
-    //     setError(null);
-    //     setSuccess(false);
-    // };
+//       setUserData(user);
+//       setProfileData(profile);
+//       setEditedData({ ...user, ...profile, profileImageUrl: '/bussiness-man.png' });
 
-    // const handleCancel = () => {
-    //     setIsEditing(false);
-    //     setEditedData(profileData);
-    //     setError(null);
-    // };
+//     } catch (err) {
+//       setError(err.message || "Failed to fetch profile");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
-    // // Simulates saving updated data to an API
-    // const handleSave = async () => {
-    //     setLoading(true);
-    //     setError(null);
-    //     try {
-    //         // Simulate API call delay
-    //     await new Promise(resolve => setTimeout(resolve, 1000));
-        
-    //     setProfileData(editedData);
-    //     setIsEditing(false);
-    //     setSuccess(true);
-    //     setTimeout(() => setSuccess(false), 3000);
-    //     } catch (err) {
-    //     setError('Failed to update profile. Please try again.');
-    //     } finally {
-    //     setLoading(false);
-    //     }
-    // };
+//   const handleEdit = () => {
+//     setIsEditing(true);
+//     setError(null);
+//     setSuccess(null);
+//   };
 
-    // const handleChange = (field, value) => {
-    //     setEditedData(prev => ({ ...prev, [field]: value }));
-    // };
+//   const handleCancel = () => {
+//     setIsEditing(false);
+//     if (userData) setEditedData({ ...userData, ...profileData, profileImageUrl: editedData.profileImageUrl });
+//     setError(null);
+//   };
 
-    // // Helper to format date strings
-    // const formatDate = (dateString) => {
-    //     return new Date(dateString).toLocaleDateString('en-US', {
-    //     year: 'numeric', month: 'long', day: 'numeric'
-    //     });
-    // };
+//   const handleSave = async () => {
+//     setSaveLoading(true);
+//     setError(null);
+//     try {
+//       const token = localStorage.getItem('authKey');
+//       const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-    // // Reusable component for displaying/editing a field
-    // const InfoField = ({ label, value, field, icon: Icon }) => (
-    //     <Box sx={{ mb: 2.5 }}>
-    //     <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-    //         {Icon && <Icon size={16} style={{ marginRight: 8, color: theme.palette.text.secondary }} />}
-    //         <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
-    //         {label}
-    //         </Typography>
-    //     </Box>
-    //     {isEditing ? (
-    //         <TextField
-    //         fullWidth
-    //         variant="outlined"
-    //         size="small"
-    //         value={editedData[field]}
-    //         onChange={(e) => handleChange(field, e.target.value)}
-    //         sx={{
-    //             '& .MuiOutlinedInput-root': {
-    //             backgroundColor: alpha(theme.palette.action.selected, 0.5),
-    //             }
-    //         }}
-    //         />
-    //     ) : (
-    //         <Typography variant="body1" sx={{ fontWeight: 500, color: theme.palette.text.primary }}>
-    //         {value || '—'}
-    //         </Typography>
-    //     )}
-    //     </Box>
-    // );
-
-    // // Main loading state for the whole page
-    // if (loading && !profileData.id) {
-    //     return (
-    //     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-    //         <CircularProgress />
-    //     </Box>
-    //     );
-    // }
-
-    // return (
-    //     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
-    //     {/* --- NOTIFICATION ALERTS --- */}
-    //     {success && (
-    //         <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }} icon={<CheckCircle size={20} />}>
-    //         Profile updated successfully!
-    //         </Alert>
-    //     )}
-    //     {error && (
-    //         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} icon={<XCircle size={20} />}>
-    //         {error}
-    //         </Alert>
-    //     )}
-
-    //     <Card sx={{ mb: 3, overflow: 'visible' }}>
-    //         <Box
-    //         sx={{
-    //             height: 90,
-                
-    //         }}
-    //         />
-    //         <CardContent sx={{ pt: 0 }}>
-    //         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'center', md: 'flex-start' }, gap: 3 }}>
-    //             <Badge
-    //             overlap="circular"
-    //             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-    //             sx={{ mt: -8 }}
-    //             >
-    //             <Avatar
-    //                 sx={{
-    //                 width: 140,
-    //                 height: 140,
-    //                 border: `4px solid ${theme.palette.background.paper}`,
-    //                 fontSize: '3rem',
-    //                 fontWeight: 600,
-    //                 color: 'primary.contrastText',
-    //                 backgroundColor: 'primary.main',
-    //                 }}
-    //             >
-    //                 {userData.name.charAt(0).toUpperCase()}
-    //             </Avatar>
-    //             </Badge>
-
-    //             <Box sx={{ flex: 1, width: '100%', textAlign: { xs: 'center', md: 'left' } }}>
-    //             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: { xs: 'center', md: 'flex-start' }, mb: 1 }}>
-    //                 <Typography variant="h4" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>
-    //                 {userData.name}
-    //                 </Typography>
-    //                 <Chip
-    //                 icon={userData.isActive ? <CheckCircle size={16} /> : <XCircle size={16} />}
-    //                 label={userData.isActive ? "Active" : "Inactive"}
-    //                 size="small"
-    //                 color={userData.isActive ? "success" : "error"}
-    //                 variant="outlined"
-    //                 />
-    //             </Box>
-                
-    //             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: { xs: 'center', md: 'flex-start' }, mb: 2 }}>
-    //                 <Chip
-    //                 icon={<Shield size={16} />}
-    //                 label={userData.role.name}
-    //                 size="small"
-    //                 variant="outlined"
-    //                 color="primary"
-    //                 />
-    //                 <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-    //                 <Mail size={14} /> {userData.email}
-    //                 </Typography>
-    //                 <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-    //                 <Phone size={14} /> {userData.phone}
-    //                 </Typography>
-    //             </Box>
-
-    //             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1, justifyContent: { xs: 'center', md: 'flex-start' }}}>
-    //                 <Calendar size={12} /> Joined: {formatDate(userData.createdAt)}
-    //             </Typography>
-    //             </Box>
-
-    //             <Box sx={{ display: 'flex', gap: 1.5, mt: { xs: 2, md: 0 }, alignSelf: { md: 'flex-start'} }}>
-    //             {!isEditing ? (
-    //                 <Button variant="contained" startIcon={<Edit size={18} />} onClick={handleEdit}>
-    //                 Edit Profile
-    //                 </Button>
-    //             ) : (
-    //                 <>
-    //                 <Button variant="outlined" color="secondary" startIcon={<X size={18} />} onClick={handleCancel} disabled={loading}>
-    //                     Cancel
-    //                 </Button>
-    //                 <Button
-    //                     variant="contained"
-    //                     startIcon={loading ? <CircularProgress color="inherit" size={18} /> : <Save size={18} />}
-    //                     onClick={handleSave}
-    //                     disabled={loading}
-    //                 >
-    //                     Save Changes
-    //                 </Button>
-    //                 </>
-    //             )}
-    //             </Box>
-    //         </Box>
-    //         </CardContent>
-    //     </Card>
-
-    //     <Grid container spacing={3}>
-    //         {/* --- BUSINESS INFORMATION --- */}
-    //         <Grid item xs={12} lg={6}>
-    //         <Card sx={{ height: '100%' }}>
-    //             <CardContent sx={{ p: 3 }}>
-    //                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-    //                     <Building2 size={22} style={{ color: theme.palette.text.secondary }} />
-    //                     Business Information
-    //                 </Typography>
-    //                 <Divider sx={{ mb: 3 }} />
-    //                 <InfoField label="Address" value={profileData.address} field="address" icon={MapPin} />
-    //                 <InfoField label="City" value={profileData.city} field="city" icon={Building2} />
-    //                 <InfoField label="State" value={profileData.state} field="state" icon={MapPin} />
-    //                 <InfoField label="Pincode" value={profileData.pincode} field="pincode" icon={MapPin} />
-    //             </CardContent>
-    //         </Card>
-    //         </Grid>
-
-    //         {/* --- TAX INFORMATION --- */}
-    //         <Grid item xs={12} lg={6}>
-    //         <Card sx={{ height: '100%' }}>
-    //             <CardContent sx={{ p: 3 }}>
-    //                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-    //                     <FileText size={22} style={{ color: theme.palette.text.secondary }} />
-    //                     Tax Information
-    //                 </Typography>
-    //                 <Divider sx={{ mb: 3 }} />
-    //                 <InfoField label="GST Number" value={profileData.gstNumber} field="gstNumber" icon={FileText} />
-    //                 <InfoField label="PAN Number" value={profileData.panNumber} field="panNumber" icon={CreditCard} />
-    //             </CardContent>
-    //         </Card>
-    //         </Grid>
-
-    //         {/* --- BANKING INFORMATION --- */}
-    //         <Grid item xs={12}>
-    //         <Card>
-    //             <CardContent sx={{ p: 3 }}>
-    //                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-    //                     <Landmark size={22} style={{ color: theme.palette.text.secondary }} />
-    //                     Banking Information
-    //                 </Typography>
-    //             <Divider sx={{ mb: 3 }} />
-    //             <Grid container spacing={3}>
-    //                 <Grid item xs={12} md={4}>
-    //                 <InfoField label="Account Number" value={profileData.accountNo} field="accountNo" icon={CreditCard} />
-    //                 </Grid>
-    //                 <Grid item xs={12} md={4}>
-    //                 <InfoField label="Bank Name" value={profileData.bankName} field="bankName" icon={Landmark} />
-    //                 </Grid>
-    //                 <Grid item xs={12} md={4}>
-    //                 <InfoField label="IFSC Code" value={profileData.ifscCode} field="ifscCode" icon={FileText} />
-    //                 </Grid>
-    //             </Grid>
-    //             </CardContent>
-    //         </Card>
-    //         </Grid>
-    //     </Grid>
-    //     </Box>
-    // );
-    // };
-
-    // export default Profile;
+//       const userPayload = {
+//         name: editedData.name,
+//         email: editedData.email,
+//         phone: editedData.phone,
+//         role: typeof editedData.role === 'object' ? editedData.role.name : editedData.role,
+//         isActive: editedData.isActive,
+//       };
 
 
-    import React, { useState, useEffect, useRef } from 'react';
+//       const profilePayload = {
+//         address: editedData.address,
+//         city: editedData.city,
+//         state: editedData.state,
+//         pincode: editedData.pincode,
+//         gstNumber: editedData.gstNumber,
+//         panNumber: editedData.panNumber,
+//         accountNo: editedData.accountNo,
+//         bankName: editedData.bankName,
+//         ifscCode: editedData.ifscCode,
+//       };
+
+//       const updateUserCall = fetch(`${VITE_API_BASE_URL}/user/update/${userData.userId}`, {
+//         method: 'PUT',
+//         headers,
+//         body: JSON.stringify(userPayload),
+//       });
+
+//       const updateProfileCall = profileData?.id
+//         ? fetch(`${VITE_API_BASE_URL}/profiles/me`, {
+//           method: 'PUT',
+//           headers,
+//           body: JSON.stringify(profilePayload),
+//         })
+//         : Promise.resolve({ ok: true, json: () => Promise.resolve(profilePayload) });
+
+//       const [userResponse, profileResponse] = await Promise.all([updateUserCall, updateProfileCall]);
+
+//       if (!userResponse.ok || !profileResponse.ok) throw new Error('Failed to save profile data');
+
+//       const updatedUser = await userResponse.json();
+//       const updatedProfile = await profileResponse.json();
+
+//       setUserData(updatedUser);
+//       setProfileData(updatedProfile);
+//       setEditedData({ ...updatedUser, ...updatedProfile, profileImageUrl: editedData.profileImageUrl });
+//       setIsEditing(false);
+//       setSuccess('Profile updated successfully!');
+//       setTimeout(() => setSuccess(null), 4000);
+//     } catch (err) {
+//       setError(err.message || 'Failed to save changes');
+//     } finally {
+//       setSaveLoading(false);
+//     }
+//   };
+
+//   const handleChange = React.useCallback((field, value) => {
+//     setEditedData(prev => ({ ...prev, [field]: value }));
+//   }, []);
+
+//   const handleImageChange = (event) => {
+//     const file = event.target.files[0];
+//     if (file) {
+//       const reader = new FileReader();
+//       reader.onloadend = () => {
+//         const newImageUrl = reader.result;
+//         setEditedData(prev => ({ ...prev, profileImageUrl: newImageUrl }));
+//         setUserData(prev => ({ ...prev, profileImageUrl: newImageUrl }));
+//         setSuccess('Profile image changed. Click "Save Changes" to make it permanent.');
+//       };
+//       reader.readAsDataURL(file);
+//     }
+//   };
+
+//   const triggerFileSelect = () => fileInputRef.current.click();
+
+//   const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+
+//   const InfoField = React.memo(({ label, value, field, icon: Icon, isEditing, handleChange }) => {
+//     const theme = useTheme();
+//     return (
+//       <Box sx={{ mb: 2.5 }}>
+//         <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+//           {Icon && <Icon size={16} style={{ marginRight: 8, color: theme.palette.text.secondary }} />}
+//           <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>{label}</Typography>
+//         </Box>
+//         {isEditing ? (
+//           <TextField
+//             fullWidth
+//             variant="outlined"
+//             size="small"
+//             value={value || ''}
+//             onChange={(e) => handleChange(field, e.target.value)}
+//             sx={{ '& .MuiOutlinedInput-root': { backgroundColor: alpha(theme.palette.action.selected, 0.5) } }}
+//           />
+//         ) : (
+//           <Typography variant="body1" sx={{ fontWeight: 500, color: theme.palette.text.primary }}>{value || '—'}</Typography>
+//         )}
+//       </Box>
+//     );
+//   });
+
+
+//   if (loading) return (
+//     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+//       <CircularProgress />
+//       <Typography sx={{ ml: 2 }}>Loading Profile...</Typography>
+//     </Box>
+//   );
+
+//   if (error && !userData) return (
+//     <Box sx={{ p: 3 }}>
+//       <Alert severity="error">{error}</Alert>
+//     </Box>
+//   );
+
+//   return (
+//     <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
+//       {success && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }} icon={<CheckCircle size={20} />}>{success}</Alert>}
+//       {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} icon={<XCircle size={20} />}>{error}</Alert>}
+
+//       <Card sx={{ mb: 3, overflow: 'visible' }}>
+//         <CardContent sx={{ position: 'relative', p: { xs: 2, md: 3 } }}>
+//           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: { xs: 2, md: 3 } }}>
+//             <Badge
+//               overlap="circular"
+//               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+//               badgeContent={
+//                 <>
+//                   <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" hidden />
+
+//                 </>
+//               }
+//             >
+//               <Avatar src={editedData.profileImageUrl} sx={{ width: { xs: 100, md: 140 }, height: { xs: 100, md: 140 }, border: `4px solid ${theme.palette.background.paper}` }} />
+//             </Badge>
+
+//             <Box sx={{ flex: 1, width: '100%', textAlign: { xs: 'center', md: 'left' } }}>
+//               <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, justifyContent: { xs: 'center', md: 'flex-start' }, mb: 1 }}>
+//                 <Typography variant="h4" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>{editedData.name}</Typography>
+//                 <Chip icon={editedData.isActive ? <CheckCircle size={16} /> : <XCircle size={16} />} label={editedData.isActive ? "Active" : "Inactive"} size="small" color={editedData.isActive ? "success" : "error"} variant="outlined" />
+//               </Box>
+
+//               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1, md: 2 }, justifyContent: { xs: 'center', md: 'flex-start' }, mb: 2 }}>
+//                 <Chip
+//                   icon={<Shield size={16} />}
+//                   label={typeof editedData.role === 'object' ? editedData.role?.name || '—' : editedData.role}
+//                   size="small"
+//                   variant="outlined"
+//                   color="primary"
+//                 />
+//                 <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}><Mail size={14} /> {editedData.email}</Typography>
+//                 <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}><Phone size={14} /> {editedData.phone}</Typography>
+//               </Box>
+
+//               <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1, justifyContent: { xs: 'center', md: 'flex-start' } }}><Calendar size={12} /> Joined: {formatDate(editedData.createdAt)}</Typography>
+//             </Box>
+
+//             <Box sx={{ display: 'flex', gap: 1.5, width: { xs: '100%', md: 'auto' } }}>
+//               {!isEditing ? (
+//                 <Button fullWidth sx={{ width: { xs: '100%', md: 'auto' } }} variant="contained" startIcon={<Edit size={18} />} onClick={handleEdit}>Edit Profile</Button>
+//               ) : (
+//                 <>
+//                   <Button fullWidth sx={{ width: { xs: '50%', md: 'auto' } }} variant="outlined" color="secondary" startIcon={<X size={18} />} onClick={handleCancel} disabled={saveLoading}>Cancel</Button>
+//                   <Button fullWidth sx={{ width: { xs: '50%', md: 'auto' } }} variant="contained" startIcon={saveLoading ? <CircularProgress color="inherit" size={18} /> : <Save size={18} />} onClick={handleSave} disabled={saveLoading}>Save Changes</Button>
+//                 </>
+//               )}
+//             </Box>
+//           </Box>
+//         </CardContent>
+//       </Card>
+
+//       {/* Business Info */}
+//       <Grid container spacing={{ xs: 2, md: 3 }}>
+//         <Grid item xs={12} lg={6}>
+//           <Card sx={{ height: '100%' }}><CardContent sx={{ p: { xs: 2, md: 3 } }}>
+//             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}><Building2 size={22} style={{ color: theme.palette.text.secondary }} /> Business Information</Typography>
+//             <Divider sx={{ mb: 3 }} />
+//             <InfoField label="Address" value={editedData.address} field="address" icon={MapPin} isEditing={isEditing} handleChange={handleChange} />
+//             <InfoField label="City" value={editedData.city} field="city" icon={Building2} isEditing={isEditing} handleChange={handleChange} />
+//             <InfoField label="State" value={editedData.state} field="state" icon={MapPin} isEditing={isEditing} handleChange={handleChange} />
+//             <InfoField label="Pincode" value={editedData.pincode} field="pincode" icon={MapPin} isEditing={isEditing} handleChange={handleChange} />
+//           </CardContent></Card>
+//         </Grid>
+
+//         {/* Tax Info */}
+//         <Grid item xs={12} lg={6}>
+//           <Card sx={{ height: '100%' }}><CardContent sx={{ p: { xs: 2, md: 3 } }}>
+//             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}><FileText size={22} style={{ color: theme.palette.text.secondary }} /> Tax Information</Typography>
+//             <Divider sx={{ mb: 3 }} />
+//             <InfoField label="GST Number" value={editedData.gstNumber} field="gstNumber" isEditing={isEditing} handleChange={handleChange} icon={FileText} />
+//             <InfoField label="PAN Number" value={editedData.panNumber} field="panNumber" isEditing={isEditing} handleChange={handleChange} icon={CreditCard} />
+//           </CardContent></Card>
+//         </Grid>
+
+//         {/* Banking Info */}
+//         <Grid item xs={12}>
+//           <Card><CardContent sx={{ p: { xs: 2, md: 3 } }}>
+//             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}><Landmark size={22} style={{ color: theme.palette.text.secondary }} /> Banking Information</Typography>
+//             <Divider sx={{ mb: 3 }} />
+//             <Grid container spacing={{ xs: 2, md: 3 }}>
+//               <Grid item xs={12} md={4}><InfoField label="Account Number" value={editedData.accountNo} field="accountNo" isEditing={isEditing} handleChange={handleChange} icon={CreditCard} /></Grid>
+//               <Grid item xs={12} md={4}><InfoField label="Bank Name" value={editedData.bankName} field="bankName" isEditing={isEditing} handleChange={handleChange} icon={Landmark} /></Grid>
+//               <Grid item xs={12} md={4}><InfoField label="IFSC Code" value={editedData.ifscCode} field="ifscCode" isEditing={isEditing} handleChange={handleChange} icon={FileText} /></Grid>
+//             </Grid>
+//           </CardContent></Card>
+//         </Grid>
+//       </Grid>
+//     </Box>
+//   );
+// };
+
+// export default Profile;
+
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Card,
@@ -377,11 +354,9 @@ import {
   XCircle,
   Camera,
 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import { VITE_API_BASE_URL } from '../utils/State';
-// Base URL for your API. Centralizing this makes it easy to change.
 
-
-// Main Profile Component
 const Profile = () => {
   const theme = useTheme();
   const [isEditing, setIsEditing] = useState(false);
@@ -389,72 +364,67 @@ const Profile = () => {
   const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  
   const [userData, setUserData] = useState(null);
   const [profileData, setProfileData] = useState(null);
-  const [editedData, setEditedData] = useState({});
+  const [profileImageUrl, setProfileImageUrl] = useState('/bussiness-man.png');
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    // On component mount, get user auth token from local storage.
-    // This would typically be set when a user logs in.
-    
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      role: '',
+      isActive: false,
+      address: '',
+      city: '',
+      state: '',
+      pincode: '',
+      gstNumber: '',
+      panNumber: '',
+      accountNo: '',
+      bankName: '',
+      ifscCode: '',
+    },
+  });
 
+  // Fetch profile data on mount
+  useEffect(() => {
     const token = localStorage.getItem('authKey');
-    console.log(token);
-    
-    if (token) {
-      fetchProfileData();
-    } else {
-      setError("No authentication token found. Please log in again.");
+    if (token) fetchProfileData();
+    else {
+      setError('No authentication token found. Please log in again.');
       setLoading(false);
     }
   }, []);
 
-  // Fetches all necessary data from the API using the auth token
   const fetchProfileData = async () => {
     setLoading(true);
     setError(null);
     try {
       const token = localStorage.getItem('authKey');
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+      if (!token) throw new Error('No auth token found');
+
+      const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+      const userRes = await fetch(`${VITE_API_BASE_URL}/user/me`, { headers });
+      if (!userRes.ok) throw new Error('Failed to fetch user data');
+      const user = await userRes.json();
+
+      const profileRes = await fetch(`${VITE_API_BASE_URL}/profiles/me`, { headers });
+      const profile = profileRes.ok ? await profileRes.json() : {};
+
+      setUserData(user);
+      setProfileData(profile);
+      const combinedData = {
+        ...user,
+        ...profile,
+        role: typeof user.role === 'object' ? user.role.name : user.role,
       };
-
-      // 1. Fetch the primary user data based on the token.
-      // Assumption: The API has an endpoint like '/users/me' that identifies the user from the token.
-      const userResponse = await fetch(`${VITE_API_BASE_URL}/profiles/me`, { headers });
-      if (!userResponse.ok) {
-        throw new Error(`Failed to fetch user data (HTTP ${userResponse.status})`);
-      }
-      const fetchedUserData = await userResponse.json();
-      const userId = fetchedUserData.userId;
-
-      // 2. Once we have the userId, fetch the associated detailed profile.
-      const profileResponse = await fetch(`${VITE_API_BASE_URL}/profiles/user/${userId}`, { headers });
-      
-      let fetchedProfileData = {};
-      if (profileResponse.ok) {
-        fetchedProfileData = await profileResponse.json();
-      } else {
-        // Gracefully handle cases where a profile might not exist for a user yet.
-        console.warn(`Could not fetch profile data (HTTP ${profileResponse.status}). A profile may not have been created yet.`);
-      }
-
-      // Add profileImageUrl for the avatar, as it's not in the API response.
-      const userDataWithImage = {
-        ...fetchedUserData,
-        profileImageUrl: `https://i.pravatar.cc/150?u=${userId}`
-      };
-
-      setUserData(userDataWithImage);
-      setProfileData(fetchedProfileData);
-      // Combine all editable fields into one state object for the form
-      setEditedData({ ...userDataWithImage, ...fetchedProfileData });
-
+      reset(combinedData); // Update form with fetched data
+      setProfileImageUrl(combinedData.profileImageUrl || '/bussiness-man.png');
     } catch (err) {
-      setError(err.message || 'Failed to load profile data. Please refresh.');
+      setError(err.message || 'Failed to fetch profile');
     } finally {
       setLoading(false);
     }
@@ -468,67 +438,76 @@ const Profile = () => {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setEditedData({ ...userData, ...profileData }); // Reset changes
+    if (userData && profileData) {
+      reset({
+        ...userData,
+        ...profileData,
+        role: typeof userData.role === 'object' ? userData.role.name : userData.role,
+      });
+      setProfileImageUrl(userData.profileImageUrl || '/bussiness-man.png');
+    }
     setError(null);
   };
 
-  // Saves updated data to the API
-  const handleSave = async () => {
+  const onSubmit = async (data) => {
     setSaveLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('authToken');
-      const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+      const token = localStorage.getItem('authKey');
+      const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-      // 1. Separate data for their respective API endpoints
-      // Assumption: A user updates their own data via a `/api/users/{id}` endpoint, not an admin-only route.
-      const userPayload = { name: editedData.name, email: editedData.email, phone: editedData.phone };
-      const profilePayload = {
-        address: editedData.address, city: editedData.city, state: editedData.state,
-        pincode: editedData.pincode, gstNumber: editedData.gstNumber, panNumber: editedData.panNumber,
-        accountNo: editedData.accountNo, bankName: editedData.bankName, ifscCode: editedData.ifscCode,
+      const userPayload = {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        role: data.role,
+        isActive: data.isActive,
       };
-      
-      // 2. Define the API update calls
-      const updateUserCall = fetch(`${VITE_API_BASE_URL}/users/${userData.userId}`, {
-        method: 'PUT', headers, body: JSON.stringify(userPayload)
-      });
-      
-      // Only attempt to update the profile if a profile ID exists.
-      // If not, we might need a POST to create one, but for this scope, we'll stick to PUT.
-      const updateProfileCall = profileData?.id
-        ? fetch(`${VITE_API_BASE_URL}/profiles/${profileData.id}`, { method: 'PUT', headers, body: JSON.stringify(profilePayload) })
-        : Promise.resolve({ ok: true, json: () => Promise.resolve(profilePayload) }); // If no profile, resolve immediately
 
-      // 3. Execute both calls in parallel
+      const profilePayload = {
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        pincode: data.pincode,
+        gstNumber: data.gstNumber,
+        panNumber: data.panNumber,
+        accountNo: data.accountNo,
+        bankName: data.bankName,
+        ifscCode: data.ifscCode,
+      };
+
+      const updateUserCall = fetch(`${VITE_API_BASE_URL}/user/update/${userData.userId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(userPayload),
+      });
+
+      const updateProfileCall = profileData?.id
+        ? fetch(`${VITE_API_BASE_URL}/profiles/me`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(profilePayload),
+          })
+        : Promise.resolve({ ok: true, json: () => Promise.resolve(profilePayload) });
+
       const [userResponse, profileResponse] = await Promise.all([updateUserCall, updateProfileCall]);
 
-      if (!userResponse.ok || !profileResponse.ok) {
-        throw new Error('One or more updates failed. Please try again.');
-      }
+      if (!userResponse.ok || !profileResponse.ok) throw new Error('Failed to save profile data');
 
-      const updatedUserData = await userResponse.json();
-      const updatedProfileData = await profileResponse.json();
-      
-      // 4. Update the local state with the confirmed data from the server
-      const combinedResult = { ...updatedUserData, ...updatedProfileData };
-      setUserData(prev => ({ ...prev, ...combinedResult }));
-      setProfileData(prev => ({ ...prev, ...combinedResult }));
+      const updatedUser = await userResponse.json();
+      const updatedProfile = await profileResponse.json();
 
+      setUserData(updatedUser);
+      setProfileData(updatedProfile);
+      reset({ ...updatedUser, ...updatedProfile, role: typeof updatedUser.role === 'object' ? updatedUser.role.name : updatedUser.role });
       setIsEditing(false);
       setSuccess('Profile updated successfully!');
       setTimeout(() => setSuccess(null), 4000);
-
     } catch (err) {
-      setError(err.message || 'Failed to update profile. Please try again.');
+      setError(err.message || 'Failed to save changes');
     } finally {
       setSaveLoading(false);
     }
-  };
-
-
-  const handleChange = (field, value) => {
-    setEditedData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleImageChange = (event) => {
@@ -536,9 +515,7 @@ const Profile = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const newImageUrl = reader.result;
-        setUserData(prev => ({...prev, profileImageUrl: newImageUrl}));
-        setEditedData(prev => ({...prev, profileImageUrl: newImageUrl}));
+        setProfileImageUrl(reader.result);
         setSuccess('Profile image changed. Click "Save Changes" to make it permanent.');
       };
       reader.readAsDataURL(file);
@@ -547,130 +524,266 @@ const Profile = () => {
 
   const triggerFileSelect = () => fileInputRef.current.click();
 
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const formatDate = (dateString) =>
+    dateString
+      ? new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '—';
 
-  const InfoField = ({ label, value, field, icon: Icon }) => (
-    <Box sx={{ mb: 2.5 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-        {Icon && <Icon size={16} style={{ marginRight: 8, color: theme.palette.text.secondary }} />}
-        <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>{label}</Typography>
+  const InfoField = React.memo(({ label, field, icon: Icon, isEditing, register }) => {
+    const theme = useTheme();
+    return (
+      <Box key={field} sx={{ mb: 2.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+          {Icon && <Icon size={16} style={{ marginRight: 8, color: theme.palette.text.secondary }} />}
+          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
+            {label}
+          </Typography>
+        </Box>
+        {isEditing ? (
+          <TextField
+            fullWidth
+            variant="outlined"
+            size="small"
+            {...register(field)}
+            error={!!errors[field]}
+            helperText={errors[field]?.message}
+            sx={{ '& .MuiOutlinedInput-root': { backgroundColor: alpha(theme.palette.action.selected, 0.5) } }}
+          />
+        ) : (
+          <Typography variant="body1" sx={{ fontWeight: 500, color: theme.palette.text.primary }}>
+            {(userData?.[field] || profileData?.[field]) || '—'}
+          </Typography>
+        )}
       </Box>
-      {isEditing ? (
-        <TextField
-          fullWidth
-          variant="outlined"
-          size="small"
-          value={editedData[field] || ''}
-          onChange={(e) => handleChange(field, e.target.value)}
-          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: alpha(theme.palette.action.selected, 0.5) }}}
-        />
-      ) : (
-        <Typography variant="body1" sx={{ fontWeight: 500, color: theme.palette.text.primary }}>{value || '—'}</Typography>
-      )}
-    </Box>
-  );
+    );
+  });
 
-  if (loading) {
+  if (loading)
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
         <CircularProgress />
         <Typography sx={{ ml: 2 }}>Loading Profile...</Typography>
       </Box>
     );
-  }
 
-  if (error && !userData) {
+  if (error && !userData)
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="error">{error}</Alert>
       </Box>
     );
-  }
 
   return (
     <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
-      {success && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }} icon={<CheckCircle size={20} />}>{success}</Alert>}
-      {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} icon={<XCircle size={20} />}>{error}</Alert>}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }} icon={<CheckCircle size={20} />}>
+          {success}
+        </Alert>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} icon={<XCircle size={20} />}>
+          {error}
+        </Alert>
+      )}
 
-      <Card sx={{ mb: 3, overflow: 'visible' }}>
-        <CardContent sx={{ position: 'relative', p: { xs: 2, md: 3 } }}>
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: { xs: 2, md: 3 } }}>
-            <Badge
-              overlap="circular"
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              badgeContent={
-                <>
-                  <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" hidden />
-                  <IconButton onClick={triggerFileSelect} size="small" sx={{ backgroundColor: 'background.paper', border: `1px solid ${theme.palette.divider}`, '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) } }}>
-                    <Camera size={16} />
-                  </IconButton>
-                </>
-              }
-            >
-              <Avatar src={userData.profileImageUrl} sx={{ width: { xs: 100, md: 140 }, height: { xs: 100, md: 140 }, border: `4px solid ${theme.palette.background.paper}` }} />
-            </Badge>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Card sx={{ mb: 3, overflow: 'visible' }}>
+          <CardContent sx={{ position: 'relative', p: { xs: 2, md: 3 } }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: { xs: 2, md: 3 } }}>
+              <Badge
+                overlap="circular"
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                badgeContent={
+                  isEditing ? (
+                    <IconButton
+                      onClick={triggerFileSelect}
+                      sx={{
+                        bgcolor: theme.palette.primary.main,
+                        color: 'white',
+                        '&:hover': { bgcolor: theme.palette.primary.dark },
+                      }}
+                    >
+                      <Camera size={20} />
+                    </IconButton>
+                  ) : null
+                }
+              >
+                <Avatar
+                  src={profileImageUrl}
+                  sx={{ width: { xs: 100, md: 140 }, height: { xs: 100, md: 140 }, border: `4px solid ${theme.palette.background.paper}` }}
+                />
+                <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" hidden />
+              </Badge>
 
-            <Box sx={{ flex: 1, width: '100%', textAlign: { xs: 'center', md: 'left' } }}>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, justifyContent: { xs: 'center', md: 'flex-start' }, mb: 1 }}>
-                <Typography variant="h4" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>{userData.name}</Typography>
-                <Chip icon={userData.isActive ? <CheckCircle size={16} /> : <XCircle size={16} />} label={userData.isActive ? "Active" : "Inactive"} size="small" color={userData.isActive ? "success" : "error"} variant="outlined" />
+              <Box sx={{ flex: 1, width: '100%', textAlign: { xs: 'center', md: 'left' } }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, justifyContent: { xs: 'center', md: 'flex-start' }, mb: 1 }}>
+                  {isEditing ? (
+                    <TextField
+                      variant="outlined"
+                      size="small"
+                      {...register('name')}
+                      error={!!errors.name}
+                      helperText={errors.name?.message}
+                      sx={{ maxWidth: 300 }}
+                    />
+                  ) : (
+                    <Typography variant="h4" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>
+                      {userData?.name || '—'}
+                    </Typography>
+                  )}
+                  <Chip
+                    icon={userData?.isActive ? <CheckCircle size={16} /> : <XCircle size={16} />}
+                    label={userData?.isActive ? 'Active' : 'Inactive'}
+                    size="small"
+                    color={userData?.isActive ? 'success' : 'error'}
+                    variant="outlined"
+                  />
+                </Box>
+
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1, md: 2 }, justifyContent: { xs: 'center', md: 'flex-start' }, mb: 2 }}>
+                  <Chip
+                    icon={<Shield size={16} />}
+                    label={typeof userData?.role === 'object' ? userData?.role?.name || '—' : userData?.role || '—'}
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                  />
+                  {isEditing ? (
+                    <TextField
+                      variant="outlined"
+                      size="small"
+                      {...register('email')}
+                      error={!!errors.email}
+                      helperText={errors.email?.message}
+                      sx={{ maxWidth: 300 }}
+                    />
+                  ) : (
+                    <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Mail size={14} /> {userData?.email || '—'}
+                    </Typography>
+                  )}
+                  {isEditing ? (
+                    <TextField
+                      variant="outlined"
+                      size="small"
+                      {...register('phone')}
+                      error={!!errors.phone}
+                      helperText={errors.phone?.message}
+                      sx={{ maxWidth: 200 }}
+                    />
+                  ) : (
+                    <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Phone size={14} /> {userData?.phone || '—'}
+                    </Typography>
+                  )}
+                </Box>
+
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1, justifyContent: { xs: 'center', md: 'flex-start' } }}
+                >
+                  <Calendar size={12} /> Joined: {formatDate(userData?.createdAt)}
+                </Typography>
               </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1, md: 2 }, justifyContent: { xs: 'center', md: 'flex-start' }, mb: 2 }}>
-                <Chip icon={<Shield size={16} />} label={userData.role.name} size="small" variant="outlined" color="primary" />
-                <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}><Mail size={14} /> {userData.email}</Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}><Phone size={14} /> {userData.phone}</Typography>
+
+              <Box sx={{ display: 'flex', gap: 1.5, width: { xs: '100%', md: 'auto' } }}>
+                {!isEditing ? (
+                  <Button
+                    fullWidth
+                    sx={{ width: { xs: '100%', md: 'auto' } }}
+                    variant="contained"
+                    startIcon={<Edit size={18} />}
+                    onClick={handleEdit}
+                  >
+                    Edit Profile
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      fullWidth
+                      sx={{ width: { xs: '50%', md: 'auto' } }}
+                      variant="outlined"
+                      color="secondary"
+                      startIcon={<X size={18} />}
+                      onClick={handleCancel}
+                      disabled={saveLoading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      fullWidth
+                      sx={{ width: { xs: '50%', md: 'auto' } }}
+                      variant="contained"
+                      type="submit"
+                      startIcon={saveLoading ? <CircularProgress color="inherit" size={18} /> : <Save size={18} />}
+                      disabled={saveLoading}
+                    >
+                      Save Changes
+                    </Button>
+                  </>
+                )}
               </Box>
-              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1, justifyContent: { xs: 'center', md: 'flex-start' } }}><Calendar size={12} /> Joined: {formatDate(userData.createdAt)}</Typography>
             </Box>
+          </CardContent>
+        </Card>
 
-            <Box sx={{ display: 'flex', gap: 1.5, width: { xs: '100%', md: 'auto' } }}>
-              {!isEditing ? (
-                <Button fullWidth sx={{ width: { xs: '100%', md: 'auto' } }} variant="contained" startIcon={<Edit size={18} />} onClick={handleEdit}>Edit Profile</Button>
-              ) : (
-                <>
-                  <Button fullWidth sx={{ width: { xs: '50%', md: 'auto' } }} variant="outlined" color="secondary" startIcon={<X size={18} />} onClick={handleCancel} disabled={saveLoading}>Cancel</Button>
-                  <Button fullWidth sx={{ width: { xs: '50%', md: 'auto' } }} variant="contained" startIcon={saveLoading ? <CircularProgress color="inherit" size={18} /> : <Save size={18} />} onClick={handleSave} disabled={saveLoading}>Save Changes</Button>
-                </>
-              )}
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+        {/* Business Info */}
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+          <Grid item xs={12} lg={6}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Building2 size={22} style={{ color: theme.palette.text.secondary }} /> Business Information
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <InfoField label="Address" field="address" icon={MapPin} isEditing={isEditing} register={register} />
+                <InfoField label="City" field="city" icon={Building2} isEditing={isEditing} register={register} />
+                <InfoField label="State" field="state" icon={MapPin} isEditing={isEditing} register={register} />
+                <InfoField label="Pincode" field="pincode" icon={MapPin} isEditing={isEditing} register={register} />
+              </CardContent>
+            </Card>
+          </Grid>
 
-      <Grid container spacing={{ xs: 2, md: 3 }}>
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ height: '100%' }}><CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}><Building2 size={22} style={{ color: theme.palette.text.secondary }} /> Business Information</Typography>
-            <Divider sx={{ mb: 3 }} />
-            <InfoField label="Address" value={profileData?.address} field="address" icon={MapPin} />
-            <InfoField label="City" value={profileData?.city} field="city" icon={Building2} />
-            <InfoField label="State" value={profileData?.state} field="state" icon={MapPin} />
-            <InfoField label="Pincode" value={profileData?.pincode} field="pincode" icon={MapPin} />
-          </CardContent></Card>
+          {/* Tax Info */}
+          <Grid item xs={12} lg={6}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <FileText size={22} style={{ color: theme.palette.text.secondary }} /> Tax Information
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <InfoField label="GST Number" field="gstNumber" icon={FileText} isEditing={isEditing} register={register} />
+                <InfoField label="PAN Number" field="panNumber" icon={CreditCard} isEditing={isEditing} register={register} />
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Banking Info */}
+          <Grid item xs={12}>
+            <Card>
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Landmark size={22} style={{ color: theme.palette.text.secondary }} /> Banking Information
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <Grid container spacing={{ xs: 2, md: 3 }}>
+                  <Grid item xs={12} md={4}>
+                    <InfoField label="Account Number" field="accountNo" icon={CreditCard} isEditing={isEditing} register={register} />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <InfoField label="Bank Name" field="bankName" icon={Landmark} isEditing={isEditing} register={register} />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <InfoField label="IFSC Code" field="ifscCode" icon={FileText} isEditing={isEditing} register={register} />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ height: '100%' }}><CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}><FileText size={22} style={{ color: theme.palette.text.secondary }} /> Tax Information</Typography>
-            <Divider sx={{ mb: 3 }} />
-            <InfoField label="GST Number" value={profileData?.gstNumber} field="gstNumber" icon={FileText} />
-            <InfoField label="PAN Number" value={profileData?.panNumber} field="panNumber" icon={CreditCard} />
-          </CardContent></Card>
-        </Grid>
-        <Grid item xs={12}>
-          <Card><CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}><Landmark size={22} style={{ color: theme.palette.text.secondary }} /> Banking Information</Typography>
-            <Divider sx={{ mb: 3 }} />
-            <Grid container spacing={{ xs: 2, md: 3 }}>
-              <Grid item xs={12} md={4}><InfoField label="Account Number" value={profileData?.accountNo} field="accountNo" icon={CreditCard} /></Grid>
-              <Grid item xs={12} md={4}><InfoField label="Bank Name" value={profileData?.bankName} field="bankName" icon={Landmark} /></Grid>
-              <Grid item xs={12} md={4}><InfoField label="IFSC Code" value={profileData?.ifscCode} field="ifscCode" icon={FileText} /></Grid>
-            </Grid>
-          </CardContent></Card>
-        </Grid>
-      </Grid>
+      </form>
     </Box>
   );
 };
 
 export default Profile;
-
