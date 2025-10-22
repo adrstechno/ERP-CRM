@@ -53,16 +53,7 @@ public class DashboardService {
         );
 
         // Sales by category
-        dto.setSalesByCategory(
-            saleRepo.getSalesByCategory(start, end)
-                .stream()
-                .map(obj -> {
-                    CategorySalesDTO cs = new CategorySalesDTO();
-                    cs.setCategory((String)obj[0]);
-                    cs.setTotalRevenue((Double)obj[1]);
-                    return cs;
-                }).toList()
-        );
+       
 
         // Users stats
         dto.setUserStats(
