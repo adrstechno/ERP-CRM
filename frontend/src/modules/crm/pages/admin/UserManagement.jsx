@@ -806,7 +806,7 @@ export default function UserManagement() {
         if (editUser.password) payload.password = editUser.password;
 
         try {
-            await axios.put(`${VITE_API_BASE_URL}/user/update/${editUser.userId}`, payload, {
+            await axios.put(`${VITE_API_BASE_URL}/user/update`, payload, {
                 headers: { Authorization: `Bearer ${authKey}` },
             });
             const updatedUsersResponse = await axios.get(`${VITE_API_BASE_URL}/admin/users`, { headers: { Authorization: `Bearer ${authKey}` } });
