@@ -18,7 +18,6 @@ import com.erp.crm.dto.UserDTO;
 import com.erp.crm.dto.UserResponseDTO;
 import com.erp.crm.models.User;
 import com.erp.crm.services.UserService;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/user")
@@ -30,9 +29,9 @@ public class UserController {
     }
 
     // ✅ Update User
-    @PutMapping("/update/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody UserDTO dto) {
-        return ResponseEntity.ok(userService.updateUser(userId, dto));
+    @PutMapping("/update")
+    public ResponseEntity<User> updateUser(@RequestBody UserDTO dto) {
+        return ResponseEntity.ok(userService.updateUser(dto));
     }
 
     // ✅ Delete User
