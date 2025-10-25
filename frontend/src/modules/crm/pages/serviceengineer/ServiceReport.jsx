@@ -298,7 +298,10 @@ export default function ServiceReport() {
                       <Box sx={{ flexBasis: '20%', color: theme.palette.text.secondary }}>{dayjs(report.createdAt).format('DD MMM YYYY, h:mm A')}</Box>
                       <Box sx={{ flexBasis: '15%' }}>{report.engineerName}</Box>
                       <Box sx={{ flexBasis: '15%' }}>{report.partsUsed || 'N/A'}</Box>
-                      <Box sx={{ flexBasis: '15%' }}>₹{report.additionalCharges.toFixed(2)}</Box>
+                      <Box sx={{ flexBasis: '15%' }}>
+  ₹{(report?.additionalCharges ?? 0).toFixed(2)}
+</Box>
+
                       <Box sx={{ flexBasis: '15%' }}>{report.description}</Box>
                       <Box sx={{ flexBasis: '10%', textAlign: 'center' }}>
                         {report.receiptURL ? (
