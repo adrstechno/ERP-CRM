@@ -80,6 +80,7 @@ const useServiceTickets = () => {
                 status: ticket.status,
                 priority: ticket.priority,
                 dueDate: ticket.dueDate,
+                imageUrl: ticket.imageUrl, 
             }));
             
             setTickets(formattedTickets);
@@ -242,11 +243,11 @@ export default function ServiceManagement() {
                             <TableContainer sx={{ maxHeight: 'calc(100vh - 450px)', overflowY: 'auto' }}>
                                 <Table stickyHeader size="small">
                                     <TableHead>
-                                        <TableRow>{['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date' ].map(h => <TableCell key={h}>{h}</TableCell>)}</TableRow>
+                                        <TableRow>{['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date','View' ].map(h => <TableCell key={h}>{h}</TableCell>)}</TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {isLoading ? <TableSkeleton columns={7} /> :
-                                            error ? <TableError columns={7} message={error} /> :
+                                        {isLoading ? <TableSkeleton columns={8} /> :
+                                            error ? <TableError columns={8} message={error} /> :
                                                 tickets.map((ticket) => (
                                                     <TableRow key={ticket.id} hover>
                                                         <TableCell sx={{ fontWeight: 500 }}>#{String(ticket.id).padStart(3, '0')}</TableCell>
@@ -269,6 +270,23 @@ export default function ServiceManagement() {
                                                         </TableCell>
                                                         <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
                                                         <TableCell>{dayjs(ticket.dueDate).format('DD MMM YYYY')}</TableCell>
+                                                        <TableCell>
+                                                       {ticket.imageUrl ? (
+                                                         <Button
+                                                           variant="outlined"
+                                                           color="primary"
+                                                           size="small"
+                                                           component="a"
+                                                           href={ticket.imageUrl}
+                                                           target="_blank"
+                                                           rel="noopener noreferrer"
+                                                         >
+                                                           View
+                                                         </Button>
+                                                       ) : (
+                                                         'N/A'
+                                                       )}
+                                                     </TableCell>
                                                     </TableRow>
                                                 ))}
                                     </TableBody>
