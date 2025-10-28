@@ -58,7 +58,7 @@ public class UserProfileService {
     // Get profile by any userId (admin use-case)
     public UserProfile getProfileByUserId(Long userId) {
         return userProfileRepository.findByUserUserId(userId)
-                .orElseThrow(() -> new RuntimeException("❌ Profile not found for userId: " + userId));
+                .orElse(null);
     }
 
     // Get all profiles
