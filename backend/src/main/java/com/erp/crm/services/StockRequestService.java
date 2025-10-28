@@ -29,7 +29,7 @@ public class StockRequestService {
     private final ProductRepository productRepository;
     private final UserRepository userRepo;
 
-    public StockRequestResponseDTO createRequest( StockRequestDTO dto) {
+    public StockRequestResponseDTO createRequest(StockRequestDTO dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
@@ -51,6 +51,13 @@ public class StockRequestService {
 
         StockRequest saved = stockRequestRepository.save(request);
         return mapToDto(saved);
+    }
+
+    public List<StockRequestResponseDTO> getStockRequestsByUserId(Long userId) {
+        return stockRequestRepository.findByRequestedBy_UserId(userId)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
     }
 
     public List<StockRequestResponseDTO> getAllRequests() {
