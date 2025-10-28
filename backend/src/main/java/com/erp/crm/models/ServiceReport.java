@@ -36,5 +36,14 @@ public class ServiceReport {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    
+    private Double startKm;
+    private Double endKm;
+    private String startKmPhotoUrl;
+    private String endKmPhotoUrl;
+    private Double totalDistance; 
+    @Column(length = 1000)
+    private String usedPartsDetails; 
+    @Column(length = 500)
+    private String missingParts; 
+
 }
