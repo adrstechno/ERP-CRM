@@ -47,8 +47,10 @@ public class UserService {
         return userRepo.save(user);
     }
 
-    public User updateUser(Long userId, UserDTO dto) {
-        User existingUser = getUserById(userId);
+    public User updateUser(UserDTO dto) {
+        String email = dto.getEmail();
+
+        User existingUser = getUserByEmail(email).orElseThrow(() -> new RuntimeException( "User with email : " + email + " not found."));
         return userRepo.save(mapDtoToEntity(existingUser, dto));
     }
 
