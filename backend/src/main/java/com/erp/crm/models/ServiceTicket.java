@@ -4,11 +4,15 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "service_tickets")
 @Getter
 @Setter
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ServiceTicket {
 
     @Id
@@ -31,7 +35,7 @@ public class ServiceTicket {
     private Priority priority;
 
     @Enumerated(EnumType.STRING)
-    private Status status = Status.OPEN;
+    private ServiceStatus serviceStatus = ServiceStatus.OPEN;
 
     private LocalDate dueDate;
 
@@ -48,4 +52,22 @@ public class ServiceTicket {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_entitlement_id")
     private ServiceEntitlement serviceEntitlement;
+
+    private Double startKm;
+    private String startKmPhotoUrl;
+    private LocalDateTime departureTime;
+
+    private LocalDateTime arrivalTime;
+    private String missingPart;
+
+    private Double partCollectedKm;
+    private String partCollectedPhotoUrl;
+
+    private Double endKm;
+    private String endKmPhotoUrl;
+    private String usedParts;
+
+    private LocalDateTime workCompletedTime;
+    private LocalDateTime completionTime;
+
 }

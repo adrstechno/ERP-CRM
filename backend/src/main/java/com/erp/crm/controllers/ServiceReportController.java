@@ -7,7 +7,6 @@ import com.erp.crm.services.ServiceReportService;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -54,4 +53,3 @@ public class ServiceReportController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Report found", dto));
     }
 }
-// {"ticketId":1,"partsUsed":"Fan Motor","additionalCharges":0,"description":"Inspection only"}

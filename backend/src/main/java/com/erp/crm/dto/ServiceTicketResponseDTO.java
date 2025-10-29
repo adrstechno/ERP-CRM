@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 import com.erp.crm.models.EntitlementType;
 import com.erp.crm.models.Priority;
+import com.erp.crm.models.ServiceStatus;
 import com.erp.crm.models.ServiceTicket;
 import com.erp.crm.models.Status;
 
@@ -18,7 +19,7 @@ public class ServiceTicketResponseDTO {
     private String productName;
     private String assignedEngineerName;
     private Priority priority;
-    private Status status;
+    private ServiceStatus status;
     private LocalDate dueDate;
     private EntitlementType entitlementType;
     private Long saleId;
@@ -33,7 +34,7 @@ public class ServiceTicketResponseDTO {
         dto.setProductName(ticket.getProduct().getName());
         dto.setAssignedEngineerName(ticket.getAssignedEngineer().getName());
         dto.setPriority(ticket.getPriority());
-        dto.setStatus(ticket.getStatus());
+        dto.setStatus(ticket.getServiceStatus());
         dto.setDueDate(ticket.getDueDate());
         dto.setEntitlementType(ticket.getEntitlementType());
         
