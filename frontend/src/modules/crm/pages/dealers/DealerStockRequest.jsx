@@ -98,7 +98,7 @@ export default function StockRequestPage() {
                 { ...formData },
                 axiosConfig
             );
-            alert('Stock request submitted successfully!');
+            toast.success('Stock request submitted successfully!');
             setFormData({ productId: '', quantity: '', notes: '' });
             fetchHistory(); // Refresh history table after successful submission
         } catch (error) {
