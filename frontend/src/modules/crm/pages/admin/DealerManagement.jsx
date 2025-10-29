@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import {
@@ -22,16 +21,20 @@ import {
   Button,
   Chip,
   Divider,
-  Stack,
   TextField,
   InputAdornment,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Alert,
 } from "@mui/material";
 import BusinessIcon from "@mui/icons-material/Business";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
-import { VITE_API_BASE_URL } from "../../utils/State"; // adjust your import
+import { VITE_API_BASE_URL } from "../../utils/State";
 
-// 🔹 Small reusable display component
 const DetailItem = ({ label, value }) => (
   <Box>
     <Typography
@@ -52,10 +55,27 @@ export default function DealerManagement() {
   const [selectedDealer, setSelectedDealer] = useState(null);
   const [requests, setRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchError, setSearchError] = useState("");
   const [loadingDealers, setLoadingDealers] = useState(true);
   const [loadingRequests, setLoadingRequests] = useState(false);
+  const [approveDialog, setApproveDialog] = useState({
+    open: false,
+    requestId: null,
+  });
+  const [successMessage, setSuccessMessage] = useState("");
 
-  // 🔹 Fetch all dealers
+  const validateSearch = (value) => {
+    const regex = /^[a-zA-Z0-9\s@._-]*$/;
+    if (!regex.test(value)) {
+      setSearchError(
+        "Only letters, numbers, spaces, and basic symbols are allowed"
+      );
+      return false;
+    }
+    setSearchError("");
+    return true;
+  };
+
   useEffect(() => {
     const fetchDealers = async () => {
       try {
@@ -79,7 +99,6 @@ export default function DealerManagement() {
     fetchDealers();
   }, []);
 
-  // 🔹 Handle Dealer Selection (Profile + Requests)
   const handleDealerSelect = async (dealer) => {
     setSelectedDealer(null);
     setRequests([]);
@@ -89,15 +108,12 @@ export default function DealerManagement() {
       const authKey = localStorage.getItem("authKey");
       if (!authKey) throw new Error("No auth key found");
 
-      // --- Fetch Dealer Profile ---
       const profileRes = await axios.get(
         `${VITE_API_BASE_URL}/profiles/${dealer.userId}`,
         { headers: { Authorization: `Bearer ${authKey}` } }
       );
-
       const profileData = profileRes.data || {};
 
-      // --- Fetch Requests for that Dealer ---
       const requestRes = await axios.get(
         `${VITE_API_BASE_URL}/stock-requests/user/${dealer.userId}`,
         { headers: { Authorization: `Bearer ${authKey}` } }
@@ -129,8 +145,12 @@ export default function DealerManagement() {
     }
   };
 
-  // 🔹 Approve Request
-  const handleApprove = async (requestId) => {
+  const handleApproveClick = (requestId) => {
+    setApproveDialog({ open: true, requestId });
+  };
+
+  const handleApproveConfirm = async () => {
+    const { requestId } = approveDialog;
     try {
       const authKey = localStorage.getItem("authKey");
       if (!authKey) throw new Error("No auth key found");
@@ -146,248 +166,43 @@ export default function DealerManagement() {
           r.id === requestId ? { ...r, status: "Approved" } : r
         )
       );
+
+      setSuccessMessage("Request approved successfully!");
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
       console.error("Error approving request:", error);
+    } finally {
+      setApproveDialog({ open: false, requestId: null });
     }
   };
 
-  // 🔹 Filter Dealers
   const filteredDealers = useMemo(() => {
     return dealers.filter((d) =>
       d.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [dealers, searchTerm]);
 
-  // return (
-  //   <Box sx={{ p: 3 }}>
-  //     <Grid container spacing={3}>
-  //       {/* LEFT: Dealer List */}
-  //       <Grid item xs={12} md={3}>
-  //         <Card
-  //           sx={{
-  //             height: "calc(100vh - 120px)",
-  //             display: "flex",
-  //             flexDirection: "column",
-  //           }}
-  //         >
-  //           <CardContent>
-  //             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-  //               Dealer List
-  //             </Typography>
-  //             <TextField
-  //               fullWidth
-  //               variant="outlined"
-  //               size="small"
-  //               placeholder="Search Dealers..."
-  //               value={searchTerm}
-  //               onChange={(e) => setSearchTerm(e.target.value)}
-  //               InputProps={{
-  //                 startAdornment: (
-  //                   <InputAdornment position="start">
-  //                     <SearchIcon />
-  //                   </InputAdornment>
-  //                 ),
-  //               }}
-  //             />
-  //           </CardContent>
-  //           <CardContent sx={{ flexGrow: 1, p: 0 }}>
-  //             <List sx={{ height: "100%", overflowY: "auto", p: 2 }}>
-  //               {loadingDealers ? (
-  //                 <Typography sx={{ p: 2 }}>Loading dealers...</Typography>
-  //               ) : filteredDealers.length > 0 ? (
-  //                 filteredDealers.map((dealer) => (
-  //                   <ListItem key={dealer.id} disablePadding sx={{ mb: 1 }}>
-  //                     <ListItemButton
-  //                       selected={selectedDealer?.id === dealer.id}
-  //                       onClick={() => handleDealerSelect(dealer)}
-  //                     >
-  //                       <ListItemAvatar>
-  //                         <Avatar alt={dealer.name} src={dealer.avatar} />
-  //                       </ListItemAvatar>
-  //                       <ListItemText
-  //                         primary={
-  //                           <Typography
-  //                             variant="subtitle2"
-  //                             sx={{ fontWeight: "bold" }}
-  //                           >
-  //                             {dealer.name}
-  //                           </Typography>
-  //                         }
-  //                         secondary={dealer.email}
-  //                       />
-  //                     </ListItemButton>
-  //                   </ListItem>
-  //                 ))
-  //               ) : (
-  //                 <Typography sx={{ p: 2 }}>No dealers found</Typography>
-  //               )}
-  //             </List>
-  //           </CardContent>
-  //         </Card>
-  //       </Grid>
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    if (validateSearch(value)) {
+      setSearchTerm(value);
+    }
+  };
 
-  //       {/* RIGHT: Dealer Info & Requests */}
-  //       <Grid item xs={12} md={9}>
-  //         <Stack spacing={3}>
-  //           {/* Dealer Info */}
-  //           <Card>
-  //             <CardContent>
-  //               <Stack direction="row" spacing={2} alignItems="center" mb={2}>
-  //                 <BusinessIcon color="primary" />
-  //                 <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-  //                   Dealer Information
-  //                 </Typography>
-  //               </Stack>
-  //               <Divider sx={{ mb: 3 }} />
-  //               {selectedDealer ? (
-  //                 <TableContainer sx={{ maxHeight: 180 }}>
-  //                   <Table size="small">
-  //                     <TableBody>
-  //                       <TableRow>
-  //                         <TableCell>
-  //                           <DetailItem
-  //                             label="Name"
-  //                             value={selectedDealer.name}
-  //                           />
-  //                         </TableCell>
-  //                         <TableCell>
-  //                           <DetailItem
-  //                             label="Mobile"
-  //                             value={selectedDealer.phone}
-  //                           />
-  //                         </TableCell>
-  //                         <TableCell>
-  //                           <DetailItem
-  //                             label="Email"
-  //                             value={selectedDealer.email}
-  //                           />
-  //                         </TableCell>
-  //                       </TableRow>
-  //                       <TableRow>
-  //                         <TableCell>
-  //                           <DetailItem
-  //                             label="Address"
-  //                             value={selectedDealer.profile?.address}
-  //                           />
-  //                         </TableCell>
-  //                         <TableCell>
-  //                           <DetailItem
-  //                             label="City"
-  //                             value={selectedDealer.profile?.city}
-  //                           />
-  //                         </TableCell>
-  //                         <TableCell>
-  //                           <DetailItem
-  //                             label="State"
-  //                             value={selectedDealer.profile?.state}
-  //                           />
-  //                         </TableCell>
-  //                       </TableRow>
-  //                       <TableRow>
-  //                         <TableCell>
-  //                           <DetailItem
-  //                             label="Pincode"
-  //                             value={selectedDealer.profile?.pincode}
-  //                           />
-  //                         </TableCell>
-  //                         <TableCell>
-  //                           <DetailItem
-  //                             label="GST No"
-  //                             value={selectedDealer.profile?.gstNumber}
-  //                           />
-  //                         </TableCell>
-  //                         <TableCell>
-  //                           <DetailItem
-  //                             label="Account No"
-  //                             value={selectedDealer.profile?.accountNo}
-  //                           />
-  //                         </TableCell>
-  //                       </TableRow>
-  //                     </TableBody>
-  //                   </Table>
-  //                 </TableContainer>
-  //               ) : (
-  //                 <Typography>Select a dealer to view details</Typography>
-  //               )}
-  //             </CardContent>
-  //           </Card>
-
-  //           {/* Requests Table */}
-  //           <Card>
-  //             <CardContent>
-  //               <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-  //                 Request Approval Table
-  //               </Typography>
-  //               <TableContainer sx={{ maxHeight: "calc(100vh - 540px)" }}>
-  //                 <Table stickyHeader size="small">
-  //                   <TableHead>
-  //                     <TableRow>
-  //                       <TableCell>Request No.</TableCell>
-  //                       <TableCell>Product</TableCell>
-  //                       <TableCell>QTY</TableCell>
-  //                       <TableCell>Status / Action</TableCell>
-  //                     </TableRow>
-  //                   </TableHead>
-  //                   <TableBody>
-  //                     {loadingRequests ? (
-  //                       <TableRow>
-  //                         <TableCell colSpan={4} align="center">
-  //                           Loading requests...
-  //                         </TableCell>
-  //                       </TableRow>
-  //                     ) : requests.length > 0 ? (
-  //                       requests.map((req) => (
-  //                         <TableRow key={req.id}>
-  //                           <TableCell>{req.reqNo}</TableCell>
-  //                           <TableCell>{req.product}</TableCell>
-  //                           <TableCell>{req.qty}</TableCell>
-  //                           <TableCell>
-  //                             {req.status === "Pending" ? (
-  //                               <Button
-  //                                 variant="contained"
-  //                                 size="small"
-  //                                 onClick={() => handleApprove(req.id)}
-  //                               >
-  //                                 Approve
-  //                               </Button>
-  //                             ) : (
-  //                               <Chip
-  //                                 icon={
-  //                                   <CheckCircleOutlineIcon fontSize="small" />
-  //                                 }
-  //                                 label="Approved"
-  //                                 color="success"
-  //                                 size="small"
-  //                               />
-  //                             )}
-  //                           </TableCell>
-  //                         </TableRow>
-  //                       ))
-  //                     ) : (
-  //                       <TableRow>
-  //                         <TableCell colSpan={4} align="center">
-  //                           No requests found
-  //                         </TableCell>
-  //                       </TableRow>
-  //                     )}
-  //                   </TableBody>
-  //                 </Table>
-  //               </TableContainer>
-  //             </CardContent>
-  //           </Card>
-  //         </Stack>
-  //       </Grid>
-  //     </Grid>
-  //   </Box>
-  // );
-   return (
+  return (
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
-        {/* Left Column: Dealer List */}
+        {/* LEFT: Dealer List */}
         <Grid item xs={12} md={3}>
-          <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+          <Card
+            sx={{
+              height: "calc(100vh - 120px)",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
                 Dealer List
               </Typography>
               <TextField
@@ -396,7 +211,9 @@ export default function DealerManagement() {
                 size="small"
                 placeholder="Search Dealers..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
+                error={!!searchError}
+                helperText={searchError}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -406,8 +223,9 @@ export default function DealerManagement() {
                 }}
               />
             </CardContent>
-            <CardContent sx={{ flexGrow: 1, overflow: 'hidden', p: 0 }}>
-              <List sx={{ height: '100%', overflowY: 'auto', p: 2, pt: 0 }}>
+
+            <CardContent sx={{ flexGrow: 1, overflow: "hidden", p: 0 }}>
+              <List sx={{ height: "100%", overflowY: "auto", p: 2, pt: 0 }}>
                 {loadingDealers ? (
                   <Typography variant="body2" sx={{ p: 2 }}>
                     Loading dealers...
@@ -424,15 +242,24 @@ export default function DealerManagement() {
                         </ListItemAvatar>
                         <ListItemText
                           primary={
-                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                              {dealer.name}
-                            </Typography>
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <Typography
+                                variant="subtitle2"
+                                sx={{ fontWeight: "bold" }}
+                              >
+                                {dealer.name}
+                              </Typography>
+                              {!dealer.isActive && (
+                                <Chip
+                                  label="Deactivated"
+                                  color="error"
+                                  size="small"
+                                />
+                              )}
+                            </Box>
                           }
-                          secondary={dealer.handle}
+                          secondary={dealer.email}
                         />
-                        <Typography variant="caption" color="text.secondary">
-                          {dealer.time}
-                        </Typography>
                       </ListItemButton>
                     </ListItem>
                   ))
@@ -446,140 +273,201 @@ export default function DealerManagement() {
           </Card>
         </Grid>
 
-        {/* Right Column: Details and Table */}
+        {/* RIGHT: Dealer Info + Requests */}
         <Grid item xs={12} md={9}>
-          <Stack spacing={3}>
-            {/* Dealer Information Card */}
-            <Card sx={{ width: '100%', minWidth:'830px' }} >
-              <CardContent>
-                <Stack direction="row" spacing={2} alignItems="center" mb={2}>
-                  <BusinessIcon color="primary" />
-                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                    Dealer Information
-                  </Typography>
-                </Stack>
-                <Divider sx={{ mb: 3 }} />
-                {selectedDealer ? (
-                  <TableContainer
-                    sx={{
-                      maxWidth: 800,
-                      maxHeight: 160,
-                      overflowY: 'auto',
-                      overflowX: 'auto',
-                    }}
-                  >
-                    <Table size="small">
-                      <TableBody>
-                        <TableRow>
-                          <TableCell>
-                            <DetailItem label="Name" value={selectedDealer.name} />
-                          </TableCell>
-                          <TableCell>
-                            <DetailItem label="Mobile No" value={selectedDealer.phone} />
-                          </TableCell>
-                          <TableCell>
-                            <DetailItem label="E-Mail" value={selectedDealer.email} />
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <DetailItem label="Address" value={selectedDealer.profile?.address} />
-                          </TableCell>
-                          <TableCell>
-                            <DetailItem label="City" value={selectedDealer.profile?.city} />
-                          </TableCell>
-                          <TableCell>
-                            <DetailItem label="State" value={selectedDealer.profile?.state} />
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <DetailItem label="Pincode" value={selectedDealer.profile?.pincode} />
-                          </TableCell>
-                          <TableCell>
-                            <DetailItem label="GST No" value={selectedDealer.profile?.gstNumber} />
-                          </TableCell>
-                          <TableCell>
-                            <DetailItem label="Account No" value={selectedDealer.profile?.accountNo} />
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                ) : (
-                  <Typography variant="body2">Select a dealer to view details</Typography>
-                )}
-              </CardContent>
-            </Card>
+          <Card sx={{ p: 2, height: "calc(100vh - 120px)", overflowY: "auto" }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: "bold",
+                mb: 2,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <BusinessIcon color="primary" sx={{ mr: 1 }} />
+              Dealer Information
+            </Typography>
+            <Divider sx={{ mb: 3 }} />
 
-            {/* Request Approval Table Card */}
-            <Card>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-                  Request Approval Table
-                </Typography>
-                <TableContainer
-                  sx={{
-                    maxHeight: 'calc(100vh - 540px)',
-                    overflowY: 'auto',
-                    overflowX: 'auto',
-                  }}
-                >
-                  <Table stickyHeader size="small">
-                    <TableHead>
-                      <TableRow>
-                        {['Request No.', 'Product', 'QTY', 'Action'].map((head) => (
-                          <TableCell key={head}>{head}</TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
+            {selectedDealer ? (
+              <>
+                {!selectedDealer.isActive && (
+                  <Alert severity="error" sx={{ mb: 3 }}>
+                    This dealer account is <strong>Deactivated</strong>.
+                  </Alert>
+                )}
+
+                <TableContainer sx={{ mb: 4 }}>
+                  <Table size="small">
                     <TableBody>
-                        {loadingRequests ? (
-                             <TableRow>
-                                <TableCell colSpan={4} align="center">Loading requests...</TableCell>
-                            </TableRow>
-                        ) : requests.length > 0 ? (
-                            requests.map((req) => (
-                                <TableRow key={req.id} hover>
-                                <TableCell sx={{ fontWeight: 500 }}>{req.reqNo}</TableCell>
-                                <TableCell>{req.product}</TableCell>
-                                <TableCell>{req.qty}</TableCell>
-                                <TableCell>
-                                    {req.status === 'Pending' ? (
-                                    <Button
-                                        variant="contained"
-                                        size="small"
-                                        onClick={() => handleApprove(req.id)}
-                                    >
-                                        Approve
-                                    </Button>
-                                    ) : (
-                                    <Chip
-                                        icon={<CheckCircleOutlineIcon fontSize="small" />}
-                                        label="Approved"
-                                        color="success"
-                                        size="small"
-                                        variant="outlained"
-                                    />
-                                    )}
-                                </TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={4} align="center">No requests found</TableCell>
-                            </TableRow>
-                        )}
+                      <TableRow>
+                        <TableCell>
+                          <DetailItem
+                            label="Name"
+                            value={selectedDealer.name}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <DetailItem
+                            label="Mobile No"
+                            value={selectedDealer.phone}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <DetailItem
+                            label="E-Mail"
+                            value={selectedDealer.email}
+                          />
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <DetailItem
+                            label="Address"
+                            value={selectedDealer.profile?.address}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <DetailItem
+                            label="City"
+                            value={selectedDealer.profile?.city}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <DetailItem
+                            label="State"
+                            value={selectedDealer.profile?.state}
+                          />
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <DetailItem
+                            label="Pincode"
+                            value={selectedDealer.profile?.pincode}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <DetailItem
+                            label="GST No"
+                            value={selectedDealer.profile?.gstNumber}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <DetailItem
+                            label="Account No"
+                            value={selectedDealer.profile?.accountNo}
+                          />
+                        </TableCell>
+                      </TableRow>
                     </TableBody>
                   </Table>
                 </TableContainer>
-              </CardContent>
-            </Card>
-          </Stack>
+
+                {/* Requests Section */}
+                <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+                  Request Approval Table
+                </Typography>
+                {successMessage && (
+                  <Alert severity="success" sx={{ mb: 2 }}>
+                    {successMessage}
+                  </Alert>
+                )}
+
+                <TableContainer sx={{ maxHeight: 300 }}>
+                  <Table stickyHeader size="small">
+                    <TableHead>
+                      <TableRow>
+                        {["Request No.", "Product", "QTY", "Action"].map(
+                          (head) => (
+                            <TableCell key={head}>{head}</TableCell>
+                          )
+                        )}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {loadingRequests ? (
+                        <TableRow>
+                          <TableCell colSpan={4} align="center">
+                            Loading requests...
+                          </TableCell>
+                        </TableRow>
+                      ) : requests.length > 0 ? (
+                        requests.map((req) => (
+                          <TableRow key={req.id} hover>
+                            <TableCell sx={{ fontWeight: 500 }}>
+                              {req.reqNo}
+                            </TableCell>
+                            <TableCell>{req.product}</TableCell>
+                            <TableCell>{req.qty}</TableCell>
+                            <TableCell>
+                              {req.status === "Pending" ? (
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  onClick={() =>
+                                    handleApproveClick(req.id)
+                                  }
+                                >
+                                  Approve
+                                </Button>
+                              ) : (
+                                <Chip
+                                  icon={
+                                    <CheckCircleOutlineIcon fontSize="small" />
+                                  }
+                                  label="Approved"
+                                  color="success"
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} align="center">
+                            No requests found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </>
+            ) : (
+              <Typography variant="body2">
+                Select a dealer to view details
+              </Typography>
+            )}
+          </Card>
         </Grid>
       </Grid>
+
+      {/* Approval Dialog */}
+      <Dialog
+        open={approveDialog.open}
+        onClose={() => setApproveDialog({ open: false, requestId: null })}
+      >
+        <DialogTitle>Confirm Approval</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to approve this request?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setApproveDialog({ open: false, requestId: null })}
+          >
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleApproveConfirm}>
+            Approve
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
-  ); 
-
+  );
 }
-
