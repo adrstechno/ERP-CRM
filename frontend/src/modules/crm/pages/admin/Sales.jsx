@@ -999,11 +999,11 @@ export default function SalesManagement() {
           PaperProps={{
             sx: {
               borderRadius: 3,
-              maxWidth: 900
+              maxWidth: 800
             }
           }}
         >
-          <DialogTitle sx={{ pb: 3, pt: 4, px: 5 }}>
+          <DialogTitle sx={{ pb: 2, pt: 3, px: 4 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
               <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: -0.5 }}>
                 Sale Invoice
@@ -1012,8 +1012,8 @@ export default function SalesManagement() {
                 <Typography
                   variant="body2"
                   sx={{
-                    px: 2.5,
-                    py: 0.75,
+                    px: 2,
+                    py: 0.5,
                     background: isDark ? "rgba(255,255,255,0.05)" : "#f5f5f5",
                     borderRadius: 1.5,
                     fontWeight: 600,
@@ -1028,28 +1028,28 @@ export default function SalesManagement() {
 
           <Divider />
 
-          <DialogContent sx={{ pt: 5, pb: 5, px: 5 }}>
+          <DialogContent sx={{ pt: 3, pb: 3, px: 4 }}>
             {isDetailsLoading ? (
               <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
                 <CircularProgress />
               </Box>
             ) : selectedSaleDetails ? (
-              <Stack spacing={4.5}>
-                {/* Header Info Section - 2 Column Layout */}
+              <Stack spacing={3}>
+                {/* Header Info Section - Compact Grid */}
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 4,
-                    borderRadius: 2.5,
+                    p: 2.5,
+                    borderRadius: 2,
                     background: isDark ? "rgba(255,255,255,0.02)" : "#fafbfc",
                     border: 1,
                     borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"
                   }}
                 >
-                  <Grid container spacing={5}>
+                  <Grid container spacing={2.5}>
                     {/* Left Column */}
                     <Grid item xs={12} md={6}>
-                      <Stack spacing={3.5}>
+                      <Stack spacing={2}>
                         <Box>
                           <Typography
                             variant="caption"
@@ -1057,14 +1057,15 @@ export default function SalesManagement() {
                               color: "text.secondary",
                               fontWeight: 600,
                               textTransform: "uppercase",
-                              letterSpacing: 1.2,
-                              fontSize: "0.7rem",
-                              mb: 1
+                              letterSpacing: 0.5,
+                              fontSize: "0.65rem",
+                              display: "block",
+                              mb: 0.5
                             }}
                           >
                             Customer Name
                           </Typography>
-                          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "1.15rem" }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: "1rem" }}>
                             {selectedSaleDetails.customerName}
                           </Typography>
                         </Box>
@@ -1076,34 +1077,16 @@ export default function SalesManagement() {
                               color: "text.secondary",
                               fontWeight: 600,
                               textTransform: "uppercase",
-                              letterSpacing: 1.2,
-                              fontSize: "0.7rem",
-                              mb: 1
+                              letterSpacing: 0.5,
+                              fontSize: "0.65rem",
+                              display: "block",
+                              mb: 0.5
                             }}
                           >
                             Sale Date
                           </Typography>
-                          <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
                             {dayjs(selectedSaleDetails.saleDate).format("DD MMMM YYYY")}
-                          </Typography>
-                        </Box>
-
-                        <Box>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: "text.secondary",
-                              fontWeight: 600,
-                              textTransform: "uppercase",
-                              letterSpacing: 1.2,
-                              fontSize: "0.7rem",
-                              mb: 1
-                            }}
-                          >
-                            Created By
-                          </Typography>
-                          <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                            {selectedSaleDetails.createdBy}
                           </Typography>
                         </Box>
                       </Stack>
@@ -1111,7 +1094,7 @@ export default function SalesManagement() {
 
                     {/* Right Column */}
                     <Grid item xs={12} md={6}>
-                      <Stack spacing={3.5}>
+                      <Stack spacing={2}>
                         <Box>
                           <Typography
                             variant="caption"
@@ -1119,9 +1102,10 @@ export default function SalesManagement() {
                               color: "text.secondary",
                               fontWeight: 600,
                               textTransform: "uppercase",
-                              letterSpacing: 1.2,
-                              fontSize: "0.7rem",
-                              mb: 1
+                              letterSpacing: 0.5,
+                              fontSize: "0.65rem",
+                              display: "block",
+                              mb: 0.5
                             }}
                           >
                             Status
@@ -1136,13 +1120,13 @@ export default function SalesManagement() {
                                     ? "warning"
                                     : "default"
                               }
-                              size="medium"
+                              size="small"
                               icon={selectedSaleDetails.saleStatus === "APPROVED" ? <CheckCircleIcon /> : null}
                               sx={{
                                 fontWeight: 700,
-                                fontSize: "0.85rem",
-                                px: 2,
-                                height: 36
+                                fontSize: "0.75rem",
+                                px: 1.5,
+                                height: 28
                               }}
                             />
                           </Box>
@@ -1155,88 +1139,53 @@ export default function SalesManagement() {
                               color: "text.secondary",
                               fontWeight: 600,
                               textTransform: "uppercase",
-                              letterSpacing: 1.2,
-                              fontSize: "0.7rem",
-                              mb: 1
+                              letterSpacing: 0.5,
+                              fontSize: "0.65rem",
+                              display: "block",
+                              mb: 0.5
                             }}
                           >
-                            Approved By
+                            Created By
                           </Typography>
-                          <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                            {selectedSaleDetails.approvedBy || "—"}
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {selectedSaleDetails.createdBy}
                           </Typography>
                         </Box>
                       </Stack>
                     </Grid>
-                  </Grid>
-                </Paper>
 
-                {/* Total Amount Section */}
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 4,
-                    borderRadius: 2.5,
-                    background: isDark
-                      ? "linear-gradient(135deg, rgba(46, 125, 50, 0.15) 0%, rgba(27, 94, 32, 0.1) 100%)"
-                      : "linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%)",
-                    border: 1.5,
-                    borderColor: isDark ? "rgba(76, 175, 80, 0.3)" : "#81c784"
-                  }}
-                >
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: "text.secondary",
-                          fontWeight: 600,
-                          textTransform: "uppercase",
-                          letterSpacing: 1.2,
-                          fontSize: "0.7rem",
-                          mb: 1
-                        }}
-                      >
-                        Total Amount
-                      </Typography>
-                      <Typography
-                        variant="h4"
-                        sx={{
-                          fontWeight: 800,
-                          color: theme.palette.success.main,
-                          letterSpacing: -1
-                        }}
-                      >
-                        ₹{selectedSaleDetails.totalAmount.toLocaleString("en-IN")}
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: '50%',
-                        background: isDark
-                          ? "rgba(76, 175, 80, 0.2)"
-                          : "rgba(76, 175, 80, 0.15)",
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <CheckCircleIcon
-                        sx={{
-                          fontSize: 36,
-                          color: theme.palette.success.main
-                        }}
-                      />
-                    </Box>
-                  </Stack>
+                    {/* Approved By - Full Width if exists */}
+                    {selectedSaleDetails.approvedBy && (
+                      <Grid item xs={12}>
+                        <Divider sx={{ my: 1 }} />
+                        <Box>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "text.secondary",
+                              fontWeight: 600,
+                              textTransform: "uppercase",
+                              letterSpacing: 0.5,
+                              fontSize: "0.65rem",
+                              display: "block",
+                              mb: 0.5
+                            }}
+                          >
+                            Approved By
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {selectedSaleDetails.approvedBy}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    )}
+                  </Grid>
                 </Paper>
 
                 {/* Items Sold Section */}
                 <Box>
-                  <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                       Items Sold
                     </Typography>
                     <Chip
@@ -1244,6 +1193,8 @@ export default function SalesManagement() {
                       size="small"
                       sx={{
                         fontWeight: 600,
+                        fontSize: "0.7rem",
+                        height: 22,
                         background: isDark ? "rgba(255,255,255,0.05)" : "#f5f5f5"
                       }}
                     />
@@ -1255,11 +1206,11 @@ export default function SalesManagement() {
                     sx={{
                       border: 1,
                       borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
-                      borderRadius: 2.5,
+                      borderRadius: 2,
                       overflow: "hidden"
                     }}
                   >
-                    <Table>
+                    <Table size="small">
                       <TableHead>
                         <TableRow
                           sx={{
@@ -1268,16 +1219,16 @@ export default function SalesManagement() {
                               : "linear-gradient(180deg, #f8f9fa 0%, #f1f3f5 100%)"
                           }}
                         >
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.8rem", py: 3 }}>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", py: 1.5 }}>
                             PRODUCT
                           </TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 700, fontSize: "0.8rem", py: 3 }}>
+                          <TableCell align="center" sx={{ fontWeight: 700, fontSize: "0.75rem", py: 1.5 }}>
                             QTY
                           </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 700, fontSize: "0.8rem", py: 3 }}>
+                          <TableCell align="right" sx={{ fontWeight: 700, fontSize: "0.75rem", py: 1.5 }}>
                             UNIT PRICE
                           </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 700, fontSize: "0.8rem", py: 3 }}>
+                          <TableCell align="right" sx={{ fontWeight: 700, fontSize: "0.75rem", py: 1.5 }}>
                             SUBTOTAL
                           </TableCell>
                         </TableRow>
@@ -1294,30 +1245,31 @@ export default function SalesManagement() {
                               transition: 'background 0.2s ease'
                             }}
                           >
-                            <TableCell sx={{ py: 3.5 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                            <TableCell sx={{ py: 2 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
                                 {item.productName}
                               </Typography>
                             </TableCell>
-                            <TableCell align="center" sx={{ py: 3.5 }}>
+                            <TableCell align="center" sx={{ py: 2 }}>
                               <Chip
                                 label={item.quantity}
                                 size="small"
                                 variant="outlined"
                                 sx={{
                                   fontWeight: 700,
-                                  minWidth: 50,
-                                  borderWidth: 1.5
+                                  minWidth: 45,
+                                  height: 26,
+                                  fontSize: "0.8rem"
                                 }}
                               />
                             </TableCell>
-                            <TableCell align="right" sx={{ py: 3.5 }}>
-                              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            <TableCell align="right" sx={{ py: 2 }}>
+                              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.875rem" }}>
                                 ₹{item.unitPrice.toLocaleString("en-IN")}
                               </Typography>
                             </TableCell>
-                            <TableCell align="right" sx={{ py: 3.5 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: "0.95rem" }}>
+                            <TableCell align="right" sx={{ py: 2 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: "0.875rem" }}>
                                 ₹{(item.quantity * item.unitPrice).toLocaleString("en-IN")}
                               </Typography>
                             </TableCell>
@@ -1327,6 +1279,69 @@ export default function SalesManagement() {
                     </Table>
                   </TableContainer>
                 </Box>
+
+                {/* Total Amount Section - Compact */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 2,
+                    background: isDark
+                      ? "linear-gradient(135deg, rgba(46, 125, 50, 0.15) 0%, rgba(27, 94, 32, 0.1) 100%)"
+                      : "linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%)",
+                    border: 1.5,
+                    borderColor: isDark ? "rgba(76, 175, 80, 0.3)" : "#81c784"
+                  }}
+                >
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          fontWeight: 600,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.5,
+                          fontSize: "0.65rem",
+                          display: "block",
+                          mb: 0.5
+                        }}
+                      >
+                        Total Amount
+                      </Typography>
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          fontWeight: 800,
+                          color: theme.palette.success.main,
+                          letterSpacing: -0.5
+                        }}
+                      >
+                        ₹{selectedSaleDetails.totalAmount.toLocaleString("en-IN")}
+                      </Typography>
+                    </Box>
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        background: isDark
+                          ? "rgba(76, 175, 80, 0.2)"
+                          : "rgba(76, 175, 80, 0.15)",
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <CheckCircleIcon
+                        sx={{
+                          fontSize: 28,
+                          color: theme.palette.success.main
+                        }}
+                      />
+                    </Box>
+                  </Stack>
+                </Paper>
               </Stack>
             ) : (
               <Box sx={{ textAlign: "center", py: 8 }}>
@@ -1339,17 +1354,16 @@ export default function SalesManagement() {
 
           <Divider />
 
-          <DialogActions sx={{ px: 5, py: 3.5, background: isDark ? "rgba(255,255,255,0.01)" : "#fafbfc" }}>
+          <DialogActions sx={{ px: 4, py: 2.5, background: isDark ? "rgba(255,255,255,0.01)" : "#fafbfc" }}>
             <Button
               onClick={closeDetails}
               variant="contained"
-              size="large"
+              size="medium"
               sx={{
-                px: 5,
-                py: 1.25,
+                px: 4,
                 fontWeight: 600,
                 textTransform: "none",
-                fontSize: "0.95rem"
+                fontSize: "0.9rem"
               }}
             >
               Close
@@ -1475,7 +1489,23 @@ export default function SalesManagement() {
                                 <Select
                                   value={item.productId || ""}
                                   label="Product"
-                                  onChange={(e) => handleProductChange(e, idx)}
+                                  onChange={(e) => {
+                                    const selectedProductId = e.target.value;
+                                    
+                                    // Check if product already exists in form items
+                                    const existingItemIndex = form.items.findIndex(
+                                      (it, i) => i !== idx && String(it.productId) === String(selectedProductId)
+                                    );
+                                    
+                                    if (existingItemIndex !== -1) {
+                                      // Product already exists, show alert and don't add
+                                      alert("This product is already added. Please update the quantity of the existing item.");
+                                      return;
+                                    }
+                                    
+                                    // If product doesn't exist, proceed with normal product change
+                                    handleProductChange(e, idx);
+                                  }}
                                   disabled={isSubmitting}
                                   sx={{
                                     minWidth: 200
@@ -1497,23 +1527,32 @@ export default function SalesManagement() {
                                   <MenuItem value="" disabled>
                                     <em>Select Product</em>
                                   </MenuItem>
-                                  {products.map((p) => (
-                                    <MenuItem
-                                      key={p.productId}
-                                      value={p.productId}
-                                      sx={{
-                                        whiteSpace: 'normal',
-                                        wordWrap: 'break-word',
-                                        minHeight: '56px',
-                                        minWidth: '400px',
-                                        py: 2
-                                      }}
-                                    >
-                                      <Typography noWrap={false} sx={{ maxWidth: '100%' }}>
-                                        {p.name}
-                                      </Typography>
-                                    </MenuItem>
-                                  ))}
+                                  {products.map((p) => {
+                                    // Check if this product is already selected in any other row
+                                    const isAlreadySelected = form.items.some(
+                                      (it, i) => i !== idx && String(it.productId) === String(p.productId)
+                                    );
+                                    
+                                    return (
+                                      <MenuItem
+                                        key={p.productId}
+                                        value={p.productId}
+                                        disabled={isAlreadySelected}
+                                        sx={{
+                                          whiteSpace: 'normal',
+                                          wordWrap: 'break-word',
+                                          minHeight: '56px',
+                                          minWidth: '400px',
+                                          py: 2,
+                                          opacity: isAlreadySelected ? 0.4 : 1
+                                        }}
+                                      >
+                                        <Typography noWrap={false} sx={{ maxWidth: '100%' }}>
+                                          {p.name} {isAlreadySelected && "(Already added)"}
+                                        </Typography>
+                                      </MenuItem>
+                                    );
+                                  })}
                                 </Select>
                                 {itemErr.productId && <FormHelperText>{itemErr.productId}</FormHelperText>}
                               </FormControl>
@@ -1536,7 +1575,7 @@ export default function SalesManagement() {
                                 onBlur={() => handleQuantityBlur(idx)}
                                 disabled={!item.productId || isSubmitting}
                                 error={!!itemErr.quantity || (!item.quantity && item.productId)}
-                                helperText={itemErr.quantity || (!item.quantity && item.productId ? "Quantity is required" : "")}
+                                helperText={itemErr.quantity || (!item.quantity && item.productId ? "Required" : "")}
                                 placeholder="0"
                               />
                             </Grid>
