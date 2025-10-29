@@ -57,7 +57,7 @@ export default function AssignedTasks() {
                 throw new Error("Authentication token not found.");
             }
 
-            const response = await fetch(`${VITE_API_BASE_URL}/tickets/get-services-by-user`, {
+            const response = await fetch(`${VITE_API_BASE_URL}/tickets/get-by-user`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
