@@ -2,19 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box, Card, CardContent, Typography,
     List, ListItem, ListItemButton, ListItemText,
-    Stack, Skeleton, InputLabel, Grid, Divider,
-    FormControl, Select, MenuItem, TextField, Button,
-    CircularProgress, FormHelperText
+    Stack, Skeleton, InputLabel, Grid, Divider, FormControl, Select, MenuItem, TextField, Button, CircularProgress
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SendIcon from '@mui/icons-material/Send';
 
-// --- Mock Notice Data ---
+// --- API Simulation (Existing) ---
 const mockNotices = [
-    {
-        id: 1,
-        title: 'GO OLD TOWN',
-        timestamp: '2025-09-26T19:00:00Z',
+    { 
+        id: 1, 
+        title: 'GO OLD TOWN', 
+        timestamp: '2025-09-26T19:00:00Z', 
         content: `YOU HAVE TO DELIVER TO OLD TOWN CLIENT.<br/>
                   <b>NAME:- LAL SINGH CHADHA</b><br/>
                   <b>MOBILE NO:- 9898989898</b><br/>
@@ -26,45 +24,45 @@ const mockNotices = [
     { id: 4, title: 'New Stock Arrival', timestamp: '2025-09-25T15:30:00Z', content: 'New shipment of 1.5 Ton AC units has arrived. Please update your inventory.' },
 ];
 
+// --- Main Component ---
 export default function DealerNotice() {
-    // Notice state
+    // States for notices
     const [notices, setNotices] = useState([]);
     const [selectedNotice, setSelectedNotice] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Product & Form states
+    // --- NEW: States for the Stock Request Form ---
     const [products, setProducts] = useState([]);
     const [isProductsLoading, setIsProductsLoading] = useState(true);
     const [isRequestSubmitting, setIsRequestSubmitting] = useState(false);
-
-    // Form fields
+    
+    // Form field states
     const [productId, setProductId] = useState('');
     const [quantity, setQuantity] = useState('');
     const [notes, setNotes] = useState('');
 
-    // Validation errors
-    const [errors, setErrors] = useState({
-        productId: '',
-        quantity: ''
-    });
-
     const fetchNotices = useCallback(async () => {
         setIsLoading(true);
+        // Simulate API call for notices
         await new Promise(resolve => setTimeout(resolve, 1500));
         setNotices(mockNotices);
         setSelectedNotice(mockNotices[0]);
         setIsLoading(false);
     }, []);
 
+    // --- NEW: Function to fetch all products from the backend ---
     const fetchProducts = async () => {
         setIsProductsLoading(true);
         try {
             const response = await fetch("http://localhost:8080/api/products/all");
-            if (!response.ok) throw new Error('Failed to fetch products.');
+            if (!response.ok) {
+                throw new Error('Network response was not ok while fetching products.');
+            }
             const data = await response.json();
-            setProducts(data || []);
+            setProducts(data || []); // Ensure products is an array
         } catch (error) {
-            console.error("Product fetch failed:", error);
+            console.error("Failed to fetch products:", error);
+            // You can add state here to show an error message in the UI
         } finally {
             setIsProductsLoading(false);
         }
@@ -72,47 +70,47 @@ export default function DealerNotice() {
 
     useEffect(() => {
         fetchNotices();
-        fetchProducts();
+        fetchProducts(); // Fetch products when the component mounts
     }, [fetchNotices]);
-
-    // --- Validation function ---
-    const validateForm = () => {
-        let newErrors = {};
-        if (!productId) newErrors.productId = "Please select a product.";
-        if (!quantity) newErrors.quantity = "Quantity is required.";
-        else if (Number(quantity) <= 0) newErrors.quantity = "Quantity must be greater than 0.";
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    // --- Submit handler ---
+    
+    // --- NEW: Handler to submit the stock request form ---
     const handleStockRequestSubmit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) return; // stop if validation fails
         setIsRequestSubmitting(true);
-
-        const requestBody = { productId, quantity, notes };
+        
+        const requestBody = {
+            productId,
+            quantity,
+            notes
+        };
 
         try {
             const response = await fetch("http://localhost:8080/api/stock-requests/create", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify(requestBody),
             });
 
-            if (!response.ok) throw new Error(await response.text());
-            const result = await response.json();
-            alert('✅ Stock request submitted successfully!');
-            console.log("Stock request:", result);
+            if (!response.ok) {
+                // You can get more specific error messages from the backend response body
+                const errorData = await response.text();
+                throw new Error(`Failed to create stock request: ${errorData}`);
+            }
 
-            // Clear form
+            const result = await response.json();
+            console.log("Stock request created successfully:", result);
+            
+            // Show a success alert and clear the form
+            alert('Stock request submitted successfully!');
             setProductId('');
             setQuantity('');
             setNotes('');
-            setErrors({});
+            
         } catch (error) {
             console.error("Error creating stock request:", error);
-            alert(`❌ Error: ${error.message}`);
+            alert(`Error: ${error.message}`); // Show an error alert
         } finally {
             setIsRequestSubmitting(false);
         }
@@ -120,9 +118,9 @@ export default function DealerNotice() {
 
     return (
         <Box>
-            <Grid container spacing={3} sx={{ height: { md: 'calc(100vh - 120px)' } }}>
-                {/* Left: Notice List */}
-                <Grid item xs={12} md={3}>
+            <Grid container spacing={3} sx={{ height: { md: 'calc(100vh - 120px)' }}}>
+                {/* Left Notifications List (Unchanged) */}
+                <Grid item xs={12} md={3} sx={{ height: '100%',width: '25%' }}>
                     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                         <CardContent>
                             <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
@@ -132,8 +130,8 @@ export default function DealerNotice() {
                         </CardContent>
                         <List sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
                             {isLoading ? (
-                                Array.from(new Array(4)).map((_, i) => (
-                                    <ListItem key={i}><Skeleton variant="rounded" height={50} /></ListItem>
+                                Array.from(new Array(4)).map((_, index) => (
+                                    <ListItem key={index}><Skeleton variant="rounded" height={50} /></ListItem>
                                 ))
                             ) : (
                                 notices.map((notice) => (
@@ -143,7 +141,7 @@ export default function DealerNotice() {
                                             onClick={() => setSelectedNotice(notice)}
                                         >
                                             <ListItemText
-                                                primary={<Typography fontWeight="bold">{notice.title}</Typography>}
+                                                primary={<Typography variant="body2" fontWeight="bold">{notice.title}</Typography>}
                                                 secondary={new Date(notice.timestamp).toLocaleString()}
                                             />
                                         </ListItemButton>
@@ -154,21 +152,18 @@ export default function DealerNotice() {
                     </Card>
                 </Grid>
 
-                {/* Right: Notice Detail + Form */}
-                <Grid item xs={12} md={9}>
-                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                {/* Right Notice Content */}
+                <Grid item xs={12} md={9} sx={{ height: '100%',width:'50%' }}>
+                    <Card sx={{ height: '100%', width: 770,display: 'flex', flexDirection: 'column' }}>
                         {isLoading || !selectedNotice ? (
                             <CardContent><Skeleton variant="rectangular" height="100%" /></CardContent>
                         ) : (
                             <>
                                 <CardContent sx={{ flexGrow: 1, overflowY: 'auto' }}>
-                                    <Typography variant="h4" fontWeight={700} mb={2}>
+                                    <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: 1, mb: 2 }}>
                                         {selectedNotice.title}
                                     </Typography>
-                                    <Typography
-                                        dangerouslySetInnerHTML={{ __html: selectedNotice.content }}
-                                        sx={{ mb: 2, lineHeight: 1.8, color: 'text.secondary' }}
-                                    />
+                                    <Typography dangerouslySetInnerHTML={{ __html: selectedNotice.content }} sx={{ mb: 2, lineHeight: 1.8, color: 'text.secondary' }} />
                                     {selectedNotice.image && (
                                         <Box
                                             component="img"
@@ -180,70 +175,56 @@ export default function DealerNotice() {
                                 </CardContent>
                                 <Divider />
 
-                                {/* Stock Request Form */}
+                                {/* --- MODIFIED: Stock Request Form --- */}
                                 <CardContent component="form" onSubmit={handleStockRequestSubmit}>
-                                    <Typography variant="subtitle1" fontWeight="medium" mb={2}>
-                                        Create Stock Request
-                                    </Typography>
-
+                                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'medium' }}>Create Stock Request</Typography>
                                     <Stack spacing={2}>
-                                        {/* Product */}
-                                        <FormControl
-                                            fullWidth
-                                            size="small"
-                                            required
-                                            error={!!errors.productId}
-                                            disabled={isProductsLoading}
-                                        >
+                                        {/* Product Dropdown */}
+                                        <FormControl fullWidth size="small" required disabled={isProductsLoading}>
                                             <InputLabel>Product</InputLabel>
-                                            <Select
-                                                label="Product"
+                                            <Select 
+                                                label="Product" 
                                                 value={productId}
                                                 onChange={(e) => setProductId(e.target.value)}
                                             >
-                                                {isProductsLoading && <MenuItem disabled><em>Loading...</em></MenuItem>}
-                                                {products.map((p) => (
-                                                    <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+                                                {/* Show a loading message while products are being fetched */}
+                                                {isProductsLoading && <MenuItem disabled><em>Loading products...</em></MenuItem>}
+                                                {/* Map over the fetched products to create menu items */}
+                                                {products.map((product) => (
+                                                    <MenuItem key={product.id} value={product.id}>
+                                                        {product.name} {/* Assuming product has 'id' and 'name' properties */}
+                                                    </MenuItem>
                                                 ))}
                                             </Select>
-                                            {errors.productId && <FormHelperText>{errors.productId}</FormHelperText>}
                                         </FormControl>
 
-                                        {/* Quantity */}
-                                        <TextField
+                                        {/* Quantity Field */}
+                                        <TextField 
                                             label="Quantity"
                                             type="number"
-                                            fullWidth
+                                            fullWidth 
                                             size="small"
                                             required
                                             value={quantity}
                                             onChange={(e) => setQuantity(e.target.value)}
-                                            InputProps={{ inputProps: { min: 1 } }}
-                                            error={!!errors.quantity}
-                                            helperText={errors.quantity}
+                                            InputProps={{ inputProps: { min: 1 } }} // Ensures the number is positive
                                         />
-
-                                        {/* Notes */}
-                                        <TextField
-                                            label="Notes"
-                                            multiline
-                                            minRows={2}
-                                            fullWidth
+                                        
+                                        {/* Notes Field */}
+                                        <TextField 
+                                            label="Notes" 
+                                            multiline 
+                                            minRows={2} 
+                                            fullWidth 
                                             size="small"
                                             value={notes}
                                             onChange={(e) => setNotes(e.target.value)}
                                         />
 
+                                        {/* Submit Button */}
                                         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                            <Button
-                                                type="submit"
-                                                variant="contained"
-                                                endIcon={<SendIcon />}
-                                                disabled={isRequestSubmitting}
-                                            >
-                                                {isRequestSubmitting
-                                                    ? <CircularProgress size={24} color="inherit" />
-                                                    : 'Submit Request'}
+                                            <Button type="submit" variant="contained" endIcon={<SendIcon />} disabled={isRequestSubmitting}>
+                                                {isRequestSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Request'}
                                             </Button>
                                         </Box>
                                     </Stack>
