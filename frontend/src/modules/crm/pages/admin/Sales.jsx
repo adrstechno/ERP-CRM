@@ -1035,157 +1035,144 @@ export default function SalesManagement() {
               </Box>
             ) : selectedSaleDetails ? (
               <Stack spacing={3}>
-                {/* Header Info Section - Compact Grid */}
+                {/* Header Info Section - Professional Layout */}
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 2.5,
-                    borderRadius: 2,
+                    p: 3,
+                    borderRadius: 2.5,
                     background: isDark ? "rgba(255,255,255,0.02)" : "#fafbfc",
                     border: 1,
                     borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"
                   }}
                 >
-                  <Grid container spacing={2.5}>
-                    {/* Left Column */}
-                    <Grid item xs={12} md={6}>
-                      <Stack spacing={2}>
-                        <Box>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: "text.secondary",
-                              fontWeight: 600,
-                              textTransform: "uppercase",
-                              letterSpacing: 0.5,
-                              fontSize: "0.65rem",
-                              display: "block",
-                              mb: 0.5
-                            }}
-                          >
-                            Customer Name
-                          </Typography>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: "1rem" }}>
-                            {selectedSaleDetails.customerName}
-                          </Typography>
-                        </Box>
-
-                        <Box>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: "text.secondary",
-                              fontWeight: 600,
-                              textTransform: "uppercase",
-                              letterSpacing: 0.5,
-                              fontSize: "0.65rem",
-                              display: "block",
-                              mb: 0.5
-                            }}
-                          >
-                            Sale Date
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {dayjs(selectedSaleDetails.saleDate).format("DD MMMM YYYY")}
-                          </Typography>
-                        </Box>
-                      </Stack>
+                  <Grid container spacing={3}>
+                    {/* Row 1: Customer Name and Status */}
+                    <Grid item xs={12} sm={6}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          fontWeight: 600,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.8,
+                          fontSize: "0.65rem",
+                          display: "block",
+                          mb: 0.75
+                        }}
+                      >
+                        Customer Name
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "1.05rem" }}>
+                        {selectedSaleDetails.customerName}
+                      </Typography>
                     </Grid>
 
-                    {/* Right Column */}
-                    <Grid item xs={12} md={6}>
-                      <Stack spacing={2}>
-                        <Box>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: "text.secondary",
-                              fontWeight: 600,
-                              textTransform: "uppercase",
-                              letterSpacing: 0.5,
-                              fontSize: "0.65rem",
-                              display: "block",
-                              mb: 0.5
-                            }}
-                          >
-                            Status
-                          </Typography>
-                          <Box>
-                            <Chip
-                              label={selectedSaleDetails.saleStatus}
-                              color={
-                                selectedSaleDetails.saleStatus === "APPROVED"
-                                  ? "success"
-                                  : selectedSaleDetails.saleStatus === "PENDING"
-                                    ? "warning"
-                                    : "default"
-                              }
-                              size="small"
-                              icon={selectedSaleDetails.saleStatus === "APPROVED" ? <CheckCircleIcon /> : null}
-                              sx={{
-                                fontWeight: 700,
-                                fontSize: "0.75rem",
-                                px: 1.5,
-                                height: 28
-                              }}
-                            />
-                          </Box>
-                        </Box>
-
-                        <Box>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: "text.secondary",
-                              fontWeight: 600,
-                              textTransform: "uppercase",
-                              letterSpacing: 0.5,
-                              fontSize: "0.65rem",
-                              display: "block",
-                              mb: 0.5
-                            }}
-                          >
-                            Created By
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {selectedSaleDetails.createdBy}
-                          </Typography>
-                        </Box>
-                      </Stack>
+                    <Grid item xs={12} sm={6}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          fontWeight: 600,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.8,
+                          fontSize: "0.65rem",
+                          display: "block",
+                          mb: 0.75
+                        }}
+                      >
+                        Status
+                      </Typography>
+                      <Chip
+                        label={selectedSaleDetails.saleStatus}
+                        color={
+                          selectedSaleDetails.saleStatus === "APPROVED"
+                            ? "success"
+                            : selectedSaleDetails.saleStatus === "PENDING"
+                              ? "warning"
+                              : "default"
+                        }
+                        size="small"
+                        icon={selectedSaleDetails.saleStatus === "APPROVED" ? <CheckCircleIcon /> : null}
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: "0.8rem",
+                          px: 2,
+                          height: 30
+                        }}
+                      />
                     </Grid>
 
-                    {/* Approved By - Full Width if exists */}
+                    {/* Row 2: Sale Date and Approved By */}
+                    <Grid item xs={12} sm={6}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          fontWeight: 600,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.8,
+                          fontSize: "0.65rem",
+                          display: "block",
+                          mb: 0.75
+                        }}
+                      >
+                        Sale Date
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                        {dayjs(selectedSaleDetails.saleDate).format("DD MMMM YYYY")}
+                      </Typography>
+                    </Grid>
+
                     {selectedSaleDetails.approvedBy && (
-                      <Grid item xs={12}>
-                        <Divider sx={{ my: 1 }} />
-                        <Box>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: "text.secondary",
-                              fontWeight: 600,
-                              textTransform: "uppercase",
-                              letterSpacing: 0.5,
-                              fontSize: "0.65rem",
-                              display: "block",
-                              mb: 0.5
-                            }}
-                          >
-                            Approved By
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {selectedSaleDetails.approvedBy}
-                          </Typography>
-                        </Box>
+                      <Grid item xs={12} sm={6}>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "text.secondary",
+                            fontWeight: 600,
+                            textTransform: "uppercase",
+                            letterSpacing: 0.8,
+                            fontSize: "0.65rem",
+                            display: "block",
+                            mb: 0.75
+                          }}
+                        >
+                          Approved By
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                          {selectedSaleDetails.approvedBy}
+                        </Typography>
                       </Grid>
                     )}
+
+                    {/* Row 3: Created By */}
+                    <Grid item xs={12} sm={6}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          fontWeight: 600,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.8,
+                          fontSize: "0.65rem",
+                          display: "block",
+                          mb: 0.75
+                        }}
+                      >
+                        Created By
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                        {selectedSaleDetails.createdBy}
+                      </Typography>
+                    </Grid>
                   </Grid>
                 </Paper>
 
                 {/* Items Sold Section */}
                 <Box>
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "1.05rem" }}>
                       Items Sold
                     </Typography>
                     <Chip
@@ -1193,9 +1180,10 @@ export default function SalesManagement() {
                       size="small"
                       sx={{
                         fontWeight: 600,
-                        fontSize: "0.7rem",
-                        height: 22,
-                        background: isDark ? "rgba(255,255,255,0.05)" : "#f5f5f5"
+                        fontSize: "0.75rem",
+                        height: 26,
+                        px: 1.5,
+                        background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"
                       }}
                     />
                   </Stack>
@@ -1205,30 +1193,30 @@ export default function SalesManagement() {
                     elevation={0}
                     sx={{
                       border: 1,
-                      borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
-                      borderRadius: 2,
+                      borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
+                      borderRadius: 2.5,
                       overflow: "hidden"
                     }}
                   >
-                    <Table size="small">
+                    <Table>
                       <TableHead>
                         <TableRow
                           sx={{
                             background: isDark
-                              ? "rgba(255,255,255,0.03)"
+                              ? "rgba(255,255,255,0.04)"
                               : "linear-gradient(180deg, #f8f9fa 0%, #f1f3f5 100%)"
                           }}
                         >
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", py: 1.5 }}>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", py: 2, letterSpacing: 0.5 }}>
                             PRODUCT
                           </TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 700, fontSize: "0.75rem", py: 1.5 }}>
+                          <TableCell align="center" sx={{ fontWeight: 700, fontSize: "0.75rem", py: 2, letterSpacing: 0.5 }}>
                             QTY
                           </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 700, fontSize: "0.75rem", py: 1.5 }}>
+                          <TableCell align="right" sx={{ fontWeight: 700, fontSize: "0.75rem", py: 2, letterSpacing: 0.5 }}>
                             UNIT PRICE
                           </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 700, fontSize: "0.75rem", py: 1.5 }}>
+                          <TableCell align="right" sx={{ fontWeight: 700, fontSize: "0.75rem", py: 2, letterSpacing: 0.5 }}>
                             SUBTOTAL
                           </TableCell>
                         </TableRow>
@@ -1238,38 +1226,40 @@ export default function SalesManagement() {
                           <TableRow
                             key={item.productId}
                             sx={{
-                              '&:last-child td, &:last-child th': { border: 0 },
+                              '&:last-child td': { border: 0 },
                               '&:hover': {
-                                background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.015)"
+                                background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"
                               },
                               transition: 'background 0.2s ease'
                             }}
                           >
-                            <TableCell sx={{ py: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
+                            <TableCell sx={{ py: 2.5 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.9rem" }}>
                                 {item.productName}
                               </Typography>
                             </TableCell>
-                            <TableCell align="center" sx={{ py: 2 }}>
+                            <TableCell align="center" sx={{ py: 2.5 }}>
                               <Chip
                                 label={item.quantity}
                                 size="small"
-                                variant="outlined"
                                 sx={{
                                   fontWeight: 700,
-                                  minWidth: 45,
-                                  height: 26,
-                                  fontSize: "0.8rem"
+                                  minWidth: 50,
+                                  height: 28,
+                                  fontSize: "0.85rem",
+                                  background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+                                  border: 1,
+                                  borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"
                                 }}
                               />
                             </TableCell>
-                            <TableCell align="right" sx={{ py: 2 }}>
-                              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.875rem" }}>
+                            <TableCell align="right" sx={{ py: 2.5 }}>
+                              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, fontSize: "0.9rem" }}>
                                 ₹{item.unitPrice.toLocaleString("en-IN")}
                               </Typography>
                             </TableCell>
-                            <TableCell align="right" sx={{ py: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: "0.875rem" }}>
+                            <TableCell align="right" sx={{ py: 2.5 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: "0.95rem" }}>
                                 ₹{(item.quantity * item.unitPrice).toLocaleString("en-IN")}
                               </Typography>
                             </TableCell>
@@ -1280,41 +1270,42 @@ export default function SalesManagement() {
                   </TableContainer>
                 </Box>
 
-                {/* Total Amount Section - Compact */}
+                {/* Total Amount Section - Professional */}
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 2.5,
-                    borderRadius: 2,
+                    p: 3,
+                    borderRadius: 2.5,
                     background: isDark
-                      ? "linear-gradient(135deg, rgba(46, 125, 50, 0.15) 0%, rgba(27, 94, 32, 0.1) 100%)"
+                      ? "linear-gradient(135deg, rgba(46, 125, 50, 0.12) 0%, rgba(27, 94, 32, 0.08) 100%)"
                       : "linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%)",
                     border: 1.5,
-                    borderColor: isDark ? "rgba(76, 175, 80, 0.3)" : "#81c784"
+                    borderColor: isDark ? "rgba(76, 175, 80, 0.25)" : "#a5d6a7"
                   }}
                 >
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Box>
+                    <Box sx={{ flex: 1 }}>
                       <Typography
                         variant="caption"
                         sx={{
                           color: "text.secondary",
                           fontWeight: 600,
                           textTransform: "uppercase",
-                          letterSpacing: 0.5,
-                          fontSize: "0.65rem",
+                          letterSpacing: 1,
+                          fontSize: "0.7rem",
                           display: "block",
-                          mb: 0.5
+                          mb: 0.75
                         }}
                       >
                         Total Amount
                       </Typography>
                       <Typography
-                        variant="h5"
+                        variant="h4"
                         sx={{
                           fontWeight: 800,
                           color: theme.palette.success.main,
-                          letterSpacing: -0.5
+                          letterSpacing: -0.5,
+                          fontSize: "2rem"
                         }}
                       >
                         ₹{selectedSaleDetails.totalAmount.toLocaleString("en-IN")}
@@ -1322,20 +1313,22 @@ export default function SalesManagement() {
                     </Box>
                     <Box
                       sx={{
-                        width: 48,
-                        height: 48,
+                        width: 56,
+                        height: 56,
                         borderRadius: '50%',
                         background: isDark
                           ? "rgba(76, 175, 80, 0.2)"
                           : "rgba(76, 175, 80, 0.15)",
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        border: 2,
+                        borderColor: isDark ? "rgba(76, 175, 80, 0.3)" : "rgba(76, 175, 80, 0.25)"
                       }}
                     >
                       <CheckCircleIcon
                         sx={{
-                          fontSize: 28,
+                          fontSize: 32,
                           color: theme.palette.success.main
                         }}
                       />
