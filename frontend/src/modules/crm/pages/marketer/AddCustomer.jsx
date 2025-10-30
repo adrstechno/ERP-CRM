@@ -1,3 +1,5 @@
+
+
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Box, Card, CardContent, Typography,
@@ -12,6 +14,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import { VITE_API_BASE_URL } from '../../utils/State';
 import toast from 'react-hot-toast';
 
+
+
+
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,9 +26,7 @@ export default function Customers() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const [form, setForm] = useState({ customerName: '', email: '', phone: '', address: '' });
-  const [errors, setErrors] = useState({});
   const [editingCustomer, setEditingCustomer] = useState(null);
-  const [editErrors, setEditErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 🔹 Fetch all customers
@@ -49,6 +52,22 @@ export default function Customers() {
     fetchCustomers();
   }, [fetchCustomers]);
 
+  // 🔹 Get Customer By ID
+  // const getCustomerById = async (id) => {
+  //   try {
+  //     const authKey = localStorage.getItem("authKey");
+  //     const res = await fetch(`${VITE_API_BASE_URL}/customer/${id}`, {
+  //       headers: { Authorization: `Bearer ${authKey}` },
+  //     });
+  //     if (!res.ok) throw new Error(`Failed to fetch customer by ID: ${res.status}`);
+  //     const data = await res.json();
+  //     console.log("Customer by ID:", data);
+  //     return data;
+  //   } catch (err) {
+  //     console.error("getCustomerById error:", err);
+  //   }
+  // };
+
   // 🔹 Get Customer By Name
   const getCustomerByName = async (name) => {
     try {
@@ -58,9 +77,12 @@ export default function Customers() {
       });
       if (!res.ok) throw new Error(`Failed to fetch customer by name: ${res.status}`);
       const data = await res.json();
+      console.log("Customer by name:", data);
+      toast.success("successsss")
       setCustomers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("getCustomerByName error:", err);
+      toast.error("Error")
     }
   };
 
@@ -76,32 +98,9 @@ export default function Customers() {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, fetchCustomers]);
 
-  // 🔹 Validation helper
-  const validateForm = (data, isEdit = false) => {
-    const newErrors = {};
-    if (!data.customerName.trim()) newErrors.customerName = "Customer name is required";
-    if (!data.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(data.email)) {
-      newErrors.email = "Invalid email format";
-    }
-    if (!data.phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^\d{10,}$/.test(data.phone)) {
-      newErrors.phone = "Enter a valid phone number";
-    }
-    if (!data.address.trim()) newErrors.address = "Address is required";
-
-    if (isEdit) setEditErrors(newErrors);
-    else setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
-  };
-
   // 🔹 Add Customer
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    if (!validateForm(form)) return;
     setIsSubmitting(true);
     try {
       const authKey = localStorage.getItem("authKey");
@@ -117,10 +116,10 @@ export default function Customers() {
       const newCustomer = await res.json();
       setCustomers(prev => [newCustomer, ...prev]);
       handleCloseAddDialog();
-      toast.success("Customer added successfully!");
+      toast.success("Added customer Succefully");
     } catch (err) {
       console.error('Create customer error:', err);
-      toast.error("Something went wrong");
+      toast.error("Something Went Wrong")
     } finally {
       setIsSubmitting(false);
     }
@@ -130,7 +129,6 @@ export default function Customers() {
   const handleCloseAddDialog = () => {
     setAddDialogOpen(false);
     setForm({ customerName: '', email: '', phone: '', address: '' });
-    setErrors({});
   };
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -142,14 +140,12 @@ export default function Customers() {
   const handleCloseEditDialog = () => {
     setEditDialogOpen(false);
     setEditingCustomer(null);
-    setEditErrors({});
   };
   const handleEditChange = (e) => setEditingCustomer({ ...editingCustomer, [e.target.name]: e.target.value });
 
   const handleEditSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (!editingCustomer) return;
-    if (!validateForm(editingCustomer, true)) return;
     setIsSubmitting(true);
     try {
       const authKey = localStorage.getItem("authKey");
@@ -167,15 +163,14 @@ export default function Customers() {
         c.customerId === updatedCustomer.customerId ? updatedCustomer : c
       ));
       handleCloseEditDialog();
-      toast.success("Customer updated successfully!");
     } catch (err) {
       console.error('Update customer error:', err);
-      toast.error("Something went wrong");
     } finally {
       setIsSubmitting(false);
     }
   }, [editingCustomer]);
 
+ 
   // 🔹 Filtered List
   const filteredCustomers = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -246,6 +241,7 @@ export default function Customers() {
                     <TableCell>{customer.address}</TableCell>
                     <TableCell>
                       <IconButton size="small" onClick={() => handleOpenEditDialog(customer)}><EditIcon fontSize="small" /></IconButton>
+                   
                     </TableCell>
                   </TableRow>
                 ))
@@ -261,46 +257,10 @@ export default function Customers() {
         <DialogContent>
           <Box component="form" id="add-customer-form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
             <Stack spacing={3}>
-              <TextField
-                required
-                name="customerName"
-                label="Customer Name"
-                value={form.customerName}
-                onChange={handleChange}
-                error={!!errors.customerName}
-                helperText={errors.customerName}
-              />
-              <TextField
-                required
-                name="email"
-                label="Email Address"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                error={!!errors.email}
-                helperText={errors.email}
-              />
-              <TextField
-                required
-                name="phone"
-                label="Phone Number"
-                type="tel"
-                value={form.phone}
-                onChange={handleChange}
-                error={!!errors.phone}
-                helperText={errors.phone}
-              />
-              <TextField
-                required
-                name="address"
-                label="Address"
-                multiline
-                rows={3}
-                value={form.address}
-                onChange={handleChange}
-                error={!!errors.address}
-                helperText={errors.address}
-              />
+              <TextField required name="customerName" label="Customer Name" value={form.customerName} onChange={handleChange} />
+              <TextField required name="email" label="Email Address" type="email" value={form.email} onChange={handleChange} />
+              <TextField required name="phone" label="Phone Number" type="tel" value={form.phone} onChange={handleChange} />
+              <TextField required name="address" label="Address" multiline rows={3} value={form.address} onChange={handleChange} />
             </Stack>
           </Box>
         </DialogContent>
@@ -319,46 +279,10 @@ export default function Customers() {
           <DialogContent>
             <Box component="form" id="edit-customer-form" onSubmit={handleEditSubmit} sx={{ mt: 2 }}>
               <Stack spacing={3}>
-                <TextField
-                  required
-                  name="customerName"
-                  label="Customer Name"
-                  value={editingCustomer.customerName || ''}
-                  onChange={handleEditChange}
-                  error={!!editErrors.customerName}
-                  helperText={editErrors.customerName}
-                />
-                <TextField
-                  required
-                  name="email"
-                  label="Email Address"
-                  type="email"
-                  value={editingCustomer.email || ''}
-                  onChange={handleEditChange}
-                  error={!!editErrors.email}
-                  helperText={editErrors.email}
-                />
-                <TextField
-                  required
-                  name="phone"
-                  label="Phone Number"
-                  type="tel"
-                  value={editingCustomer.phone || ''}
-                  onChange={handleEditChange}
-                  error={!!editErrors.phone}
-                  helperText={editErrors.phone}
-                />
-                <TextField
-                  required
-                  name="address"
-                  label="Address"
-                  multiline
-                  rows={3}
-                  value={editingCustomer.address || ''}
-                  onChange={handleEditChange}
-                  error={!!editErrors.address}
-                  helperText={editErrors.address}
-                />
+                <TextField required name="customerName" label="Customer Name" value={editingCustomer.customerName || ''} onChange={handleEditChange} />
+                <TextField required name="email" label="Email Address" type="email" value={editingCustomer.email || ''} onChange={handleEditChange} />
+                <TextField required name="phone" label="Phone Number" type="tel" value={editingCustomer.phone || ''} onChange={handleEditChange} />
+                <TextField required name="address" label="Address" multiline rows={3} value={editingCustomer.address || ''} onChange={handleEditChange} />
               </Stack>
             </Box>
           </DialogContent>
