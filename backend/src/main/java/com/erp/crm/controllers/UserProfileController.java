@@ -1,7 +1,9 @@
 package com.erp.crm.controllers;
 
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,6 @@ public class UserProfileController {
 
     // Create profile (Admin only)
     @PostMapping("/create")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserProfile> createProfile(@RequestBody UserProfileDTO dto) {
         return ResponseEntity.ok(userProfileService.createProfile(dto));
     }
@@ -62,11 +63,17 @@ public class UserProfileController {
         return ResponseEntity.noContent().build();
     }
 
-    // ✅ Get profile by userId (Admin only)
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserProfile> getProfileByUserId(@PathVariable Long userId) {
+    public ResponseEntity<?> getProfileByUserId(@PathVariable Long userId) {
         UserProfile profile = userProfileService.getProfileByUserId(userId);
+
+        if (profile == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Profile not found for this user."));
+        }
+
         return ResponseEntity.ok(profile);
     }
 

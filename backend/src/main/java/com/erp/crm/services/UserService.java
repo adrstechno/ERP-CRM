@@ -35,7 +35,7 @@ public class UserService {
     public User createUser(AdminCreateUserDTO dto) {
         Role role = roleRepo.findByName(dto.getRole())
                 .orElseThrow(() -> new RuntimeException("Role not found : " + dto.getRole()));
-
+        
         User user = new User();
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
