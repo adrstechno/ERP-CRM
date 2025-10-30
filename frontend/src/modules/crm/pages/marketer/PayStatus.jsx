@@ -10,7 +10,7 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import axios from 'axios';
-import { VITE_API_BASE_URL } from '../../utils/State'; // Assuming you have this utility
+import { VITE_API_BASE_URL } from '../../utils/State';
 import toast from 'react-hot-toast';
 
 // --- Helper Component ---
@@ -38,7 +38,6 @@ const StatusChip = React.memo(({ status }) => {
     );
 });
 
-
 // --- Main Component ---
 export default function PayStatus() {
     const [invoices, setInvoices] = useState([]);
@@ -56,6 +55,8 @@ export default function PayStatus() {
         proofFile: null,
     });
 
+    const [errors, setErrors] = useState({});
+
     const token = localStorage.getItem("authKey");
     const axiosConfig = useMemo(() => ({
         headers: { Authorization: `Bearer ${token}` }
@@ -65,12 +66,11 @@ export default function PayStatus() {
         setIsLoading(true);
         try {
             const response = await axios.get(`${VITE_API_BASE_URL}/invoices/get-all`, axiosConfig);
-             const formattedData = response.data.map((item) => ({
+            const formattedData = response.data.map((item) => ({
                 id: item.invoiceId,
                 invoiceNo: item.invoiceNumber,
                 date: item.invoiceDate,
                 customerName: item.sale.customerName,
-                // ## Changed from totalAmount to remainingBalance ##
                 amount: item.outstandingAmount || 0,
                 status: item.paymentStatus,
             }));
@@ -90,8 +90,8 @@ export default function PayStatus() {
 
     const handleOpenDialog = (invoice) => {
         setSelectedInvoice(invoice);
-        // This will now pre-fill the dialog with the remaining balance
         setPaymentForm(prev => ({ ...prev, amount: invoice.amount }));
+        setErrors({});
         setIsDialogOpen(true);
     };
 
@@ -102,15 +102,32 @@ export default function PayStatus() {
             amount: '', paymentMethod: 'UPI', referenceNo: '',
             paymentDate: dayjs(), notes: '', proofFile: null,
         });
+        setErrors({});
     };
 
     const handleFormChange = (e) => {
         const { name, value } = e.target;
         setPaymentForm(prev => ({ ...prev, [name]: value }));
+        setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
     const handleFileChange = (e) => {
         setPaymentForm(prev => ({ ...prev, proofFile: e.target.files[0] }));
+    };
+
+    const validateForm = () => {
+        let tempErrors = {};
+        if (!paymentForm.amount || Number(paymentForm.amount) <= 0)
+            tempErrors.amount = "Amount is required and must be greater than 0.";
+        if (!paymentForm.paymentMethod.trim())
+            tempErrors.paymentMethod = "Payment method is required.";
+        if (!paymentForm.paymentDate)
+            tempErrors.paymentDate = "Payment date is required.";
+        if (paymentForm.proofFile && paymentForm.proofFile.size > 5 * 1024 * 1024)
+            tempErrors.proofFile = "File size must be less than 5MB.";
+
+        setErrors(tempErrors);
+        return Object.keys(tempErrors).length === 0;
     };
 
     const handleSubmitPayment = async (e) => {
@@ -119,8 +136,13 @@ export default function PayStatus() {
             toast.error("No invoice selected.");
             return;
         }
-        setIsSubmitting(true);
 
+        if (!validateForm()) {
+            toast.error("Please fix form errors before submitting.");
+            return;
+        }
+
+        setIsSubmitting(true);
         const formData = new FormData();
         formData.append('invoiceId', selectedInvoice.id);
         formData.append('amount', paymentForm.amount);
@@ -144,7 +166,7 @@ export default function PayStatus() {
                 handleCloseDialog();
                 fetchInvoices();
             } else {
-                 throw new Error(response.data.message || "An unknown error occurred.");
+                throw new Error(response.data.message || "An unknown error occurred.");
             }
 
         } catch (error) {
@@ -169,12 +191,11 @@ export default function PayStatus() {
                             Summary of all customer invoices and their payment statuses.
                         </Typography>
                     </CardContent>
-                    
+
                     <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
                         <Table stickyHeader size="medium">
                             <TableHead>
                                 <TableRow>
-                                    {/* ## Updated header text ## */}
                                     {['Invoice No', 'Date', 'Customer', 'Remaining Amount', 'Status', 'Action'].map(head => (
                                         <TableCell key={head} sx={{ whiteSpace: 'nowrap' }}>{head}</TableCell>
                                     ))}
@@ -193,7 +214,7 @@ export default function PayStatus() {
                                             <TableCell sx={{ fontWeight: '600' }}>{row.invoiceNo}</TableCell>
                                             <TableCell>{dayjs(row.date).format('DD MMM YYYY')}</TableCell>
                                             <TableCell>{row.customerName}</TableCell>
-                                              <TableCell>₹{row.amount.toLocaleString('en-IN')}</TableCell>
+                                            <TableCell>₹{row.amount.toLocaleString('en-IN')}</TableCell>
                                             <TableCell><StatusChip status={row.status} /></TableCell>
                                             <TableCell>
                                                 {(row.status.toLowerCase() === 'unpaid' || row.status.toLowerCase() === 'partially_paid') && (
@@ -227,11 +248,13 @@ export default function PayStatus() {
                                     type="number"
                                     value={paymentForm.amount}
                                     onChange={handleFormChange}
+                                    error={!!errors.amount}
+                                    helperText={errors.amount}
                                 />
                                 <DatePicker
                                     label="Payment Date"
                                     value={paymentForm.paymentDate}
-                                    onChange={(newValue) => setPaymentForm(prev => ({...prev, paymentDate: newValue}))}
+                                    onChange={(newValue) => setPaymentForm(prev => ({ ...prev, paymentDate: newValue }))}
                                 />
                                 <TextField
                                     required
@@ -239,6 +262,8 @@ export default function PayStatus() {
                                     label="Payment Method"
                                     value={paymentForm.paymentMethod}
                                     onChange={handleFormChange}
+                                    error={!!errors.paymentMethod}
+                                    helperText={errors.paymentMethod}
                                 />
                                 <TextField
                                     name="referenceNo"
@@ -258,7 +283,11 @@ export default function PayStatus() {
                                     Upload Proof
                                     <input type="file" hidden onChange={handleFileChange} />
                                 </Button>
-                                {paymentForm.proofFile && <Typography variant="body2">{paymentForm.proofFile.name}</Typography>}
+                                {paymentForm.proofFile && (
+                                    <Typography variant="body2" color={errors.proofFile ? "error" : "text.secondary"}>
+                                        {errors.proofFile || paymentForm.proofFile.name}
+                                    </Typography>
+                                )}
                             </Stack>
                         </Box>
                     </DialogContent>
