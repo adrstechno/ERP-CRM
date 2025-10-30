@@ -172,7 +172,7 @@ public class SaleService {
                             i.getProduct().getProductId(),
                             i.getProduct().getName(),
                             i.getQuantity(),
-                            i.getUnitPrice()))
+                            i.getProduct().getPrice()))
                     .toList());
         }
         return dto;
