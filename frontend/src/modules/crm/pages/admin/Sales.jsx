@@ -861,7 +861,7 @@ export default function SalesManagement() {
       <Box sx={{ p: 3 }}>
         <Stack spacing={3}>
           {/* Charts */}
-          <Grid container spacing={3}>
+          <Grid container spacing={8}>
             <Grid item xs={12} md={7}>
               <Card sx={{ height: "100%", minHeight: 260 }}>
                 <CardContent>
