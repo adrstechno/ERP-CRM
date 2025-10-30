@@ -21,11 +21,24 @@ public class ServiceVisitResponseDTO {
     private Double endKm;
     private String endKmPhotoUrl;
 
-    private ServiceStatus visitStatus;
-    private String usedParts;
-    private String missingPart;
-    private String remarks;
+    private Double partCollectedKm;
+    private String partCollectedPhotoUrl;
+
+    private Boolean partCollectedSameDay;
+
+    private ServiceStatus visitStatus; // EN_ROUTE, ON_SITE, NEED_PART, etc.
+    private boolean active; // True if current visit is ongoing
+    private boolean nextDayRequired; // True if visit marked as 'need part' and engineer will return later
+
+    private String usedParts; // List of parts used
+    private String missingPart; // Parts required for next visit
+    private String remarks; // General visit remarks or notes
 
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
+
+    private ServiceStatus ticketStatus; // Mirror of ticket’s overall status
+
+    private String lastUpdatedBy; // Engineer/Manager who last modified
+    private LocalDateTime lastUpdatedAt;
 }

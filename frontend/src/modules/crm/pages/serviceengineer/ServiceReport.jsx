@@ -23,6 +23,29 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { VITE_API_BASE_URL } from "../../utils/State";
 
+/**
+ * ServiceReport.jsx
+ *
+ * Single-page service visit workflow UI. Matches the workflow:
+ * ASSIGNED → EN_ROUTE → ON_SITE → NEED_PART → PART_COLLECTED → FIXED → COMPLETED
+ *
+ * Endpoints used (assumed):
+ * POST  ${VITE_API_BASE_URL}/tickets/start
+ * POST  ${VITE_API_BASE_URL}/tickets/arrive
+ * POST  ${VITE_API_BASE_URL}/tickets/need-part
+ * POST  ${VITE_API_BASE_URL}/tickets/part-collected
+ * POST  ${VITE_API_BASE_URL}/tickets/start-next-day
+ * POST  ${VITE_API_BASE_URL}/tickets/fixed
+ * POST  ${VITE_API_BASE_URL}/tickets/complete
+ *
+ * GET   ${VITE_API_BASE_URL}/tickets/get-services-by-user
+ * GET   ${VITE_API_BASE_URL}/products/all
+ * GET   ${VITE_API_BASE_URL}/service-visits/ticket/{ticketId}
+ * GET   ${VITE_API_BASE_URL}/service-visits/my-visits
+ *
+ * Keep your CSS/theme externally; this file uses MUI theme and inline sx similar to your previous page.
+ */
+
 export default function ServiceReport() {
   const theme = useTheme();
   const token = localStorage.getItem("authKey");
@@ -200,6 +223,7 @@ export default function ServiceReport() {
   // ----------- Render UI -----------
   const renderStageFields = () => {
     const current = steps[activeStep];
+
     switch (current) {
       case "ASSIGNED":
         return (
@@ -231,12 +255,15 @@ export default function ServiceReport() {
       case "ON_SITE":
         return (
           <Box display="flex" flexDirection="column" gap={2}>
+            <Typography>Diagnose and choose next action.</Typography>
+
             <TextField
               label="Used Parts"
               value={form.usedParts}
               onChange={handleChange("usedParts")}
               size="small"
             />
+
             <TextField
               label="Remarks"
               value={form.remarks}
@@ -245,12 +272,17 @@ export default function ServiceReport() {
               multiline
               rows={2}
             />
+
             <Box display="flex" gap={2}>
               <Button
                 variant="outlined"
                 color="warning"
                 onClick={() => handleNeedPart(visits[0]?.id)}
               >
+                Fixed (upload end KM)
+              </Button>
+
+              <Button variant="outlined" color="warning" onClick={() => setActiveStep(steps.indexOf("NEED_PART"))}>
                 Need Part
               </Button>
               <Button variant="contained" color="success" onClick={() => setActiveStep(steps.indexOf("FIXED"))}>
@@ -262,6 +294,7 @@ export default function ServiceReport() {
       case "FIXED":
         return (
           <Box display="flex" flexDirection="column" gap={2}>
+            <Typography>Record missing part details.</Typography>
             <TextField
               label="End KM Reading"
               value={form.endKm}
@@ -286,6 +319,7 @@ export default function ServiceReport() {
             Ticket Completed ✅
           </Typography>
         );
+
       default:
         return null;
     }
@@ -306,6 +340,7 @@ export default function ServiceReport() {
               </Step>
             ))}
           </Stepper>
+
 
           <Divider sx={{ my: 2 }} />
 
