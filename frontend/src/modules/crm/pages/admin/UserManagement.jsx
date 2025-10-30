@@ -632,7 +632,8 @@
 
 
 
-import React, { useEffect, useState } from 'react';
+// src/modules/crm/pages/admin/UserManagement.jsx
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import {
   Box,
@@ -679,12 +680,22 @@ import { VITE_API_BASE_URL } from '../../utils/State';
 /* ---------- API helpers ---------- */
 async function createUserApi(userData) {
   const authKey = localStorage.getItem('authKey');
-  const response = await axios.post(`${VITE_API_BASE_URL}/admin/create-user`, userData, {
-    headers: { Authorization: `Bearer ${authKey}` },
-  });
-  const returnedAuthKey = response.data.authKey || response.data.token;
-  if (returnedAuthKey) localStorage.setItem('authKey', returnedAuthKey);
-  return response.data;
+  try {
+    const response = await axios.post(`${VITE_API_BASE_URL}/admin/create-user`, userData, {
+      headers: { Authorization: `Bearer ${authKey}` },
+    });
+    const returnedAuthKey = response.data.authKey || response.data.token;
+    if (returnedAuthKey) localStorage.setItem('authKey', returnedAuthKey);
+    return response.data;
+  } catch (err) {
+    // normalize error for caller
+    const payload = {
+      status: err.response?.status,
+      message: err.response?.data?.message || err.response?.data?.error || err.message,
+      raw: err,
+    };
+    throw payload;
+  }
 }
 
 async function createProfileApi(userId, profileData) {
@@ -726,7 +737,7 @@ const getRoleIcon = (role) => {
   }
 };
 
-/* ---------- Validation helpers ---------- */
+/* ---------- Validation helpers (unchanged) ---------- */
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const validateUserForm = (data = {}) => {
   const newErrors = {};
@@ -735,7 +746,6 @@ const validateUserForm = (data = {}) => {
   else if (!emailRegex.test(data.email)) newErrors.email = 'Invalid email format';
   if (!data.phone && data.phone !== '') newErrors.phone = 'Phone number is required';
   else if (data.phone && !/^\d{10}$/.test(String(data.phone))) newErrors.phone = 'Phone must be exactly 10 digits';
-  // create: password required; edit: password optional
   if (data.isEdit) {
     if (data.password && data.password.length > 0 && data.password.length < 6)
       newErrors.password = 'New password must be at least 6 characters';
@@ -804,24 +814,25 @@ export default function UserManagement() {
   const [editErrors, setEditErrors] = useState({});
   const [editProfileErrors, setEditProfileErrors] = useState({});
 
-  /* ---------- Fetch users ---------- */
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${VITE_API_BASE_URL}/admin/users`, {
-          headers: { Authorization: `Bearer ${authKey}` },
-        });
-        setUsersData(response.data || []);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        toast.error('Failed to load users.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
+  /* ---------- Fetch users (extract to reusable function) ---------- */
+  const fetchUsers = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${VITE_API_BASE_URL}/admin/users`, {
+        headers: { Authorization: `Bearer ${authKey}` },
+      });
+      setUsersData(response.data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('Failed to load users.');
+    } finally {
+      setLoading(false);
+    }
   }, [authKey]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   /* ---------- Create / Edit user ---------- */
   const handleClickOpen = () => setOpen(true);
@@ -878,8 +889,7 @@ export default function UserManagement() {
       await axios.put(`${VITE_API_BASE_URL}/user/update`, payload, {
         headers: { Authorization: `Bearer ${authKey}` },
       });
-      const updatedUsersResponse = await axios.get(`${VITE_API_BASE_URL}/admin/users`, { headers: { Authorization: `Bearer ${authKey}` } });
-      setUsersData(updatedUsersResponse.data || []);
+      await fetchUsers();
       toast.success('User updated successfully!');
       handleEditClose();
     } catch (error) {
@@ -909,41 +919,54 @@ export default function UserManagement() {
       toast.error('Please fix validation errors.');
       return;
     }
+
     try {
-      await createUserApi(formData);
-      toast.success('User created successfully!');
-      handleClose();
-      const response = await axios.get(`${VITE_API_BASE_URL}/admin/users`, { headers: { Authorization: `Bearer ${authKey}` } });
-      setUsersData(response.data || []);
-    } catch (error) {
-      console.error('Create user failed:', error);
-      toast.error(error.response?.data?.message || 'Failed to create user.');
+      const data = await createUserApi(formData);
+      toast.success(data.message || 'User created successfully!');
+      setOpen(false);
+      await fetchUsers(); // refresh list
+    } catch (err) {
+      console.error('Create user failed:', err);
+      // err is normalized in createUserApi: { status, message, raw }
+      if (err?.status === 409 || (err?.message || '').toLowerCase().includes('exists')) {
+        toast.error('A user with this email already exists.');
+      } else if (err?.status === 401 || err?.status === 403) {
+        toast.error('Not authorized. Please login again.');
+      } else if (err?.status >= 400 && err?.status < 500) {
+        toast.error(err.message || 'Failed to create user. Check input.');
+      } else {
+        toast.error('Server/network error. Please try again.');
+      }
     }
   };
 
-  /* ---------- View profile (and set currentUserId) ---------- */
+  /* ---------- View profile (and set currentUserId) ----------
+     NOTE: Replaced the incorrect version that used `setSelectedProfile`.
+     This accepts a user object (from the table) and fetches profile properly.
+  ---------- */
   const handleViewOpen = async (user) => {
+    if (!user?.userId) {
+      toast.error('User ID missing.');
+      return;
+    }
     setCurrentUserId(user.userId);
     setViewOpen(true);
     setViewLoading(true);
     setViewUser(null);
     setProfileMissing(false);
 
-    if (!user.userId) {
-      console.error('User ID missing', user);
-      setViewLoading(false);
-      toast.error('User ID missing.');
-      return;
-    }
     try {
       const response = await axios.get(`${VITE_API_BASE_URL}/profiles/${user.userId}`, {
         headers: { Authorization: `Bearer ${authKey}` },
       });
       setViewUser(response.data || null);
     } catch (error) {
-      console.warn('No profile found for this user:', error);
-      setProfileMissing(true);
-      toast.error('No profile found for this user. You can create one.');
+      console.warn('No profile found for this user or fetch error:', error);
+      if (error.response?.status === 404) {
+        setProfileMissing(true);
+      } else {
+        toast.error('Failed to load profile. Please try again.');
+      }
     } finally {
       setViewLoading(false);
     }
@@ -1200,7 +1223,7 @@ export default function UserManagement() {
         </DialogActions>
       </Dialog>
 
-      {/* Create Profile Dialog */}
+      {/* Create Profile Dialog (unchanged) */}
       <Dialog open={createProfileOpen} onClose={handleCreateProfileClose} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 'bold' }}>Create Profile</DialogTitle>
         <DialogContent>
@@ -1225,19 +1248,22 @@ export default function UserManagement() {
         </DialogActions>
       </Dialog>
 
-      {/* Update Profile Dialog (hide userId from form) */}
+      {/* ✅ Update Profile Dialog (fixed) */}
       <Dialog open={editExtraOpen} onClose={handleEditExtraClose} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 'bold' }}>Update Profile</DialogTitle>
         <DialogContent>
           {editExtraUser ? (
             <Stack spacing={2} sx={{ mt: 2 }}>
               {Object.entries(editExtraUser)
-                .filter(([key]) => key !== 'userId' && key !== 'createdAt' && key !== 'updatedAt')
+                // ✅ Hide system fields like id, profileId, timestamps, etc.
+                .filter(([key]) => !['id', 'profileId', 'userId', 'createdAt', 'updatedAt'].includes(key))
                 .map(([key, value]) => (
                   <TextField
                     key={key}
                     name={key}
-                    label={key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
+                    label={key
+                      .replace(/([A-Z])/g, ' $1')
+                      .replace(/^./, (str) => str.toUpperCase())}
                     value={value || ''}
                     fullWidth
                     onChange={handleEditExtraChange}
@@ -1247,18 +1273,30 @@ export default function UserManagement() {
                 ))}
             </Stack>
           ) : (
-            <Box sx={{ minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box
+              sx={{
+                minHeight: 120,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Typography color="text.secondary">No profile loaded.</Typography>
             </Box>
           )}
         </DialogContent>
         <DialogActions sx={{ p: '16px 24px' }}>
-          <Button onClick={handleEditExtraClose} color="inherit">Cancel</Button>
-          <Button onClick={submitUpdateProfile} variant="contained">Save Changes</Button>
+          <Button onClick={handleEditExtraClose} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={submitUpdateProfile} variant="contained">
+            Save Changes
+          </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Edit User Dialog */}
+
+      {/* Edit User Dialog (unchanged) */}
       {editUser && (
         <Dialog open={editOpen} onClose={handleEditClose} maxWidth="sm" fullWidth>
           <DialogTitle sx={{ fontWeight: 'bold' }}>Edit User</DialogTitle>
@@ -1326,7 +1364,7 @@ export default function UserManagement() {
         </Dialog>
       )}
 
-      {/* View Profile Dialog */}
+      {/* View Profile Dialog (final) */}
       <Dialog open={viewOpen} onClose={handleViewClose} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 'bold' }}>User Profile</DialogTitle>
         <DialogContent>
@@ -1342,9 +1380,11 @@ export default function UserManagement() {
           ) : viewUser ? (
             <Stack spacing={1.5} sx={{ mt: 2 }}>
               {Object.entries(viewUser)
-                .filter(([key]) => key !== 'userId' && key !== 'createdAt' && key !== 'updatedAt')
+                .filter(([key]) => !['userId', 'id', 'profileId', 'createdAt', 'updatedAt'].includes(key))
                 .map(([key, value]) => (
-                  <Typography key={key}><b>{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}:</b> {value || '—'}</Typography>
+                  <Typography key={key}>
+                    <b>{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}:</b> {value || '—'}
+                  </Typography>
                 ))}
             </Stack>
           ) : (
