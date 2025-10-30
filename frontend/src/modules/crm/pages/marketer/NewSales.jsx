@@ -553,76 +553,44 @@ import {
   MenuItem,
   CircularProgress,
   InputAdornment,
+  FormHelperText,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+  LocalizationProvider,
+  DatePicker,
+} from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { VITE_API_BASE_URL } from "../../utils/State";
-import toast from 'react-hot-toast';
-
-// --- Custom Tooltip for Charts ---
-const CustomTooltip = ({ active, payload, label }) => {
-  // const theme = useTheme();
-  if (active && payload && payload.length) {
-    return (
-      <Card sx={{ p: 1 }}>
-        <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
-          {label}
-        </Typography>
-        {payload.map((entry, index) => (
-          <Typography
-            key={`item-${index}`}
-            sx={{ color: entry.color, fontWeight: "bold" }}
-          >
-            {`${entry.name}: ${entry.value.toLocaleString("en-IN")}${entry.unit || ""
-              }`}
-          </Typography>
-        ))}
-      </Card>
-    );
-  }
-  return null;
-};
+import toast from "react-hot-toast";
 
 export default function SalesManagement() {
   const theme = useTheme();
   const [salesData, setSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // State for Create Sale Dialog
+  // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // State for View Details Dialog
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedSaleDetails, setSelectedSaleDetails] = useState(null);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
 
-  // State for dialog dropdowns
+  // Dropdowns
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
 
-  // State for the new sale form
+  // Form state
   const [form, setForm] = useState({
     entityId: "",
     date: dayjs(),
     items: [{ productId: "", productName: "", quantity: 1, perUnit: 0 }],
   });
+
+  // Validation state
+  const [errors, setErrors] = useState({});
 
   const token = localStorage.getItem("authKey");
   const axiosConfig = useMemo(
@@ -632,6 +600,7 @@ export default function SalesManagement() {
     [token]
   );
 
+  // Fetch all sales
   const fetchSales = useCallback(async () => {
     try {
       setLoading(true);
@@ -647,6 +616,7 @@ export default function SalesManagement() {
     }
   }, [axiosConfig]);
 
+  // Fetch customers and products
   const fetchDropdownData = useCallback(async () => {
     try {
       const [customerRes, productRes] = await Promise.all([
@@ -665,58 +635,46 @@ export default function SalesManagement() {
     fetchDropdownData();
   }, [fetchSales, fetchDropdownData]);
 
+  // Validation Logic
+  const validateForm = () => {
+    let newErrors = {};
 
+    if (!form.entityId) newErrors.entityId = "Customer is required.";
+    if (!form.date) newErrors.date = "Sale date is required.";
 
-  // --- View Details Handlers ---
-  const handleViewDetails = async (saleId) => {
-    setIsDetailsDialogOpen(true);
-    setIsDetailsLoading(true);
-    try {
-      const response = await axios.get(
-        `${VITE_API_BASE_URL}/sales/get-sale/${saleId}`,
-        axiosConfig
-      );
-      setSelectedSaleDetails(response.data);
-    } catch (error) {
-      console.error(`Error fetching details for sale ${saleId}:`, error);
-      setSelectedSaleDetails(null);
-    } finally {
-      setIsDetailsLoading(false);
-    }
-  };
+    if (!form.items || form.items.length === 0)
+      newErrors.items = "At least one product is required.";
 
-  const handleCloseDetailsDialog = () => {
-    setIsDetailsDialogOpen(false);
-    setSelectedSaleDetails(null);
-  };
-
-  // --- Create Dialog and Form Handlers ---
-  const handleOpenCreateDialog = () => setIsCreateDialogOpen(true);
-  const handleCloseCreateDialog = () => {
-    setIsCreateDialogOpen(false);
-    setForm({
-      entityId: "",
-      date: dayjs(),
-      items: [{ productId: "", productName: "", quantity: 1, perUnit: 0 }],
+    form.items.forEach((item, index) => {
+      if (!item.productId)
+        newErrors[`items.${index}.productId`] = "Product required.";
+      if (item.quantity <= 0)
+        newErrors[`items.${index}.quantity`] = "Quantity must be greater than 0.";
+      if (item.perUnit <= 0)
+        newErrors[`items.${index}.perUnit`] = "Price must be greater than 0.";
     });
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    if (!form.entityId) {
-      toast.error("Please select a customer before submitting.");
-      setIsSubmitting(false);
+    if (!validateForm()) {
+      toast.error("Please fill all required fields correctly.");
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const payload = {
         customerId: Number(form.entityId),
-        totalAmount: form.items
-          .reduce((sum, item) => sum + item.quantity * item.perUnit, 0)
-          .toFixed(0),
+        saleDate: form.date,
+        totalAmount: form.items.reduce(
+          (sum, item) => sum + item.quantity * item.perUnit,
+          0
+        ),
         items: form.items.map((item) => ({
           productId: Number(item.productId),
           quantity: Number(item.quantity),
@@ -729,67 +687,140 @@ export default function SalesManagement() {
         axiosConfig
       );
 
-      toast.success(`Sale Created Successfully for ${response.data.customerName}`);
-      fetchSales(); // Refresh the table
+      toast.success(`Sale created for ${response.data.customerName}`);
+      fetchSales();
       handleCloseCreateDialog();
     } catch (error) {
-      console.error("Error creating sale:", error.response?.data || error.message);
+      console.error("Error creating sale:", error);
       toast.error(error.response?.data?.message || "Failed to create sale.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const PIE_CHART_COLORS = [
-    theme.palette.primary.main,
-    theme.palette.success.main,
-    theme.palette.warning.main,
-    theme.palette.error.main,
-  ];
+  // --- Dialog Controls ---
+  const handleOpenCreateDialog = () => setIsCreateDialogOpen(true);
+  const handleCloseCreateDialog = () => {
+    setIsCreateDialogOpen(false);
+    setErrors({});
+    setForm({
+      entityId: "",
+      date: dayjs(),
+      items: [{ productId: "", productName: "", quantity: 1, perUnit: 0 }],
+    });
+  };
+
+  const handleViewDetails = async (saleId) => {
+    setIsDetailsDialogOpen(true);
+    setIsDetailsLoading(true);
+    try {
+      const response = await axios.get(
+        `${VITE_API_BASE_URL}/sales/get-sale/${saleId}`,
+        axiosConfig
+      );
+      setSelectedSaleDetails(response.data);
+    } catch (error) {
+      console.error("Error fetching details:", error);
+    } finally {
+      setIsDetailsLoading(false);
+    }
+  };
+
+  const handleCloseDetailsDialog = () => {
+    setIsDetailsDialogOpen(false);
+    setSelectedSaleDetails(null);
+  };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Box>
         <Stack spacing={3}>
-          
-
-          {/* Sales Table */}
+          {/* --- Sales Table --- */}
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}>Sales Entry Table</Typography>
-                <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenCreateDialog}>Create New Sale</Button>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
+                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                  Sales Entry Table
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={handleOpenCreateDialog}
+                >
+                  Create New Sale
+                </Button>
               </Stack>
-              <TableContainer sx={{ maxHeight: 440, overflowY: "auto" }}>
+
+              <TableContainer sx={{ maxHeight: 440 }}>
                 <Table stickyHeader size="small">
                   <TableHead>
                     <TableRow>
-                      {["Sale ID", "Date", "Customer", "Created By", "Amount", "Status", "Action"].map((head) => (
+                      {[
+                        "Sale ID",
+                        "Date",
+                        "Customer",
+                        "Created By",
+                        "Amount",
+                        "Status",
+                        "Action",
+                      ].map((head) => (
                         <TableCell key={head}>{head}</TableCell>
                       ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {loading ? (<TableRow><TableCell colSpan={7} align="center"><CircularProgress /></TableCell></TableRow>) :
-                      salesData.length > 0 ? (
-                        salesData.map((sale) => (
-                          <TableRow key={sale.saleId} hover>
-                            <TableCell>{sale.saleId}</TableCell>
-                            <TableCell>{dayjs(sale.saleDate).format("DD MMM YYYY")}</TableCell>
-                            <TableCell>{sale.customerName}</TableCell>
-                            <TableCell>{sale.createdBy}</TableCell>
-                            <TableCell>₹{sale.totalAmount.toLocaleString("en-IN")}</TableCell>
-                            <TableCell>
-                              {sale.saleStatus}
-                            </TableCell>
-                            <TableCell>
-                              <IconButton size="small" color="primary" onClick={() => handleViewDetails(sale.saleId)}>
-                                <VisibilityIcon fontSize="small" />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (<TableRow><TableCell colSpan={7} align="center">No sales found</TableCell></TableRow>)}
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center">
+                          <CircularProgress />
+                        </TableCell>
+                      </TableRow>
+                    ) : salesData.length > 0 ? (
+                      salesData.map((sale) => (
+                        <TableRow key={sale.saleId} hover>
+                          <TableCell>{sale.saleId}</TableCell>
+                          <TableCell>
+                            {dayjs(sale.saleDate).format("DD MMM YYYY")}
+                          </TableCell>
+                          <TableCell>{sale.customerName}</TableCell>
+                          <TableCell>{sale.createdBy}</TableCell>
+                          <TableCell>
+                            ₹{sale.totalAmount.toLocaleString("en-IN")}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={sale.saleStatus}
+                              color={
+                                sale.saleStatus === "APPROVED"
+                                  ? "success"
+                                  : "warning"
+                              }
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleViewDetails(sale.saleId)}
+                            >
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center">
+                          No sales found
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -797,137 +828,243 @@ export default function SalesManagement() {
           </Card>
         </Stack>
 
-        {/* --- Sale Details Dialog --- */}
-        <Dialog open={isDetailsDialogOpen} onClose={handleCloseDetailsDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>Sale Details</DialogTitle>
-          <DialogContent>
-            {isDetailsLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : selectedSaleDetails ? (
-              <Stack spacing={2} sx={{ mt: 1 }}>
-                <Grid container spacing={1.5}>
-                  <Grid item xs={6}><Typography variant="body2" color="text.secondary">Sale ID:</Typography></Grid>
-                  <Grid item xs={6}><Typography fontWeight="bold">{selectedSaleDetails.saleId}</Typography></Grid>
-
-                  <Grid item xs={6}><Typography variant="body2" color="text.secondary">Customer Name:</Typography></Grid>
-                  <Grid item xs={6}><Typography fontWeight="bold">{selectedSaleDetails.customerName}</Typography></Grid>
-
-                  <Grid item xs={6}><Typography variant="body2" color="text.secondary">Sale Date:</Typography></Grid>
-                  <Grid item xs={6}><Typography fontWeight="bold">{dayjs(selectedSaleDetails.saleDate).format("DD MMM YYYY")}</Typography></Grid>
-
-                  <Grid item xs={6}><Typography variant="body2" color="text.secondary">Created By:</Typography></Grid>
-                  <Grid item xs={6}><Typography fontWeight="bold">{selectedSaleDetails.createdBy}</Typography></Grid>
-
-                  <Grid item xs={6}><Typography variant="body2" color="text.secondary">Approved By:</Typography></Grid>
-                  <Grid item xs={6}><Typography fontWeight="bold">{selectedSaleDetails.approvedBy}</Typography></Grid>
-
-                  <Grid item xs={6}><Typography variant="body2" color="text.secondary">Status:</Typography></Grid>
-                  <Grid item xs={6}><Chip label={selectedSaleDetails.saleStatus} color={selectedSaleDetails.saleStatus === "APPROVED" ? "success" : "warning"} size="small" /></Grid>
-
-                  <Grid item xs={6}><Typography variant="h6" color="text.secondary">Total Amount:</Typography></Grid>
-                  <Grid item xs={6}><Typography variant="h6" fontWeight="bold">₹{selectedSaleDetails.totalAmount.toLocaleString("en-IN")}</Typography></Grid>
-                </Grid>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Typography variant="subtitle1" fontWeight="bold">Items Sold</Typography>
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Product</TableCell>
-                        <TableCell align="right">Qty</TableCell>
-                        <TableCell align="right">Unit Price</TableCell>
-                        <TableCell align="right">Subtotal</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {selectedSaleDetails.items.map((item) => (
-                        <TableRow key={item.productId}>
-                          <TableCell>{item.productName}</TableCell>
-                          <TableCell align="right">{item.quantity}</TableCell>
-                          <TableCell align="right">₹{item.unitPrice.toLocaleString("en-IN")}</TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 'bold' }}>₹{(item.quantity * item.unitPrice).toLocaleString("en-IN")}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Stack>
-            ) : (<Typography>Could not load sale details.</Typography>)}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDetailsDialog}>Close</Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* --- New Sale Dialog --- */}
-        <Dialog open={isCreateDialogOpen} onClose={handleCloseCreateDialog} maxWidth="md" fullWidth >
+        {/* --- Create Sale Dialog --- */}
+        <Dialog
+          open={isCreateDialogOpen}
+          onClose={handleCloseCreateDialog}
+          maxWidth="md"
+          fullWidth
+        >
           <DialogTitle>New Sale Entry</DialogTitle>
           <DialogContent>
-            <Box component="form" id="new-sale-form" onSubmit={handleSubmit} sx={{ mt: 2 }} >
+            <Box
+              component="form"
+              id="new-sale-form"
+              onSubmit={handleSubmit}
+              sx={{ mt: 2 }}
+            >
               <Stack spacing={2.5}>
-                <FormControl fullWidth>
+                <FormControl fullWidth error={!!errors.entityId}>
                   <InputLabel>Select Customer</InputLabel>
-                  <Select value={form.entityId} label="Select Customer" onChange={(e) => setForm((prev) => ({ ...prev, entityId: e.target.value, }))}>
-                    {customers.map((c) => (<MenuItem key={c.customerId} value={c.customerId}>{c.customerName}</MenuItem>))}
+                  <Select
+                    value={form.entityId}
+                    label="Select Customer"
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        entityId: e.target.value,
+                      }))
+                    }
+                  >
+                    {customers.map((c) => (
+                      <MenuItem key={c.customerId} value={c.customerId}>
+                        {c.customerName}
+                      </MenuItem>
+                    ))}
                   </Select>
+                  {errors.entityId && (
+                    <FormHelperText>{errors.entityId}</FormHelperText>
+                  )}
                 </FormControl>
 
-                <Typography variant="subtitle1" fontWeight="bold">Products</Typography>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Products
+                </Typography>
 
-                {form.items?.map((item, index) => (
+                {errors.items && (
+                  <Typography color="error" variant="body2">
+                    {errors.items}
+                  </Typography>
+                )}
+
+                {form.items.map((item, index) => (
                   <Grid container spacing={2} key={index} alignItems="center">
                     <Grid item xs={5}>
-                      <FormControl fullWidth>
+                      <FormControl
+                        fullWidth
+                        error={!!errors[`items.${index}.productId`]}
+                      >
                         <InputLabel>Product</InputLabel>
-                        <Select value={item.productId || ""} label="Product" onChange={(e) => {
-                          const selected = products.find((p) => p.productId === e.target.value);
-                          const updated = [...form.items];
-                          updated[index] = { ...updated[index], productId: selected.productId, productName: selected.name, perUnit: selected.price, };
-                          setForm((prev) => ({ ...prev, items: updated }));
-                        }} >
-                          {products.map((p) => (<MenuItem key={p.productId} value={p.productId}>{p.name}</MenuItem>))}
+                        <Select
+                          value={item.productId || ""}
+                          label="Product"
+                          onChange={(e) => {
+                            const selected = products.find(
+                              (p) => p.productId === e.target.value
+                            );
+                            const updated = [...form.items];
+                            updated[index] = {
+                              ...updated[index],
+                              productId: selected.productId,
+                              productName: selected.name,
+                              perUnit: selected.price,
+                            };
+                            setForm((prev) => ({ ...prev, items: updated }));
+                          }}
+                        >
+                          {products.map((p) => (
+                            <MenuItem key={p.productId} value={p.productId}>
+                              {p.name}
+                            </MenuItem>
+                          ))}
                         </Select>
+                        {errors[`items.${index}.productId`] && (
+                          <FormHelperText>
+                            {errors[`items.${index}.productId`]}
+                          </FormHelperText>
+                        )}
                       </FormControl>
                     </Grid>
                     <Grid item xs={3}>
-                      <TextField fullWidth type="number" label="Quantity" value={item.quantity} onChange={(e) => {
-                        const updated = [...form.items]; updated[index].quantity = Number(e.target.value);
-                        setForm((prev) => ({ ...prev, items: updated }));
-                      }} inputProps={{ min: 1 }} />
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Quantity"
+                        value={item.quantity}
+                        error={!!errors[`items.${index}.quantity`]}
+                        helperText={errors[`items.${index}.quantity`]}
+                        onChange={(e) => {
+                          const updated = [...form.items];
+                          updated[index].quantity = Number(e.target.value);
+                          setForm((prev) => ({ ...prev, items: updated }));
+                        }}
+                        inputProps={{ min: 1 }}
+                      />
                     </Grid>
                     <Grid item xs={3}>
-                      <TextField fullWidth type="number" label="Price (₹)" value={item.perUnit} onChange={(e) => {
-                        const updated = [...form.items]; updated[index].perUnit = Number(e.target.value);
-                        setForm((prev) => ({ ...prev, items: updated }));
-                      }} inputProps={{ min: 0 }} />
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Price (₹)"
+                        value={item.perUnit}
+                        error={!!errors[`items.${index}.perUnit`]}
+                        helperText={errors[`items.${index}.perUnit`]}
+                        onChange={(e) => {
+                          const updated = [...form.items];
+                          updated[index].perUnit = Number(e.target.value);
+                          setForm((prev) => ({ ...prev, items: updated }));
+                        }}
+                        inputProps={{ min: 0 }}
+                      />
                     </Grid>
                     <Grid item xs={1}>
-                      <Button color="error" onClick={() => {
-                        const updated = form.items.filter((_, i) => i !== index);
-                        setForm((prev) => ({ ...prev, items: updated }));
-                      }} > ❌ </Button>
+                      <Button
+                        color="error"
+                        onClick={() => {
+                          const updated = form.items.filter(
+                            (_, i) => i !== index
+                          );
+                          setForm((prev) => ({ ...prev, items: updated }));
+                        }}
+                      >
+                        ❌
+                      </Button>
                     </Grid>
                   </Grid>
                 ))}
 
-                <Button startIcon={<AddCircleOutlineIcon />} onClick={() => setForm((prev) => ({ ...prev, items: [...(prev.items || []), { productId: "", productName: "", quantity: 1, perUnit: 0 },], }))}>
+                <Button
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      items: [
+                        ...(prev.items || []),
+                        { productId: "", productName: "", quantity: 1, perUnit: 0 },
+                      ],
+                    }))
+                  }
+                >
                   Add Product
                 </Button>
 
-                <DatePicker label="Sale Date" value={form.date} onChange={(d) => setForm((prev) => ({ ...prev, date: d }))} />
-                <TextField fullWidth label="Total Amount (₹)" value={(form.items || []).reduce((sum, item) => sum + item.quantity * item.perUnit, 0).toLocaleString("en-IN")} InputProps={{ readOnly: true, startAdornment: (<InputAdornment position="start"><Typography fontWeight="bold">₹</Typography></InputAdornment>), }} variant="filled" />
+                <DatePicker
+                  label="Sale Date"
+                  value={form.date}
+                  onChange={(d) => setForm((prev) => ({ ...prev, date: d }))}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      error: !!errors.date,
+                      helperText: errors.date,
+                    },
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Total Amount (₹)"
+                  value={(
+                    (form.items || []).reduce(
+                      (sum, item) => sum + item.quantity * item.perUnit,
+                      0
+                    ) || 0
+                  ).toLocaleString("en-IN")}
+                  InputProps={{
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Typography fontWeight="bold">₹</Typography>
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="filled"
+                />
               </Stack>
             </Box>
           </DialogContent>
-          <DialogActions sx={{ p: "16px 24px" }}>
-            <Button onClick={handleCloseCreateDialog} disabled={isSubmitting}>Cancel</Button>
-            <Button type="submit" form="new-sale-form" variant="contained" disabled={isSubmitting}>
-              {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Submit Sale"}
+          <DialogActions>
+            <Button onClick={handleCloseCreateDialog} disabled={isSubmitting}>
+              Cancel
             </Button>
+            <Button
+              type="submit"
+              form="new-sale-form"
+              variant="contained"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Submit Sale"
+              )}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* --- Details Dialog --- */}
+        <Dialog
+          open={isDetailsDialogOpen}
+          onClose={handleCloseDetailsDialog}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Sale Details</DialogTitle>
+          <DialogContent>
+            {isDetailsLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : selectedSaleDetails ? (
+              <Stack spacing={2}>
+                <Typography>
+                  <strong>Customer:</strong> {selectedSaleDetails.customerName}
+                </Typography>
+                <Typography>
+                  <strong>Date:</strong>{" "}
+                  {dayjs(selectedSaleDetails.saleDate).format("DD MMM YYYY")}
+                </Typography>
+                <Typography>
+                  <strong>Total:</strong> ₹
+                  {selectedSaleDetails.totalAmount.toLocaleString("en-IN")}
+                </Typography>
+              </Stack>
+            ) : (
+              <Typography>No details available.</Typography>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDetailsDialog}>Close</Button>
           </DialogActions>
         </Dialog>
       </Box>
