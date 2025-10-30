@@ -8,13 +8,18 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class VisitStatusUpdateDTO {
+    // --- For NEED_PART ---
     private String missingPart;
     private String remarks;
-    private String usedParts;
+    private boolean partUnavailableToday;
+
+    private Double partCollectedKm;
+    private MultipartFile partCollectedPhoto;
+
+    // --- For FIXED or COMPLETED ---
     private Double endKm;
     private MultipartFile endKmPhoto;
+    private String usedParts;
     private boolean directlyComplete;
-    private boolean partUnavailableToday;
 }

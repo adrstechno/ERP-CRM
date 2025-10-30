@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,14 +24,16 @@ public class ServiceVisitService {
     private final FileUploadService fileUploadService;
 
     public ServiceVisitService(ServiceVisitRepository visitRepo,
-                               ServiceTicketRepository ticketRepo,
-                               UserRepository userRepo,
-                               FileUploadService fileUploadService) {
+            ServiceTicketRepository ticketRepo,
+            UserRepository userRepo,
+            FileUploadService fileUploadService) {
         this.visitRepo = visitRepo;
         this.ticketRepo = ticketRepo;
         this.userRepo = userRepo;
         this.fileUploadService = fileUploadService;
     }
+
+    // 1️ START VISIT
 
     public ServiceVisitResponseDTO startVisit(Long ticketId, ServiceVisitRequestDTO dto) {
         ServiceTicket ticket = getTicket(ticketId);
@@ -39,9 +42,8 @@ public class ServiceVisitService {
         validateEngineer(ticket, engineer);
         validateTransition(ticket.getServiceStatus(), ServiceStatus.EN_ROUTE);
 
-        String photoUrl = (dto.getStartKmPhoto() != null && !dto.getStartKmPhoto().isEmpty())
-                ? fileUploadService.uploadCustom(dto.getStartKmPhoto(), "tickets/" + ticketId + "/start")
-                : null;
+        // Upload start KM photo if provided
+        String photoUrl = uploadPhoto(dto.getStartKmPhoto(), "tickets/" + ticketId + "/start");
 
         ServiceVisit visit = ServiceVisit.builder()
                 .ticket(ticket)
@@ -54,12 +56,13 @@ public class ServiceVisitService {
                 .build();
 
         visitRepo.save(visit);
-
         ticket.setServiceStatus(ServiceStatus.EN_ROUTE);
         ticketRepo.save(ticket);
 
         return toDTO(visit);
     }
+
+    // 2️ MARK ARRIVAL
 
     public ServiceVisitResponseDTO markArrival(Long visitId) {
         ServiceVisit visit = getVisit(visitId);
@@ -72,8 +75,11 @@ public class ServiceVisitService {
 
         visitRepo.save(visit);
         ticketRepo.save(ticket);
+
         return toDTO(visit);
     }
+
+    // 3️ MARK NEED PART
 
     public ServiceVisitResponseDTO markNeedPart(Long visitId, VisitStatusUpdateDTO dto) {
         ServiceVisit visit = getVisit(visitId);
@@ -85,16 +91,40 @@ public class ServiceVisitService {
         visit.setMissingPart(dto.getMissingPart());
         visit.setRemarks(dto.getRemarks());
 
+        // End current visit only if part unavailable today
         if (dto.isPartUnavailableToday()) {
             visit.setEndedAt(LocalDateTime.now());
             visit.setActive(false);
         }
 
         ticket.setServiceStatus(ServiceStatus.NEED_PART);
-        ticketRepo.save(ticket);
         visitRepo.save(visit);
+        ticketRepo.save(ticket);
+
         return toDTO(visit);
     }
+
+    // 4️ MARK PART COLLECTED (Same Day)
+    public ServiceVisitResponseDTO markPartCollected(Long visitId, VisitStatusUpdateDTO dto) {
+        ServiceVisit visit = getVisit(visitId);
+        ServiceTicket ticket = visit.getTicket();
+
+        validateTransition(ticket.getServiceStatus(), ServiceStatus.PART_COLLECTED);
+
+        String partPhotoUrl = uploadPhoto(dto.getPartCollectedPhoto(), "tickets/" + ticket.getId() + "/part");
+
+        visit.setPartCollectedSameDay(true);
+        visit.setPartCollectedKm(dto.getPartCollectedKm());
+        visit.setPartCollectedPhotoUrl(partPhotoUrl);
+        visit.setVisitStatus(ServiceStatus.PART_COLLECTED);
+
+        ticket.setServiceStatus(ServiceStatus.PART_COLLECTED);
+        visitRepo.save(visit);
+        ticketRepo.save(ticket);
+
+        return toDTO(visit);
+    }
+    // 5️⃣ MARK FIXED (With or Without Part)
 
     public ServiceVisitResponseDTO markFixed(Long visitId, VisitStatusUpdateDTO dto) {
         ServiceVisit visit = getVisit(visitId);
@@ -102,27 +132,31 @@ public class ServiceVisitService {
 
         validateTransition(ticket.getServiceStatus(), ServiceStatus.FIXED);
 
-        String photoUrl = (dto.getEndKmPhoto() != null && !dto.getEndKmPhoto().isEmpty())
-                ? fileUploadService.uploadCustom(dto.getEndKmPhoto(), "tickets/" + ticket.getId() + "/end")
-                : null;
+        String endPhotoUrl = uploadPhoto(dto.getEndKmPhoto(), "tickets/" + ticket.getId() + "/end");
 
         visit.setEndKm(dto.getEndKm());
-        visit.setEndKmPhotoUrl(photoUrl);
+        visit.setEndKmPhotoUrl(endPhotoUrl);
         visit.setUsedParts(dto.getUsedParts());
         visit.setEndedAt(LocalDateTime.now());
         visit.setVisitStatus(ServiceStatus.FIXED);
+        visit.setActive(true);
 
         ticket.setServiceStatus(ServiceStatus.FIXED);
 
+        // Optional shortcut if directly completed
         if (dto.isDirectlyComplete()) {
             visit.setVisitStatus(ServiceStatus.COMPLETED);
             ticket.setServiceStatus(ServiceStatus.COMPLETED);
+            visit.setEndedAt(LocalDateTime.now());
+            visit.setActive(false);
         }
 
         visitRepo.save(visit);
         ticketRepo.save(ticket);
         return toDTO(visit);
     }
+
+    // 6️⃣ COMPLETE VISIT
 
     public ServiceVisitResponseDTO completeVisit(Long visitId, String remarks) {
         ServiceVisit visit = getVisit(visitId);
@@ -142,6 +176,43 @@ public class ServiceVisitService {
         return toDTO(visit);
     }
 
+    // 7️⃣ NEXT-DAY CONTINUATION
+
+    public ServiceVisitResponseDTO startNextDayVisit(Long previousVisitId, ServiceVisitRequestDTO dto) {
+        ServiceVisit previous = getVisit(previousVisitId);
+        ServiceTicket ticket = previous.getTicket();
+        User engineer = getCurrentUser();
+
+        validateEngineer(ticket, engineer);
+        validateTransition(ticket.getServiceStatus(), ServiceStatus.NEED_PART);
+
+        String startPhotoUrl = uploadPhoto(dto.getStartKmPhoto(), "tickets/" + ticket.getId() + "/restart");
+
+        ServiceVisit newVisit = ServiceVisit.builder()
+                .ticket(ticket)
+                .engineer(engineer)
+                .previousVisit(previous)
+                .startKm(dto.getStartKm())
+                .startKmPhotoUrl(startPhotoUrl)
+                .visitStatus(ServiceStatus.EN_ROUTE)
+                .startedAt(LocalDateTime.now())
+                .active(true)
+                .build();
+
+        previous.setActive(false); // End old visit
+        previous.setEndedAt(LocalDateTime.now());
+
+        visitRepo.save(previous);
+        visitRepo.save(newVisit);
+
+        ticket.setServiceStatus(ServiceStatus.EN_ROUTE);
+        ticketRepo.save(ticket);
+
+        return toDTO(newVisit);
+    }
+
+    // 8️⃣ FETCH VISITS
+
     public List<ServiceVisitResponseDTO> getVisitsByTicket(Long ticketId) {
         ServiceTicket ticket = getTicket(ticketId);
         return visitRepo.findByTicket(ticket)
@@ -158,7 +229,7 @@ public class ServiceVisitService {
                 .collect(Collectors.toList());
     }
 
-    // ---------- Utility + Mapper Methods ---------- //
+    // 9️⃣ MAPPERS + HELPERS
 
     private ServiceVisitResponseDTO toDTO(ServiceVisit visit) {
         return ServiceVisitResponseDTO.builder()
@@ -170,15 +241,23 @@ public class ServiceVisitService {
                 .endKm(visit.getEndKm())
                 .endKmPhotoUrl(visit.getEndKmPhotoUrl())
                 .visitStatus(visit.getVisitStatus())
+                .ticketStatus(visit.getTicket().getServiceStatus())
+                .active(visit.isActive())
+                .nextDayRequired(ServiceStatus.NEED_PART.equals(visit.getVisitStatus()) && !visit.isActive())
                 .usedParts(visit.getUsedParts())
                 .missingPart(visit.getMissingPart())
                 .remarks(visit.getRemarks())
                 .startedAt(visit.getStartedAt())
                 .endedAt(visit.getEndedAt())
+                .lastUpdatedBy(visit.getEngineer().getName())
+                .lastUpdatedAt(LocalDateTime.now())
                 .build();
     }
 
-    // ------------------- INTERNAL HELPERS ------------------- //
+    private String uploadPhoto(MultipartFile file, String path) {
+        return (file != null && !file.isEmpty()) ? fileUploadService.uploadCustom(file, path) : null;
+    }
+
     private ServiceTicket getTicket(Long id) {
         return ticketRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ticket not found for ID: " + id));
@@ -209,16 +288,20 @@ public class ServiceVisitService {
             case ASSIGNED -> allowOnly(next, ServiceStatus.EN_ROUTE);
             case EN_ROUTE -> allowOnly(next, ServiceStatus.ON_SITE);
             case ON_SITE -> allowOnly(next, ServiceStatus.NEED_PART, ServiceStatus.FIXED, ServiceStatus.COMPLETED);
-            case NEED_PART -> allowOnly(next, ServiceStatus.FIXED, ServiceStatus.PART_COLLECTED);
+            case NEED_PART ->
+                allowOnly(next, ServiceStatus.FIXED, ServiceStatus.PART_COLLECTED, ServiceStatus.EN_ROUTE);
+            case PART_COLLECTED -> allowOnly(next, ServiceStatus.FIXED, ServiceStatus.ON_SITE);
             case FIXED -> allowOnly(next, ServiceStatus.COMPLETED);
             case COMPLETED, CANCELLED, CLOSED ->
-                    throw new IllegalStateException("Cannot modify a completed or closed ticket");
+                throw new IllegalStateException("Cannot modify a completed or closed ticket");
             default -> throw new IllegalStateException("Unexpected current status: " + current);
         }
     }
 
     private void allowOnly(ServiceStatus next, ServiceStatus... allowed) {
-        for (ServiceStatus s : allowed) if (s == next) return;
+        for (ServiceStatus s : allowed)
+            if (s == next)
+                return;
         throw new IllegalStateException("Invalid transition to: " + next);
     }
 }

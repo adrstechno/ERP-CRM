@@ -247,11 +247,52 @@ const StatusChip = React.memo(({ status }) => {
 });
 
 export default function AssignedTasks() {
-  const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [tasks, setTasks] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [updatingTaskId, setUpdatingTaskId] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [tasks, setTasks] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [updatingTaskId, setUpdatingTaskId] = useState(null);
+
+    const fetchTasks = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const token = localStorage.getItem("authKey");
+            if (!token) {
+                throw new Error("Authentication token not found.");
+            }
+
+            const response = await fetch(`${VITE_API_BASE_URL}/tickets/get-by-user`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch tasks. Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            const formattedTasks = data.map(task => ({
+                ticketId: task.ticketId, // Keep raw ID for API calls
+                id: `#${task.ticketId}`,
+                customer: task.customerName,
+                dueDate: task.dueDate,
+                priority: task.priority?.toLowerCase(),
+                product: task.productName,
+                status: task.status, // Keep original status from API (e.g., 'APPROVED')
+            }));
+
+            setTasks(formattedTasks);
+
+        } catch (err) {
+            console.error("Error fetching tasks:", err);
+            toast.error("something went Wrong");
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
 
   const fetchTasks = useCallback(async () => {
     setIsLoading(true);
