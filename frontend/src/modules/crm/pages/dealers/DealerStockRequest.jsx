@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Box, Card, CardContent, Typography,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Button, Stack, FormControl, Select, MenuItem, TextField, Chip, Skeleton, InputLabel, Grid, CircularProgress, FormHelperText
+    Button, Stack, FormControl, Select, MenuItem, TextField, Chip, Skeleton, InputLabel, Grid, CircularProgress
 } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import HistoryIcon from '@mui/icons-material/History';
@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 // --- Helper Component ---
 const StatusChip = React.memo(({ status }) => {
     let color;
+    // Normalize status to lowercase for comparison
     const lowerCaseStatus = status.toLowerCase();
 
     if (lowerCaseStatus === 'approved') color = 'success';
@@ -20,7 +21,9 @@ const StatusChip = React.memo(({ status }) => {
     else if (lowerCaseStatus === 'rejected') color = 'error';
     else color = 'default';
 
+    // Capitalize first letter for display
     const displayStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    
     return <Chip label={displayStatus} color={color} size="small" variant="outlined" sx={{ fontWeight: 'bold' }} />;
 });
 
@@ -35,28 +38,34 @@ export default function StockRequestPage() {
     const [isProductsLoading, setIsProductsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({ productId: '', quantity: '', notes: '' });
-    const [errors, setErrors] = useState({});
 
     const token = localStorage.getItem("authKey");
     const axiosConfig = useMemo(() => ({
         headers: { Authorization: `Bearer ${token}` },
     }), [token]);
 
-    // Fetch history from API
+    // 1. Updated fetchHistory to use the live API
     const fetchHistory = useCallback(async () => {
+        // const user = JSON.parse(localStorage.getItem('user'));
+        // if (!user || !user.id) {
+        //     console.error("User ID not found in local storage.");
+        //     setIsHistoryLoading(false);
+        //     return;
+        // }
+
         setIsHistoryLoading(true);
         try {
             const response = await axios.get(`${VITE_API_BASE_URL}/stock-requests/user`, axiosConfig);
+            // Assuming the API returns the array directly or in a data property
             setHistory(response.data.data || response.data || []);
         } catch (error) {
             console.error("Failed to fetch request history:", error);
-            setHistory([]);
+            setHistory([]); // Clear history on error
         } finally {
             setIsHistoryLoading(false);
         }
     }, [axiosConfig]);
     
-    // Fetch products
     const fetchProducts = useCallback(async () => {
         setIsProductsLoading(true);
         try {
@@ -73,33 +82,16 @@ export default function StockRequestPage() {
         fetchHistory();
         fetchProducts();
     }, [fetchHistory, fetchProducts]);
-
-    // Input Change Handler
+    
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        setErrors(prev => ({ ...prev, [name]: '' })); // clear field error when typing
     };
 
-    // Validation Function
-    const validateForm = () => {
-        const newErrors = {};
-        if (!formData.productId) newErrors.productId = "Please select a product.";
-        if (!formData.quantity) newErrors.quantity = "Quantity is required.";
-        else if (parseInt(formData.quantity) <= 0) newErrors.quantity = "Quantity must be greater than 0.";
-        return newErrors;
-    };
-
-    // Submit Handler
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const validationErrors = validateForm();
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-            return; // Stop submission if validation fails
-        }
-
         setIsSubmitting(true);
+        
         try {
             await axios.post(
                 `${VITE_API_BASE_URL}/stock-requests/create`,
@@ -108,7 +100,7 @@ export default function StockRequestPage() {
             );
             toast.success('Stock request submitted successfully!');
             setFormData({ productId: '', quantity: '', notes: '' });
-            fetchHistory();
+            fetchHistory(); // Refresh history table after successful submission
         } catch (error) {
             const errorMessage = error.response?.data?.message || "Failed to create stock request.";
             toast.error(`Error: ${errorMessage}`);
@@ -131,10 +123,8 @@ export default function StockRequestPage() {
                             <Typography variant="body2" color="text.secondary" mb={3}>
                                 Select product and quantity to request new stock.
                             </Typography>
-
                             <Stack spacing={2} sx={{ flexGrow: 1 }}>
-                                {/* Product Field */}
-                                <FormControl fullWidth size="small" required error={!!errors.productId} disabled={isProductsLoading}>
+                                <FormControl fullWidth required disabled={isProductsLoading}>
                                     <InputLabel>Product</InputLabel>
                                     <Select 
                                         name="productId"
@@ -152,38 +142,27 @@ export default function StockRequestPage() {
                                             ))
                                         )}
                                     </Select>
-                                    {errors.productId && <FormHelperText>{errors.productId}</FormHelperText>}
                                 </FormControl>
-
-                                {/* Quantity Field */}
                                 <TextField 
                                     fullWidth 
                                     required 
                                     name="quantity"
                                     label="Quantity" 
                                     type="number" 
-                                    size="small"
                                     value={formData.quantity} 
                                     onChange={handleChange} 
                                     InputProps={{ inputProps: { min: 1 } }}
-                                    error={!!errors.quantity}
-                                    helperText={errors.quantity}
                                 />
-
-                                {/* Notes Field */}
                                 <TextField 
                                     fullWidth 
                                     multiline 
-                                    rows={3} 
+                                    rows={4} 
                                     name="notes"
                                     label="Notes (Optional)" 
-                                    size="small"
                                     value={formData.notes} 
                                     onChange={handleChange} 
                                 />
                             </Stack>
-
-                            {/* Submit Button */}
                             <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
                                 <Button type="submit" variant="contained" disabled={isSubmitting || isProductsLoading}>
                                     {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Request'}
@@ -206,6 +185,7 @@ export default function StockRequestPage() {
                             <Table stickyHeader size="medium">
                                 <TableHead>
                                     <TableRow>
+                                        {/* Headers match the data structure */}
                                         {['Date', 'Product Name', 'Qty', 'Status'].map(head => <TableCell key={head}>{head}</TableCell>)}
                                     </TableRow>
                                 </TableHead>
@@ -215,6 +195,7 @@ export default function StockRequestPage() {
                                             <TableRow key={index}><TableCell colSpan={4}><Skeleton animation="wave" /></TableCell></TableRow>
                                         ))
                                     ) : (
+                                        // 2. Mapped table rows to the API response fields
                                         history.map((row) => (
                                             <TableRow key={row.requestId} hover>
                                                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(row.requestDate).toLocaleDateString()}</TableCell>
@@ -232,4 +213,4 @@ export default function StockRequestPage() {
             </Grid>
         </Box>
     );
-}
+} 
