@@ -29,7 +29,7 @@ export default function Customers() {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🔹 Fetch all customers
+  // Fetch all customers
   const fetchCustomers = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -52,23 +52,7 @@ export default function Customers() {
     fetchCustomers();
   }, [fetchCustomers]);
 
-  // 🔹 Get Customer By ID
-  // const getCustomerById = async (id) => {
-  //   try {
-  //     const authKey = localStorage.getItem("authKey");
-  //     const res = await fetch(`${VITE_API_BASE_URL}/customer/${id}`, {
-  //       headers: { Authorization: `Bearer ${authKey}` },
-  //     });
-  //     if (!res.ok) throw new Error(`Failed to fetch customer by ID: ${res.status}`);
-  //     const data = await res.json();
-  //     console.log("Customer by ID:", data);
-  //     return data;
-  //   } catch (err) {
-  //     console.error("getCustomerById error:", err);
-  //   }
-  // };
-
-  // 🔹 Get Customer By Name
+  // Get Customer By Name
   const getCustomerByName = async (name) => {
     try {
       const authKey = localStorage.getItem("authKey");
@@ -86,7 +70,7 @@ export default function Customers() {
     }
   };
 
-  // 🔹 Handle Search (by name)
+  //  Handle Search (by name)
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (searchTerm.trim()) {
@@ -98,7 +82,7 @@ export default function Customers() {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, fetchCustomers]);
 
-  // 🔹 Add Customer
+  //  Add Customer
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -132,7 +116,7 @@ export default function Customers() {
   };
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // 🔹 Edit Customer
+  //  Edit Customer
   const handleOpenEditDialog = (customer) => {
     setEditingCustomer({ ...customer });
     setEditDialogOpen(true);
@@ -171,7 +155,7 @@ export default function Customers() {
   }, [editingCustomer]);
 
  
-  // 🔹 Filtered List
+  // Filtered List
   const filteredCustomers = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
     if (!q) return customers;
