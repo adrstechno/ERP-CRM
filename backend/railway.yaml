@@ -2,8 +2,8 @@
 services:
   - name: crm-backend
     rootDirectory: .
-    buildCommand: "mvn clean package -DskipTests"
-    startCommand: "java -jar target/loagma-crm.jar"
+    buildCommand: "./mvnw clean package -DskipTests"
+    startCommand: "java -jar target/ERP-CRM.jar"
     autoDeploy: true
 
     envVars:
