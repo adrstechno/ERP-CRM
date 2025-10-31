@@ -99,37 +99,37 @@ public class ServiceTicketController {
     //     return ResponseEntity.ok(ticketService.markArrival(ticketId));
     // }
 
-    @PatchMapping("/{ticketId}/need-part")
-    @PreAuthorize("hasRole('ENGINEER')")
-    public ResponseEntity<ServiceTicketResponseDTO> markNeedPart(
-            @PathVariable Long ticketId,
-            @RequestParam String missingPart) {
-        return ResponseEntity.ok(ticketService.markNeedPart(ticketId, missingPart));
-    }
+    // @PatchMapping("/{ticketId}/need-part")
+    // @PreAuthorize("hasRole('ENGINEER')")
+    // public ResponseEntity<ServiceTicketResponseDTO> markNeedPart(
+    //         @PathVariable Long ticketId,
+    //         @RequestParam String missingPart) {
+    //     return ResponseEntity.ok(ticketService.markNeedPart(ticketId, missingPart));
+    // }
 
-    @PatchMapping("/{ticketId}/collect-part")
-    @PreAuthorize("hasRole('ENGINEER')")
-    public ResponseEntity<ServiceTicketResponseDTO> markPartCollected(
-            @PathVariable Long ticketId,
-            @RequestParam Double collectedKm,
-            @RequestParam(value = "photo", required = false) MultipartFile collectedKmPhoto) {
-        return ResponseEntity.ok(ticketService.markPartCollected(ticketId, collectedKm, collectedKmPhoto));
-    }
+    // @PatchMapping("/{ticketId}/collect-part")
+    // @PreAuthorize("hasRole('ENGINEER')")
+    // public ResponseEntity<ServiceTicketResponseDTO> markPartCollected(
+    //         @PathVariable Long ticketId,
+    //         @RequestParam Double collectedKm,
+    //         @RequestParam(value = "photo", required = false) MultipartFile collectedKmPhoto) {
+    //     return ResponseEntity.ok(ticketService.markPartCollected(ticketId, collectedKm, collectedKmPhoto));
+    // }
 
-    @PatchMapping("/{ticketId}/fix")
-    @PreAuthorize("hasRole('ENGINEER')")
-    public ResponseEntity<ServiceTicketResponseDTO> markFixed(
-            @PathVariable Long ticketId,
-            @RequestParam Double endKm,
-            @RequestParam("photo") MultipartFile endKmPhoto,
-            @RequestParam String usedParts) {
-        return ResponseEntity.ok(ticketService.markFixed(ticketId, endKm, endKmPhoto, usedParts));
-    }
+    // @PatchMapping("/{ticketId}/fix")
+    // @PreAuthorize("hasRole('ENGINEER')")
+    // public ResponseEntity<ServiceTicketResponseDTO> markFixed(
+    //         @PathVariable Long ticketId,
+    //         @RequestParam Double endKm,
+    //         @RequestParam("photo") MultipartFile endKmPhoto,
+    //         @RequestParam String usedParts) {
+    //     return ResponseEntity.ok(ticketService.markFixed(ticketId, endKm, endKmPhoto, usedParts));
+    // }
 
-    @PatchMapping("/{ticketId}/complete")
-    @PreAuthorize("hasRole('ENGINEER')")
-    public ResponseEntity<ServiceTicketResponseDTO> completeService(@PathVariable Long ticketId) {
-        return ResponseEntity.ok(ticketService.completeService(ticketId));
-    }
+    // @PatchMapping("/{ticketId}/complete")
+    // @PreAuthorize("hasRole('ENGINEER')")
+    // public ResponseEntity<ServiceTicketResponseDTO> completeService(@PathVariable Long ticketId) {
+    //     return ResponseEntity.ok(ticketService.completeService(ticketId));
+    // }
 
 }
