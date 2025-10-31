@@ -1,13 +1,3 @@
-// ServiceVisitWorkflow.jsx - FINAL VERSION
-// Features:
-// - Resume from exact status (EN_ROUTE, ON_SITE, FIXED)
-// - Only ASSIGNED & NEED_PART tickets can start
-// - Need Part sends endKm + endKmPhoto + missingPart
-// - End KM > Start KM validation
-// - Total Travelled KM in history
-// - All required fields with *
-// - Auto pre-fill + live stepper
-
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Box,
