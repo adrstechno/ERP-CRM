@@ -53,14 +53,27 @@ const useServiceTickets = () => {
     const [sales, setSales] = useState([]);
     const [productsForSelectedSale, setProductsForSelectedSale] = useState([]);
     const [customers, setCustomers] = useState([]);
+
     const initialState = { saleId: '', customerId: '', customerName: '', productId: '', assignedEngineerId: '', priority: '', dueDate: null };
     const [newTicket, setNewTicket] = useState(initialState);
+    const [formErrors, setFormErrors] = useState({}); // ← NEW: validation errors
 
     const token = localStorage.getItem("authKey");
 
     const axiosConfig = useMemo(() => ({
         headers: { Authorization: `Bearer ${token}` },
     }), [token]);
+
+    // --- Validation Function ---
+    const validateTicket = (t) => {
+        const errors = {};
+        if (!t.saleId) errors.saleId = 'Sale ID is required';
+        if (!t.productId) errors.productId = 'Product is required';
+        if (!t.assignedEngineerId) errors.assignedEngineerId = 'Engineer is required';
+        if (!t.priority) errors.priority = 'Priority is required';
+        if (!t.dueDate) errors.dueDate = 'Due date is required';
+        return errors;
+    };
 
     const fetchTickets = useCallback(async () => {
         setIsLoading(true);
@@ -86,6 +99,7 @@ const useServiceTickets = () => {
             setTickets(formattedTickets);
         } catch (err) {
             setError("Failed to fetch service tickets.");
+            toast.error("Failed to load tickets");
             console.error(err);
         } finally {
             setIsLoading(false);
@@ -93,7 +107,6 @@ const useServiceTickets = () => {
     }, [axiosConfig]);
 
     useEffect(() => {
-        // ... (fetchDropdownData remains the same)
         const fetchDropdownData = async () => {
             try {
                 const [engineersRes, customersRes, salesRes] = await Promise.all([
@@ -105,7 +118,6 @@ const useServiceTickets = () => {
                 if (!engineersRes.ok || !customersRes.ok || !salesRes.ok) {
                     throw new Error('Failed to fetch form data');
                 }
-
                 const engineersData = await engineersRes.json();
                 const customersData = await customersRes.json();
                 const salesData = await salesRes.json();
@@ -114,6 +126,7 @@ const useServiceTickets = () => {
                 setCustomers(customersData);
                 setSales(salesData);
             } catch (err) {
+                toast.error("Failed to load form data");
                 console.error("Failed to load dropdown data:", err);
             }
         };
@@ -127,10 +140,16 @@ const useServiceTickets = () => {
         setOpenDialog(false);
         setNewTicket(initialState);
         setProductsForSelectedSale([]);
+        setFormErrors({}); // ← clear errors
     };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        // Clear error when user starts typing
+        if (formErrors[name]) {
+            setFormErrors(prev => ({ ...prev, [name]: undefined }));
+        }
+
         if (name === 'saleId') {
             const selectedSale = sales.find(sale => sale.saleId === value);
             if (selectedSale) {
@@ -143,10 +162,21 @@ const useServiceTickets = () => {
         }
     };
     
-    const handleDateChange = (date) => setNewTicket(prev => ({ ...prev, dueDate: date }));
+    const handleDateChange = (date) => {
+        if (formErrors.dueDate) {
+            setFormErrors(prev => ({ ...prev, dueDate: undefined }));
+        }
+        setNewTicket(prev => ({ ...prev, dueDate: date }));
+    };
 
     const handleCreateTicket = async () => {
-        // ... (this function remains the same)
+        const errors = validateTicket(newTicket);
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            Object.values(errors).forEach(msg => toast.error(msg));
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const ticketData = {
@@ -166,19 +196,19 @@ const useServiceTickets = () => {
 
             if (!response.ok) {
                 const errorBody = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
-                throw new Error(`API Error: ${response.status} - ${errorBody.message || 'Failed to create ticket'}`);
+                throw new Error(errorBody.message || 'Failed to create ticket');
             }
+            toast.success("Ticket created successfully");
             handleCloseDialog();
             fetchTickets();
-            toast.success("Create Ticket successfully")
         } catch (err) {
+            toast.error(err.message || "Failed to create ticket");
             console.error("Failed to create ticket:", err);
         } finally {
             setIsSubmitting(false);
         }
     };
     
-    // --- New Handler for Approving Tickets ---
     const handleApproveTicket = async (ticketId) => {
         try {
             const response = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/approve`, {
@@ -191,33 +221,36 @@ const useServiceTickets = () => {
             }
             const updatedTicket = await response.json();
 
-            // Update the state locally for instant UI feedback
             setTickets(prevTickets => 
                 prevTickets.map(ticket => 
                     ticket.id === ticketId ? { ...ticket, status: updatedTicket.status } : ticket
                 )
             );
+            toast.success("Ticket approved");
         } catch (err) {
+            toast.error("Failed to approve ticket");
             console.error(`Error approving ticket ${ticketId}:`, err);
-            // Optionally, set an error state to show a user-facing message
         }
     };
 
     return {
         tickets, isLoading, error, openDialog, isSubmitting, newTicket,
         engineers, sales, productsForSelectedSale,
+        formErrors, // ← expose form errors
         handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
-        handleApproveTicket // Export the new handler
+        handleApproveTicket
     };
 };
 
 // --- Main UI Component ---
 export default function ServiceManagement() {
     const theme = useTheme();
-    const { tickets, isLoading, error, openDialog, isSubmitting, newTicket,
+    const { 
+        tickets, isLoading, error, openDialog, isSubmitting, newTicket,
         engineers, sales, productsForSelectedSale,
+        formErrors, // ← destructure
         handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
-        handleApproveTicket // Destructure the new handler
+        handleApproveTicket
     } = useServiceTickets();
 
     const operatingStatusData = [
@@ -255,7 +288,6 @@ export default function ServiceManagement() {
                                                         <TableCell>{ticket.customer}</TableCell>
                                                         <TableCell>{ticket.product}</TableCell>
                                                         <TableCell>
-                                                            {/* --- Conditional Rendering for Approve Button --- */}
                                                             {ticket.status === 'OPEN' ? (
                                                                 <Button 
                                                                     variant="contained" 
@@ -320,38 +352,63 @@ export default function ServiceManagement() {
                     <DialogTitle>Create New Service Ticket</DialogTitle>
                     <DialogContent>
                         <Stack spacing={2.5} sx={{ mt: 2 }}>
-                            {/* Form Controls... */}
-                            <FormControl fullWidth variant="filled">
+                            {/* Sale ID */}
+                            <FormControl fullWidth variant="filled" error={!!formErrors.saleId}>
                                 <InputLabel>Sale ID</InputLabel>
                                 <Select label="Sale ID" name="saleId" value={newTicket.saleId} onChange={handleInputChange}>
                                     {sales.map(s => ( <MenuItem key={s.saleId} value={s.saleId}>{`Sale #${s.saleId} (${s.customerName})`}</MenuItem> ))}
                                 </Select>
+                                {formErrors.saleId && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.saleId}</Typography>}
                             </FormControl>
+
                             <TextField label="Customer" value={newTicket.customerName} fullWidth variant="filled" InputProps={{ readOnly: true }} />
-                            <FormControl fullWidth variant="filled" disabled={!newTicket.saleId}>
+
+                            {/* Product */}
+                            <FormControl fullWidth variant="filled" disabled={!newTicket.saleId} error={!!formErrors.productId}>
                                 <InputLabel>Product</InputLabel>
                                 <Select label="Product" name="productId" value={newTicket.productId} onChange={handleInputChange}>
                                     {productsForSelectedSale.map(p => ( <MenuItem key={p.productId} value={p.productId}>{p.productName}</MenuItem> ))}
                                 </Select>
+                                {formErrors.productId && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.productId}</Typography>}
                             </FormControl>
-                            <FormControl fullWidth variant="filled">
+
+                            {/* Engineer */}
+                            <FormControl fullWidth variant="filled" error={!!formErrors.assignedEngineerId}>
                                 <InputLabel>Assigned Engineer</InputLabel>
                                 <Select label="Assigned Engineer" name="assignedEngineerId" value={newTicket.assignedEngineerId} onChange={handleInputChange}>
                                     {engineers.map(e => <MenuItem key={e.userId} value={e.userId}>{e.name}</MenuItem>)}
                                 </Select>
+                                {formErrors.assignedEngineerId && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.assignedEngineerId}</Typography>}
                             </FormControl>
-                            <FormControl fullWidth variant="filled">
+
+                            {/* Priority */}
+                            <FormControl fullWidth variant="filled" error={!!formErrors.priority}>
                                 <InputLabel>Priority</InputLabel>
                                 <Select label="Priority" name="priority" value={newTicket.priority} onChange={handleInputChange}>
                                     {['LOW', 'MEDIUM', 'HIGH'].map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
                                 </Select>
+                                {formErrors.priority && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.priority}</Typography>}
                             </FormControl>
-                            <DatePicker label="Due Date" value={newTicket.dueDate} onChange={handleDateChange} sx={{ width: '100%' }} slotProps={{ textField: { variant: 'filled' } }} />
+
+                            {/* Due Date */}
+                            <DatePicker 
+                                label="Due Date" 
+                                value={newTicket.dueDate} 
+                                onChange={handleDateChange} 
+                                sx={{ width: '100%' }} 
+                                slotProps={{ 
+                                    textField: { 
+                                        variant: 'filled',
+                                        error: !!formErrors.dueDate,
+                                        helperText: formErrors.dueDate
+                                    } 
+                                }} 
+                            />
                         </Stack>
                     </DialogContent>
                     <DialogActions sx={{ p: '16px 24px' }}>
                         <Button onClick={handleCloseDialog} disabled={isSubmitting}>Cancel</Button>
-                        <Button onClick={handleCreateTicket} variant="contained" disabled={!newTicket.productId || isSubmitting}>
+                        <Button onClick={handleCreateTicket} variant="contained" disabled={isSubmitting}>
                             {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Create'}
                         </Button>
                     </DialogActions>

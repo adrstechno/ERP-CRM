@@ -90,7 +90,12 @@ public class ServiceVisitService {
         visit.setVisitStatus(ServiceStatus.NEED_PART);
         visit.setMissingPart(dto.getMissingPart());
         visit.setRemarks(dto.getRemarks());
+        String endPhotoUrl = uploadPhoto(dto.getEndKmPhoto(), "tickets/" + ticket.getId() + "/end");
 
+        visit.setEndKm(dto.getEndKm());
+        visit.setEndKmPhotoUrl(endPhotoUrl);
+        visit.setUsedParts(dto.getUsedParts());
+        visit.setEndedAt(LocalDateTime.now());
         // End current visit only if part unavailable today
         if (dto.isPartUnavailableToday()) {
             visit.setEndedAt(LocalDateTime.now());
