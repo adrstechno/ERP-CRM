@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: loagma-crm-backend
+    env: java
+    plan: free # you can upgrade later if needed
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -jar target/loagma-crm.jar
+    autoDeploy: true
+    envVars:
+      - key: DB_USER
+        value: neondb_owner
+      - key: DB_PASS
+        value: npg_7TpgUNEzZD4w
+      - key: SERVER_PORT
+        value: 8080
+      - key: JWT_SECRET
+        value: gCvrq3RGAZuhYcOesnRs3uJ6vXC+rNnTLX8SUWBO12qwb6hoxPmNleC9NGoc3sgtrVKVzSh5Ivg0l+RHATK2Ug==
+      - key: JWT_EXPIRATION
+        value: 3600000
+      - key: ADMIN_EMAIL
+        value: admin@gmail.com
+      - key: ADMIN_PASSWORD
+        value: admin123
+      - key: cloudinary.cloud_name
+        value: dhy4osny1
+      - key: cloudinary.api_key
+        value: 865596957416389
+      - key: cloudinary.api_secret
+        value: 97oWr1Kqow8ODafY_fizJCeXXG4
