@@ -27,7 +27,7 @@ const getStatusChip = (status) => {
 };
 const getPriorityChip = (priority) => {
     let color;
-    if (priority === 'URGENT' || priority === 'HIGH') color = 'error';
+    if (priority === 'HIGH') color = 'error';
     else if (priority === 'MEDIUM') color = 'warning';
     else color = 'success';
     return <Chip label={priority} color={color} size="small" />;
@@ -343,7 +343,7 @@ export default function ServiceManagement() {
                             <FormControl fullWidth variant="filled">
                                 <InputLabel>Priority</InputLabel>
                                 <Select label="Priority" name="priority" value={newTicket.priority} onChange={handleInputChange}>
-                                    {['LOW', 'MEDIUM', 'HIGH', 'URGENT'].map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
+                                    {['LOW', 'MEDIUM', 'HIGH'].map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
                                 </Select>
                             </FormControl>
                             <DatePicker label="Due Date" value={newTicket.dueDate} onChange={handleDateChange} sx={{ width: '100%' }} slotProps={{ textField: { variant: 'filled' } }} />
