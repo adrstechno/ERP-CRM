@@ -82,33 +82,6 @@ export default function AssignedTasks() {
   }, []);
 
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
-
-  const handleStartWork = async (ticketId) => {
-    setUpdatingTaskId(ticketId);
-    try {
-      const token = localStorage.getItem("authKey");
-      if (!token) throw new Error("Authentication token not found.");
-
-      const response = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/status?status=EN_ROUTE`, {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error('Failed to start work.');
-
-      const updatedTicket = await response.json();
-      setTasks(prev =>
-        prev.map(t => t.ticketId === ticketId ? { ...t, status: updatedTicket.status } : t)
-      );
-      toast.success("Work started successfully!");
-    } catch (err) {
-      console.error(`Error starting work for ticket ${ticketId}:`, err);
-      toast.error("Failed to start work.");
-    } finally {
-      setUpdatingTaskId(null);
-    }
-  };
-
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Box>
@@ -152,18 +125,7 @@ export default function AssignedTasks() {
                       <TableCell><PriorityChip priority={task.priority} /></TableCell>
                       <TableCell>{task.product}</TableCell>
                       <TableCell>
-                        {task.status === 'ASSIGNED' ? (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            onClick={() => handleStartWork(task.ticketId)}
-                            disabled={updatingTaskId === task.ticketId}
-                          >
-                            {updatingTaskId === task.ticketId ? <CircularProgress size={20} color="inherit" /> : 'Start Work'}
-                          </Button>
-                        ) : (
                           <StatusChip status={task.status} />
-                        )}
                       </TableCell>
                       <TableCell align="center">
                         <IconButton size="small"><MailOutline fontSize="small" /></IconButton>
