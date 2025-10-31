@@ -122,7 +122,7 @@
 	</dependencies>
 
 	<build>
-    <finalName>loagma-crm</finalName>
+    <finalName>ERP-CRM</finalName>
     <plugins>
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
