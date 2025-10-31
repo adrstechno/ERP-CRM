@@ -1,0 +1,31 @@
+# railway.yaml
+services:
+  - name: crm-backend
+    rootDirectory: .
+    buildCommand: "mvn clean package -DskipTests"
+    startCommand: "java -jar target/loagma-crm.jar"
+    autoDeploy: true
+
+    envVars:
+      - key: DB_USER
+        value: neondb_owner
+      - key: DB_PASS
+        value: npg_7TpgUNEzZD4w
+      - key: SERVER_PORT
+        value: 8080
+      - key: JWT_SECRET
+        value: gCvrq3RGAZuhYcOesnRs3uJ6vXC+rNnTLX8SUWBO12qwb6hoxPmNleC9NGoc3sgtrVKVzSh5Ivg0l+RHATK2Ug==
+      - key: JWT_EXPIRATION
+        value: 3600000
+      - key: ADMIN_EMAIL
+        value: admin@gmail.com
+      - key: ADMIN_PASSWORD
+        value: admin123
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dhy4osny1
+      - key: CLOUDINARY_API_KEY
+        value: 865596957416389
+      - key: CLOUDINARY_API_SECRET
+        value: 97oWr1Kqow8ODafY_fizJCeXXG4
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_7TpgUNEzZD4w@ep-red-shadow-ahhgmkdb-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require
