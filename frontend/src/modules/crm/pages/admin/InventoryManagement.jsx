@@ -81,7 +81,7 @@ export default function InventoryManagementContent() {
   const token = localStorage.getItem("authKey");
   const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
 
-  // ✅ Fetch All Products
+  //  Fetch All Products
   const fetchAllProducts = async () => {
     try {
       const response = await axios.get(
@@ -130,7 +130,7 @@ export default function InventoryManagementContent() {
     setErrors({});
   };
 
-  // ✅ Validation Function
+  //  Validation Function
   const validateForm = () => {
     const newErrors = {};
 
@@ -148,7 +148,7 @@ export default function InventoryManagementContent() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ Add Product
+  //  Add Product
   const handleAddProduct = async () => {
     if (!validateForm()) {
       toast.warning("Please fix form errors before submitting.");
@@ -196,7 +196,7 @@ export default function InventoryManagementContent() {
     }
   };
 
-  // ✅ Edit Product
+  //  Edit Product
   const handleEditProduct = (product) => {
     setEditing(true);
     setSelectedId(product.id);
@@ -210,7 +210,7 @@ export default function InventoryManagementContent() {
     setOpen(true);
   };
 
-  // ✅ Update Product
+  // Update Product
   const handleUpdateProduct = async () => {
     if (!validateForm()) {
       toast.warning("Please fix form errors before submitting.");
@@ -262,7 +262,7 @@ export default function InventoryManagementContent() {
     }
   };
 
-  // ✅ Delete Product
+  //  Delete Product
   const handleDeleteProduct = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?"))
       return;
@@ -279,7 +279,7 @@ export default function InventoryManagementContent() {
     }
   };
 
-  // ✅ Stock Status Chip
+  //  Stock Status Chip
   const getStatusChip = (status) => {
     let color = "default";
     if (status === "In Stock") color = "success";
