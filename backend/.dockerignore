@@ -1,0 +1,13 @@
+target/
+.idea/
+.vscode/
+*.log
+*.tmp
+.env
+.git
+# Ignore local build artifacts and editor files
+target/
+.jar
+.war
+.DS_Store
+node_modules/
