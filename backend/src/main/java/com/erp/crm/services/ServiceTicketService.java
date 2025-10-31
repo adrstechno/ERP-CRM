@@ -124,89 +124,89 @@ public class ServiceTicketService {
                 .collect(Collectors.toList());
     }
 
-    // --------------------------- Workflow Implementations --------------------------- //
+    // // --------------------------- Workflow Implementations --------------------------- //
 
-    /** Step 1: Engineer starts journey (ASSIGNED → EN_ROUTE) */
-    public ServiceTicketResponseDTO startVisit(Long ticketId, Double startKm, MultipartFile startKmPhoto) {
-        ServiceTicket ticket = getTicket(ticketId);
-        validateTransition(ticket.getServiceStatus(), ServiceStatus.EN_ROUTE);
+    // /** Step 1: Engineer starts journey (ASSIGNED → EN_ROUTE) */
+    // public ServiceTicketResponseDTO startVisit(Long ticketId, Double startKm, MultipartFile startKmPhoto) {
+    //     ServiceTicket ticket = getTicket(ticketId);
+    //     validateTransition(ticket.getServiceStatus(), ServiceStatus.EN_ROUTE);
 
-        String startKmUrl = fileUploadService.uploadCustom(startKmPhoto, "tickets/" + ticketId + "/start");
+    //     String startKmUrl = fileUploadService.uploadCustom(startKmPhoto, "tickets/" + ticketId + "/start");
 
-        ticket.setStartKm(startKm);
-        ticket.setStartKmPhotoUrl(startKmUrl);
-        ticket.setServiceStatus(ServiceStatus.EN_ROUTE);
-        ticket.setDepartureTime(LocalDateTime.now());
+    //     ticket.setStartKm(startKm);
+    //     ticket.setStartKmPhotoUrl(startKmUrl);
+    //     ticket.setServiceStatus(ServiceStatus.EN_ROUTE);
+    //     ticket.setDepartureTime(LocalDateTime.now());
 
-        ticketRepo.save(ticket);
-        return ServiceTicketResponseDTO.fromEntity(ticket);
-    }
+    //     ticketRepo.save(ticket);
+    //     return ServiceTicketResponseDTO.fromEntity(ticket);
+    // }
 
-    /** Step 2: Engineer arrives on-site (EN_ROUTE → ON_SITE) */
-    public ServiceTicketResponseDTO markArrival(Long ticketId) {
-        ServiceTicket ticket = getTicket(ticketId);
-        validateTransition(ticket.getServiceStatus(), ServiceStatus.ON_SITE);
+    // /** Step 2: Engineer arrives on-site (EN_ROUTE → ON_SITE) */
+    // public ServiceTicketResponseDTO markArrival(Long ticketId) {
+    //     ServiceTicket ticket = getTicket(ticketId);
+    //     validateTransition(ticket.getServiceStatus(), ServiceStatus.ON_SITE);
 
-        ticket.setArrivalTime(LocalDateTime.now());
-        ticket.setServiceStatus(ServiceStatus.ON_SITE);
-        ticketRepo.save(ticket);
-        return ServiceTicketResponseDTO.fromEntity(ticket);
-    }
+    //     ticket.setArrivalTime(LocalDateTime.now());
+    //     ticket.setServiceStatus(ServiceStatus.ON_SITE);
+    //     ticketRepo.save(ticket);
+    //     return ServiceTicketResponseDTO.fromEntity(ticket);
+    // }
 
-    /** Step 3: Engineer reports missing part (ON_SITE → NEED_PART) */
-    public ServiceTicketResponseDTO markNeedPart(Long ticketId, String missingPart) {
-        ServiceTicket ticket = getTicket(ticketId);
-        validateTransition(ticket.getServiceStatus(), ServiceStatus.NEED_PART);
+    // /** Step 3: Engineer reports missing part (ON_SITE → NEED_PART) */
+    // public ServiceTicketResponseDTO markNeedPart(Long ticketId, String missingPart) {
+    //     ServiceTicket ticket = getTicket(ticketId);
+    //     validateTransition(ticket.getServiceStatus(), ServiceStatus.NEED_PART);
 
-        ticket.setMissingPart(missingPart);
-        ticket.setServiceStatus(ServiceStatus.NEED_PART);
-        ticketRepo.save(ticket);
-        return ServiceTicketResponseDTO.fromEntity(ticket);
-    }
+    //     ticket.setMissingPart(missingPart);
+    //     ticket.setServiceStatus(ServiceStatus.NEED_PART);
+    //     ticketRepo.save(ticket);
+    //     return ServiceTicketResponseDTO.fromEntity(ticket);
+    // }
 
-    /** Step 4: Engineer collects missing part (NEED_PART → PART_COLLECTED) */
-    public ServiceTicketResponseDTO markPartCollected(Long ticketId, Double collectedKm, MultipartFile collectedKmPhoto) {
-        ServiceTicket ticket = getTicket(ticketId);
-        validateTransition(ticket.getServiceStatus(), ServiceStatus.PART_COLLECTED);
+    // /** Step 4: Engineer collects missing part (NEED_PART → PART_COLLECTED) */
+    // public ServiceTicketResponseDTO markPartCollected(Long ticketId, Double collectedKm, MultipartFile collectedKmPhoto) {
+    //     ServiceTicket ticket = getTicket(ticketId);
+    //     validateTransition(ticket.getServiceStatus(), ServiceStatus.PART_COLLECTED);
 
-        String partCollectedUrl = null;
-        if (collectedKmPhoto != null && !collectedKmPhoto.isEmpty()) {
-            partCollectedUrl = fileUploadService.uploadCustom(collectedKmPhoto, "tickets/" + ticketId + "/collect");
-        }
+    //     String partCollectedUrl = null;
+    //     if (collectedKmPhoto != null && !collectedKmPhoto.isEmpty()) {
+    //         partCollectedUrl = fileUploadService.uploadCustom(collectedKmPhoto, "tickets/" + ticketId + "/collect");
+    //     }
 
-        ticket.setPartCollectedKm(collectedKm);
-        ticket.setPartCollectedPhotoUrl(partCollectedUrl);
-        ticket.setServiceStatus(ServiceStatus.PART_COLLECTED);
-        ticketRepo.save(ticket);
-        return ServiceTicketResponseDTO.fromEntity(ticket);
-    }
+    //     ticket.setPartCollectedKm(collectedKm);
+    //     ticket.setPartCollectedPhotoUrl(partCollectedUrl);
+    //     ticket.setServiceStatus(ServiceStatus.PART_COLLECTED);
+    //     ticketRepo.save(ticket);
+    //     return ServiceTicketResponseDTO.fromEntity(ticket);
+    // }
 
-    /** Step 5: Engineer fixes issue (PART_COLLECTED → FIXED) */
-    public ServiceTicketResponseDTO markFixed(Long ticketId, Double endKm, MultipartFile endKmPhoto, String usedParts) {
-        ServiceTicket ticket = getTicket(ticketId);
-        validateTransition(ticket.getServiceStatus(), ServiceStatus.FIXED);
+    // /** Step 5: Engineer fixes issue (PART_COLLECTED → FIXED) */
+    // public ServiceTicketResponseDTO markFixed(Long ticketId, Double endKm, MultipartFile endKmPhoto, String usedParts) {
+    //     ServiceTicket ticket = getTicket(ticketId);
+    //     validateTransition(ticket.getServiceStatus(), ServiceStatus.FIXED);
 
-        String endKmUrl = fileUploadService.uploadCustom(endKmPhoto, "tickets/" + ticketId + "/end");
+    //     String endKmUrl = fileUploadService.uploadCustom(endKmPhoto, "tickets/" + ticketId + "/end");
 
-        ticket.setEndKm(endKm);
-        ticket.setEndKmPhotoUrl(endKmUrl);
-        ticket.setUsedParts(usedParts);
-        ticket.setWorkCompletedTime(LocalDateTime.now());
-        ticket.setServiceStatus(ServiceStatus.FIXED);
-        ticketRepo.save(ticket);
-        return ServiceTicketResponseDTO.fromEntity(ticket);
-    }
+    //     ticket.setEndKm(endKm);
+    //     ticket.setEndKmPhotoUrl(endKmUrl);
+    //     ticket.setUsedParts(usedParts);
+    //     ticket.setWorkCompletedTime(LocalDateTime.now());
+    //     ticket.setServiceStatus(ServiceStatus.FIXED);
+    //     ticketRepo.save(ticket);
+    //     return ServiceTicketResponseDTO.fromEntity(ticket);
+    // }
 
-    /** Step 6: Engineer completes service (FIXED → COMPLETED) */
-    public ServiceTicketResponseDTO completeService(Long ticketId) {
-        ServiceTicket ticket = getTicket(ticketId);
-        validateTransition(ticket.getServiceStatus(), ServiceStatus.COMPLETED);
+    // /** Step 6: Engineer completes service (FIXED → COMPLETED) */
+    // public ServiceTicketResponseDTO completeService(Long ticketId) {
+    //     ServiceTicket ticket = getTicket(ticketId);
+    //     validateTransition(ticket.getServiceStatus(), ServiceStatus.COMPLETED);
 
-        ticket.setCompletionTime(LocalDateTime.now());
-        ticket.setServiceStatus(ServiceStatus.COMPLETED);
-        ticketRepo.save(ticket);
-        return ServiceTicketResponseDTO.fromEntity(ticket);
-    }
+    //     ticket.setCompletionTime(LocalDateTime.now());
+    //     ticket.setServiceStatus(ServiceStatus.COMPLETED);
+    //     ticketRepo.save(ticket);
+    //     return ServiceTicketResponseDTO.fromEntity(ticket);
+    // }
 
     // --------------------------- Utility Methods --------------------------- //
 
