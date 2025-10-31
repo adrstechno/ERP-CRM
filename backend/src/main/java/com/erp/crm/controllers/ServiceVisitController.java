@@ -40,7 +40,7 @@ public class ServiceVisitController {
     @PreAuthorize("hasRole('ENGINEER')")
     public ResponseEntity<ServiceVisitResponseDTO> markNeedPart(
             @PathVariable Long visitId,
-            @RequestBody VisitStatusUpdateDTO dto
+            @ModelAttribute VisitStatusUpdateDTO dto
     ) {
         return ResponseEntity.ok(visitService.markNeedPart(visitId, dto));
     }
