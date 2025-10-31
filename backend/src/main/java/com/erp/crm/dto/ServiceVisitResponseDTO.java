@@ -21,8 +21,7 @@ public class ServiceVisitResponseDTO {
     private Double endKm;
     private String endKmPhotoUrl;
 
-    private Double partCollectedKm;
-    private String partCollectedPhotoUrl;
+
 
     private Boolean partCollectedSameDay;
 
