@@ -1,15 +1,855 @@
+// import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// import {
+//     Box, Card, CardContent, Typography, useTheme,
+//     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
+//     Chip, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
+//     TextField, FormControl, InputLabel, Select, MenuItem, Divider, CircularProgress, Skeleton
+// } from '@mui/material';
+// import EditIcon from '@mui/icons-material/Edit';
+// import DeleteIcon from '@mui/icons-material/Delete';
+// import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+// import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+// import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+// import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+// import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+// import dayjs from 'dayjs';
+// import { VITE_API_BASE_URL } from "../../utils/State";
+// import toast from 'react-hot-toast';
+
+// // --- Helper Components ---
+// const getStatusChip = (status) => {
+//     let color;
+//     if (status === 'Resolved' || status === 'APPROVED') color = 'success';
+//     else if (status === 'In Progress' || status === 'Open' || status === "OPEN") color = 'warning';
+//     else if (status === 'Pending') color = 'error';
+//     else color = 'default';
+//     return <Chip label={status} color={color} size="small" variant="outlined" sx={{ fontWeight: 'bold' }} />;
+// };
+// const getPriorityChip = (priority) => {
+//     let color;
+//     if (priority === 'HIGH') color = 'error';
+//     else if (priority === 'MEDIUM') color = 'warning';
+//     else color = 'success';
+//     return <Chip label={priority} color={color} size="small" />;
+// };
+// const CustomTooltip = ({ active, payload, label }) => {
+//     if (active && payload && payload.length) {
+//         return <Card sx={{ p: 1 }}><Typography variant="body2">{`${label}: ${payload[0].value} Tickets`}</Typography></Card>;
+//     }
+//     return null;
+// };
+// const TableSkeleton = ({ columns }) => Array.from(new Array(4)).map((_, i) => <TableRow key={i}><TableCell colSpan={columns}><Skeleton animation="wave" /></TableCell></TableRow>);
+// const TableError = ({ columns, message }) => <TableRow><TableCell colSpan={columns} align="center"><Typography color="error">{message}</Typography></TableCell></TableRow>;
+
+// // --- Custom Hook for Logic ---
+// const useServiceTickets = () => {
+//     const [tickets, setTickets] = useState([]);
+//     const [isLoading, setIsLoading] = useState(true);
+//     const [error, setError] = useState(null);
+//     const [openDialog, setOpenDialog] = useState(false);
+//     const [isSubmitting, setIsSubmitting] = useState(false);
+
+//     const [engineers, setEngineers] = useState([]);
+//     const [sales, setSales] = useState([]);
+//     const [productsForSelectedSale, setProductsForSelectedSale] = useState([]);
+//     const [customers, setCustomers] = useState([]);
+
+//     const initialState = { saleId: '', customerId: '', customerName: '', productId: '', assignedEngineerId: '', priority: '', dueDate: null };
+//     const [newTicket, setNewTicket] = useState(initialState);
+//     const [formErrors, setFormErrors] = useState({}); // ← NEW: validation errors
+
+//     const token = localStorage.getItem("authKey");
+
+//     const axiosConfig = useMemo(() => ({
+//         headers: { Authorization: `Bearer ${token}` },
+//     }), [token]);
+
+//     // --- Validation Function ---
+//     const validateTicket = (t) => {
+//         const errors = {};
+//         if (!t.saleId) errors.saleId = 'Sale ID is required';
+//         if (!t.productId) errors.productId = 'Product is required';
+//         if (!t.assignedEngineerId) errors.assignedEngineerId = 'Engineer is required';
+//         if (!t.priority) errors.priority = 'Priority is required';
+//         if (!t.dueDate) errors.dueDate = 'Due date is required';
+//         return errors;
+//     };
+
+//     const fetchTickets = useCallback(async () => {
+//         setIsLoading(true);
+//         setError(null);
+//         try {
+//             const response = await fetch(`${VITE_API_BASE_URL}/tickets/get-all`, axiosConfig);
+//             if (!response.ok) {
+//                 throw new Error('Failed to fetch service tickets from API.');
+//             }
+//             const data = await response.json();
+            
+//             const formattedTickets = data.map(ticket => ({
+//                 id: ticket.ticketId,
+//                 assignedTo: ticket.assignedEngineerName,
+//                 customer: ticket.customerName,
+//                 product: ticket.productName,
+//                 status: ticket.status,
+//                 priority: ticket.priority,
+//                 dueDate: ticket.dueDate,
+//                 imageUrl: ticket.imageUrl, 
+//             }));
+            
+//             setTickets(formattedTickets);
+//         } catch (err) {
+//             setError("Failed to fetch service tickets.");
+//             toast.error("Failed to load tickets");
+//             console.error(err);
+//         } finally {
+//             setIsLoading(false);
+//         }
+//     }, [axiosConfig]);
+
+//     useEffect(() => {
+//         const fetchDropdownData = async () => {
+//             try {
+//                 const [engineersRes, customersRes, salesRes] = await Promise.all([
+//                     fetch(`${VITE_API_BASE_URL}/admin/users`, axiosConfig),
+//                     fetch(`${VITE_API_BASE_URL}/customer`, axiosConfig),
+//                     fetch(`${VITE_API_BASE_URL}/sales/get-all-sales`, axiosConfig)
+//                 ]);
+
+//                 if (!engineersRes.ok || !customersRes.ok || !salesRes.ok) {
+//                     throw new Error('Failed to fetch form data');
+//                 }
+//                 const engineersData = await engineersRes.json();
+//                 const customersData = await customersRes.json();
+//                 const salesData = await salesRes.json();
+//                 const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER');
+//                 setEngineers(engineerUsers);
+//                 setCustomers(customersData);
+//                 setSales(salesData);
+//             } catch (err) {
+//                 toast.error("Failed to load form data");
+//                 console.error("Failed to load dropdown data:", err);
+//             }
+//         };
+
+//         fetchTickets();
+//         fetchDropdownData();
+//     }, [fetchTickets, axiosConfig]);
+
+//     const handleOpenDialog = () => setOpenDialog(true);
+//     const handleCloseDialog = () => {
+//         setOpenDialog(false);
+//         setNewTicket(initialState);
+//         setProductsForSelectedSale([]);
+//         setFormErrors({}); // ← clear errors
+//     };
+
+//     const handleInputChange = (e) => {
+//         const { name, value } = e.target;
+//         // Clear error when user starts typing
+//         if (formErrors[name]) {
+//             setFormErrors(prev => ({ ...prev, [name]: undefined }));
+//         }
+
+//         if (name === 'saleId') {
+//             const selectedSale = sales.find(sale => sale.saleId === value);
+//             if (selectedSale) {
+//                 const matchingCustomer = customers.find(cust => cust.customerName?.trim().toLowerCase() === selectedSale.customerName?.trim().toLowerCase());
+//                 setNewTicket(prev => ({...prev, saleId: value, customerId: matchingCustomer?.customerId || null, customerName: selectedSale.customerName, productId: ''}));
+//                 setProductsForSelectedSale(selectedSale.items || []);
+//             }
+//         } else {
+//             setNewTicket(prev => ({ ...prev, [name]: value }));
+//         }
+//     };
+    
+//     const handleDateChange = (date) => {
+//         if (formErrors.dueDate) {
+//             setFormErrors(prev => ({ ...prev, dueDate: undefined }));
+//         }
+//         setNewTicket(prev => ({ ...prev, dueDate: date }));
+//     };
+
+//     const handleCreateTicket = async () => {
+//         const errors = validateTicket(newTicket);
+//         if (Object.keys(errors).length > 0) {
+//             setFormErrors(errors);
+//             Object.values(errors).forEach(msg => toast.error(msg));
+//             return;
+//         }
+
+//         setIsSubmitting(true);
+//         try {
+//             const ticketData = {
+//                 saleId: newTicket.saleId,
+//                 customerId: newTicket.customerId,
+//                 productId: newTicket.productId,
+//                 assignedEngineerId: newTicket.assignedEngineerId,
+//                 priority: newTicket.priority,
+//                 dueDate: newTicket.dueDate ? dayjs(newTicket.dueDate).format('YYYY-MM-DD') : null,
+//             };
+
+//             const response = await fetch(`${VITE_API_BASE_URL}/tickets/open`, {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
+//                 body: JSON.stringify(ticketData),
+//             });
+
+//             if (!response.ok) {
+//                 const errorBody = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
+//                 throw new Error(errorBody.message || 'Failed to create ticket');
+//             }
+//             toast.success("Ticket created successfully");
+//             handleCloseDialog();
+//             fetchTickets();
+//         } catch (err) {
+//             toast.error(err.message || "Failed to create ticket");
+//             console.error("Failed to create ticket:", err);
+//         } finally {
+//             setIsSubmitting(false);
+//         }
+//     };
+    
+//     const handleApproveTicket = async (ticketId) => {
+//         try {
+//             const response = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/approve`, {
+//                 method: 'PATCH',
+//                 headers: { 'Authorization': `Bearer ${token}` }
+//             });
+
+//             if (!response.ok) {
+//                 throw new Error('Failed to approve ticket');
+//             }
+//             const updatedTicket = await response.json();
+
+//             setTickets(prevTickets => 
+//                 prevTickets.map(ticket => 
+//                     ticket.id === ticketId ? { ...ticket, status: updatedTicket.status } : ticket
+//                 )
+//             );
+//             toast.success("Ticket approved");
+//         } catch (err) {
+//             toast.error("Failed to approve ticket");
+//             console.error(`Error approving ticket ${ticketId}:`, err);
+//         }
+//     };
+
+//     return {
+//         tickets, isLoading, error, openDialog, isSubmitting, newTicket,
+//         engineers, sales, productsForSelectedSale,
+//         formErrors, // ← expose form errors
+//         handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
+//         handleApproveTicket
+//     };
+// };
+
+// // --- Main UI Component ---
+// export default function ServiceManagement() {
+//     const theme = useTheme();
+//     const { 
+//         tickets, isLoading, error, openDialog, isSubmitting, newTicket,
+//         engineers, sales, productsForSelectedSale,
+//         formErrors, // ← destructure
+//         handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
+//         handleApproveTicket
+//     } = useServiceTickets();
+
+//     const operatingStatusData = [
+//         { month: 'Jan', tickets: 30 }, { month: 'Feb', tickets: 25 }, { month: 'Mar', tickets: 40 },
+//         { month: 'Apr', tickets: 35 }, { month: 'May', tickets: 28 }, { month: 'Jun', tickets: 45 },
+//         { month: 'Jul', tickets: 32 }, { month: 'Aug', tickets: 50 }, { month: 'Sep', tickets: 38 },
+//         { month: 'Oct', tickets: 42 }, { month: 'Nov', tickets: 27 }, { month: 'Dec', tickets: 48 },
+//     ];
+
+//     return (
+//         <LocalizationProvider dateAdapter={AdapterDayjs}>
+//             <Box>
+//                 <Stack spacing={3}>
+//                     <Card>
+//                         <CardContent>
+//                             <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={1} mb={1}>
+//                                 <Stack direction="row" spacing={1} alignItems="center">
+//                                     <SupportAgentIcon color="primary" />
+//                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Service Tickets</Typography>
+//                                 </Stack>
+//                                 <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenDialog}>Create New Ticket</Button>
+//                             </Stack>
+//                             <TableContainer sx={{ maxHeight: 'calc(100vh - 450px)', overflowY: 'auto' }}>
+//                                 <Table stickyHeader size="small">
+//                                     <TableHead>
+//                                         <TableRow>{['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date','View' ].map(h => <TableCell key={h}>{h}</TableCell>)}</TableRow>
+//                                     </TableHead>
+//                                     <TableBody>
+//                                         {isLoading ? <TableSkeleton columns={8} /> :
+//                                             error ? <TableError columns={8} message={error} /> :
+//                                                 tickets.map((ticket) => (
+//                                                     <TableRow key={ticket.id} hover>
+//                                                         <TableCell sx={{ fontWeight: 500 }}>#{String(ticket.id).padStart(3, '0')}</TableCell>
+//                                                         <TableCell>{ticket.assignedTo}</TableCell>
+//                                                         <TableCell>{ticket.customer}</TableCell>
+//                                                         <TableCell>{ticket.product}</TableCell>
+//                                                         <TableCell>
+//                                                             {ticket.status === 'OPEN' ? (
+//                                                                 <Button 
+//                                                                     variant="contained" 
+//                                                                     size="small" 
+//                                                                     onClick={() => handleApproveTicket(ticket.id)}
+//                                                                 >
+//                                                                     Approve
+//                                                                 </Button>
+//                                                             ) : (
+//                                                                 getStatusChip(ticket.status)
+//                                                             )}
+//                                                         </TableCell>
+//                                                         <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
+//                                                         <TableCell>{dayjs(ticket.dueDate).format('DD MMM YYYY')}</TableCell>
+//                                                         <TableCell>
+//                                                        {ticket.imageUrl ? (
+//                                                          <Button
+//                                                            variant="outlined"
+//                                                            color="primary"
+//                                                            size="small"
+//                                                            component="a"
+//                                                            href={ticket.imageUrl}
+//                                                            target="_blank"
+//                                                            rel="noopener noreferrer"
+//                                                          >
+//                                                            View
+//                                                          </Button>
+//                                                        ) : (
+//                                                          'N/A'
+//                                                        )}
+//                                                      </TableCell>
+//                                                     </TableRow>
+//                                                 ))}
+//                                     </TableBody>
+//                                 </Table>
+//                             </TableContainer>
+//                         </CardContent>
+//                     </Card>
+
+//                     {/* Operating Status Chart Card */}
+//                     <Card>
+//                         <CardContent>
+//                             <Typography variant="h6" sx={{ fontWeight: 'bold' }} gutterBottom>Service Projects - Operating Status</Typography>
+//                             <Divider sx={{ mb: 2 }} />
+//                             <Box sx={{ height: 250 }}>
+//                                 <ResponsiveContainer width="100%" height="100%">
+//                                     <LineChart data={operatingStatusData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+//                                         <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+//                                         <XAxis dataKey="month" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
+//                                         <YAxis stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
+//                                         <Tooltip content={<CustomTooltip />} />
+//                                         <Line type="monotone" dataKey="tickets" stroke={theme.palette.primary.main} strokeWidth={3} dot={{ r: 5 }} />
+//                                     </LineChart>
+//                                 </ResponsiveContainer>
+//                             </Box>
+//                         </CardContent>
+//                     </Card>
+//                 </Stack>
+
+//                 {/* Create New Ticket Dialog */}
+//                 <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+//                     <DialogTitle>Create New Service Ticket</DialogTitle>
+//                     <DialogContent>
+//                         <Stack spacing={2.5} sx={{ mt: 2 }}>
+//                             {/* Sale ID */}
+//                             <FormControl fullWidth variant="filled" error={!!formErrors.saleId}>
+//                                 <InputLabel>Sale ID</InputLabel>
+//                                 <Select label="Sale ID" name="saleId" value={newTicket.saleId} onChange={handleInputChange}>
+//                                     {sales.map(s => ( <MenuItem key={s.saleId} value={s.saleId}>{`Sale #${s.saleId} (${s.customerName})`}</MenuItem> ))}
+//                                 </Select>
+//                                 {formErrors.saleId && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.saleId}</Typography>}
+//                             </FormControl>
+
+//                             <TextField label="Customer" value={newTicket.customerName} fullWidth variant="filled" InputProps={{ readOnly: true }} />
+
+//                             {/* Product */}
+//                             <FormControl fullWidth variant="filled" disabled={!newTicket.saleId} error={!!formErrors.productId}>
+//                                 <InputLabel>Product</InputLabel>
+//                                 <Select label="Product" name="productId" value={newTicket.productId} onChange={handleInputChange}>
+//                                     {productsForSelectedSale.map(p => ( <MenuItem key={p.productId} value={p.productId}>{p.productName}</MenuItem> ))}
+//                                 </Select>
+//                                 {formErrors.productId && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.productId}</Typography>}
+//                             </FormControl>
+
+//                             {/* Engineer */}
+//                             <FormControl fullWidth variant="filled" error={!!formErrors.assignedEngineerId}>
+//                                 <InputLabel>Assigned Engineer</InputLabel>
+//                                 <Select label="Assigned Engineer" name="assignedEngineerId" value={newTicket.assignedEngineerId} onChange={handleInputChange}>
+//                                     {engineers.map(e => <MenuItem key={e.userId} value={e.userId}>{e.name}</MenuItem>)}
+//                                 </Select>
+//                                 {formErrors.assignedEngineerId && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.assignedEngineerId}</Typography>}
+//                             </FormControl>
+
+//                             {/* Priority */}
+//                             <FormControl fullWidth variant="filled" error={!!formErrors.priority}>
+//                                 <InputLabel>Priority</InputLabel>
+//                                 <Select label="Priority" name="priority" value={newTicket.priority} onChange={handleInputChange}>
+//                                     {['LOW', 'MEDIUM', 'HIGH'].map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
+//                                 </Select>
+//                                 {formErrors.priority && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.priority}</Typography>}
+//                             </FormControl>
+
+//                             {/* Due Date */}
+//                             <DatePicker 
+//                                 label="Due Date" 
+//                                 value={newTicket.dueDate} 
+//                                 onChange={handleDateChange} 
+//                                 sx={{ width: '100%' }} 
+//                                 slotProps={{ 
+//                                     textField: { 
+//                                         variant: 'filled',
+//                                         error: !!formErrors.dueDate,
+//                                         helperText: formErrors.dueDate
+//                                     } 
+//                                 }} 
+//                             />
+//                         </Stack>
+//                     </DialogContent>
+//                     <DialogActions sx={{ p: '16px 24px' }}>
+//                         <Button onClick={handleCloseDialog} disabled={isSubmitting}>Cancel</Button>
+//                         <Button onClick={handleCreateTicket} variant="contained" disabled={isSubmitting}>
+//                             {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Create'}
+//                         </Button>
+//                     </DialogActions>
+//                 </Dialog>
+//             </Box>
+//         </LocalizationProvider>
+//     );
+// }
+
+// // import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// // import {
+// //   Box, Card, CardContent, Typography, useTheme,
+// //   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+// //   Chip, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
+// //   TextField, FormControl, InputLabel, Select, MenuItem, Divider, CircularProgress, Skeleton
+// // } from '@mui/material';
+// // import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+// // import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+// // import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+// // import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+// // import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+// // import dayjs from 'dayjs';
+// // import { VITE_API_BASE_URL } from "../../utils/State";
+// // import toast from 'react-hot-toast';
+
+// // // --- Helper Components ---
+// // const getStatusChip = (status) => {
+// //   let color;
+// //   if (status === 'Resolved' || status === 'APPROVED') color = 'success';
+// //   else if (status === 'In Progress' || status === 'Open' || status === "OPEN") color = 'warning';
+// //   else if (status === 'Pending') color = 'error';
+// //   else color = 'default';
+// //   return <Chip label={status} color={color} size="small" variant="outlined" sx={{ fontWeight: 'bold' }} />;
+// // };
+
+// // const getPriorityChip = (priority) => {
+// //   let color;
+// //   if (priority === 'HIGH') color = 'error';
+// //   else if (priority === 'MEDIUM') color = 'warning';
+// //   else color = 'success';
+// //   return <Chip label={priority} color={color} size="small" />;
+// // };
+
+// // const CustomTooltip = ({ active, payload, label }) => {
+// //   if (active && payload && payload.length) {
+// //     return <Card sx={{ p: 1 }}><Typography variant="body2">{`${label}: ${payload[0].value} Tickets`}</Typography></Card>;
+// //   }
+// //   return null;
+// // };
+
+// // const TableSkeleton = ({ columns }) =>
+// //   Array.from(new Array(4)).map((_, i) =>
+// //     <TableRow key={i}><TableCell colSpan={columns}><Skeleton animation="wave" /></TableCell></TableRow>
+// //   );
+
+// // const TableError = ({ columns, message }) =>
+// //   <TableRow><TableCell colSpan={columns} align="center"><Typography color="error">{message}</Typography></TableCell></TableRow>;
+
+// // // --- Custom Hook for Logic ---
+// // const useServiceTickets = () => {
+// //   const [tickets, setTickets] = useState([]);
+// //   const [isLoading, setIsLoading] = useState(true);
+// //   const [error, setError] = useState(null);
+// //   const [openDialog, setOpenDialog] = useState(false);
+// //   const [isSubmitting, setIsSubmitting] = useState(false);
+
+// //   const [engineers, setEngineers] = useState([]);
+// //   const [sales, setSales] = useState([]);
+// //   const [productsForSelectedSale, setProductsForSelectedSale] = useState([]);
+// //   const [customers, setCustomers] = useState([]);
+// //   const initialState = { saleId: '', customerId: '', customerName: '', productId: '', assignedEngineerId: '', priority: '', dueDate: null };
+// //   const [newTicket, setNewTicket] = useState(initialState);
+
+// //   // --- View Dialog State ---
+// //   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+// //   const [selectedTicketDetails, setSelectedTicketDetails] = useState(null);
+// //   const [isViewing, setIsViewing] = useState(false);
+
+// //   const token = localStorage.getItem("authKey");
+
+// //   const axiosConfig = useMemo(() => ({
+// //     headers: { Authorization: `Bearer ${token}` },
+// //   }), [token]);
+
+// //   const fetchTickets = useCallback(async () => {
+// //     setIsLoading(true);
+// //     setError(null);
+// //     try {
+// //       const response = await fetch(`${VITE_API_BASE_URL}/tickets/get-all`, axiosConfig);
+// //       if (!response.ok) {
+// //         throw new Error('Failed to fetch service tickets from API.');
+// //       }
+// //       const data = await response.json();
+
+// //       const formattedTickets = data.map(ticket => ({
+// //         id: ticket.ticketId,
+// //         assignedTo: ticket.assignedEngineerName,
+// //         customer: ticket.customerName,
+// //         product: ticket.productName,
+// //         status: ticket.status,
+// //         priority: ticket.priority,
+// //         dueDate: ticket.dueDate,
+// //         imageUrl: ticket.imageUrl,
+// //       }));
+
+// //       setTickets(formattedTickets);
+// //     } catch (err) {
+// //       setError("Failed to fetch service tickets.");
+// //       console.error(err);
+// //     } finally {
+// //       setIsLoading(false);
+// //     }
+// //   }, [axiosConfig]);
+
+// //   useEffect(() => {
+// //     const fetchDropdownData = async () => {
+// //       try {
+// //         const [engineersRes, customersRes, salesRes] = await Promise.all([
+// //           fetch(`${VITE_API_BASE_URL}/admin/users`, axiosConfig),
+// //           fetch(`${VITE_API_BASE_URL}/customer`, axiosConfig),
+// //           fetch(`${VITE_API_BASE_URL}/sales/get-all-sales`, axiosConfig)
+// //         ]);
+
+// //         if (!engineersRes.ok || !customersRes.ok || !salesRes.ok) {
+// //           throw new Error('Failed to fetch form data');
+// //         }
+
+// //         const engineersData = await engineersRes.json();
+// //         const customersData = await customersRes.json();
+// //         const salesData = await salesRes.json();
+// //         const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER');
+// //         setEngineers(engineerUsers);
+// //         setCustomers(customersData);
+// //         setSales(salesData);
+// //       } catch (err) {
+// //         console.error("Failed to load dropdown data:", err);
+// //       }
+// //     };
+
+// //     fetchTickets();
+// //     fetchDropdownData();
+// //   }, [fetchTickets, axiosConfig]);
+
+// //   const handleOpenDialog = () => setOpenDialog(true);
+// //   const handleCloseDialog = () => {
+// //     setOpenDialog(false);
+// //     setNewTicket(initialState);
+// //     setProductsForSelectedSale([]);
+// //   };
+
+// //   const handleInputChange = (e) => {
+// //     const { name, value } = e.target;
+// //     if (name === 'saleId') {
+// //       const selectedSale = sales.find(sale => sale.saleId === value);
+// //       if (selectedSale) {
+// //         const matchingCustomer = customers.find(cust => cust.customerName?.trim().toLowerCase() === selectedSale.customerName?.trim().toLowerCase());
+// //         setNewTicket(prev => ({
+// //           ...prev,
+// //           saleId: value,
+// //           customerId: matchingCustomer?.customerId || null,
+// //           customerName: selectedSale.customerName,
+// //           productId: ''
+// //         }));
+// //         setProductsForSelectedSale(selectedSale.items || []);
+// //       }
+// //     } else {
+// //       setNewTicket(prev => ({ ...prev, [name]: value }));
+// //     }
+// //   };
+
+// //   const handleDateChange = (date) => setNewTicket(prev => ({ ...prev, dueDate: date }));
+
+// //   const handleCreateTicket = async () => {
+// //     setIsSubmitting(true);
+// //     try {
+// //       const ticketData = {
+// //         saleId: newTicket.saleId,
+// //         customerId: newTicket.customerId,
+// //         productId: newTicket.productId,
+// //         assignedEngineerId: newTicket.assignedEngineerId,
+// //         priority: newTicket.priority,
+// //         dueDate: newTicket.dueDate ? dayjs(newTicket.dueDate).format('YYYY-MM-DD') : null,
+// //       };
+
+// //       const response = await fetch(`${VITE_API_BASE_URL}/tickets/open`, {
+// //         method: 'POST',
+// //         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+// //         body: JSON.stringify(ticketData),
+// //       });
+
+// //       if (!response.ok) {
+// //         const errorBody = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
+// //         throw new Error(`API Error: ${response.status} - ${errorBody.message || 'Failed to create ticket'}`);
+// //       }
+// //       handleCloseDialog();
+// //       fetchTickets();
+// //       toast.success("Ticket created successfully");
+// //     } catch (err) {
+// //       console.error("Failed to create ticket:", err);
+// //       toast.error("Failed to create ticket");
+// //     } finally {
+// //       setIsSubmitting(false);
+// //     }
+// //   };
+
+// //   const handleApproveTicket = async (ticketId) => {
+// //     try {
+// //       const response = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/approve`, {
+// //         method: 'PATCH',
+// //         headers: { 'Authorization': `Bearer ${token}` }
+// //       });
+// //       if (!response.ok) throw new Error('Failed to approve ticket');
+
+// //       const updatedTicket = await response.json();
+// //       setTickets(prev =>
+// //         prev.map(ticket =>
+// //           ticket.id === ticketId ? { ...ticket, status: updatedTicket.status } : ticket
+// //         )
+// //       );
+// //     } catch (err) {
+// //       console.error(`Error approving ticket ${ticketId}:`, err);
+// //     }
+// //   };
+
+// //   // --- New: View Ticket Details ---
+// //   const handleViewTicket = async (ticketId) => {
+// //     setIsViewing(true);
+// //     setViewDialogOpen(true);
+// //     setSelectedTicketDetails(null);
+// //     try {
+// //       const response = await fetch(`${VITE_API_BASE_URL}/service-visits/ticket/${ticketId}`, {
+// //         headers: { Authorization: `Bearer ${token}` },
+// //       });
+// //       if (!response.ok) throw new Error("Failed to fetch service visit details");
+// //       const data = await response.json();
+// //       setSelectedTicketDetails(data[0]);
+// //     } catch (err) {
+// //       console.error("Error fetching service visit details:", err);
+// //       toast.error("Failed to load visit details");
+// //     } finally {
+// //       setIsViewing(false);
+// //     }
+// //   };
+
+// //   const handleCloseViewDialog = () => {
+// //     setViewDialogOpen(false);
+// //     setSelectedTicketDetails(null);
+// //   };
+
+// //   return {
+// //     tickets, isLoading, error, openDialog, isSubmitting, newTicket,
+// //     engineers, sales, productsForSelectedSale,
+// //     handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
+// //     handleApproveTicket,
+// //     viewDialogOpen, selectedTicketDetails, isViewing,
+// //     handleViewTicket, handleCloseViewDialog,
+// //   };
+// // };
+
+// // // --- Main Component ---
+// // export default function ServiceManagement() {
+// //   const theme = useTheme();
+// //   const {
+// //     tickets, isLoading, error, openDialog, isSubmitting, newTicket,
+// //     engineers, sales, productsForSelectedSale,
+// //     handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
+// //     handleApproveTicket,
+// //     viewDialogOpen, selectedTicketDetails, isViewing,
+// //     handleViewTicket, handleCloseViewDialog,
+// //   } = useServiceTickets();
+
+// //   const operatingStatusData = [
+// //     { month: 'Jan', tickets: 30 }, { month: 'Feb', tickets: 25 }, { month: 'Mar', tickets: 40 },
+// //     { month: 'Apr', tickets: 35 }, { month: 'May', tickets: 28 }, { month: 'Jun', tickets: 45 },
+// //     { month: 'Jul', tickets: 32 }, { month: 'Aug', tickets: 50 }, { month: 'Sep', tickets: 38 },
+// //     { month: 'Oct', tickets: 42 }, { month: 'Nov', tickets: 27 }, { month: 'Dec', tickets: 48 },
+// //   ];
+
+// //   return (
+// //     <LocalizationProvider dateAdapter={AdapterDayjs}>
+// //       <Box>
+// //         <Stack spacing={3}>
+// //           {/* --- Ticket Table --- */}
+// //           <Card>
+// //             <CardContent>
+// //               <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={1} mb={1}>
+// //                 <Stack direction="row" spacing={1} alignItems="center">
+// //                   <SupportAgentIcon color="primary" />
+// //                   <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Service Tickets</Typography>
+// //                 </Stack>
+// //                 <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenDialog}>
+// //                   Create New Ticket
+// //                 </Button>
+// //               </Stack>
+// //               <TableContainer sx={{ maxHeight: 'calc(100vh - 450px)', overflowY: 'auto' }}>
+// //                 <Table stickyHeader size="small">
+// //                   <TableHead>
+// //                     <TableRow>
+// //                       {['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date', 'View'].map(h => (
+// //                         <TableCell key={h}>{h}</TableCell>
+// //                       ))}
+// //                     </TableRow>
+// //                   </TableHead>
+// //                   <TableBody>
+// //                     {isLoading ? <TableSkeleton columns={8} /> :
+// //                       error ? <TableError columns={8} message={error} /> :
+// //                         tickets.map(ticket => (
+// //                           <TableRow key={ticket.id} hover>
+// //                             <TableCell sx={{ fontWeight: 500 }}>#{String(ticket.id).padStart(3, '0')}</TableCell>
+// //                             <TableCell>{ticket.assignedTo}</TableCell>
+// //                             <TableCell>{ticket.customer}</TableCell>
+// //                             <TableCell>{ticket.product}</TableCell>
+// //                             <TableCell>
+// //                               {ticket.status === 'OPEN' ? (
+// //                                 <Button variant="contained" size="small" onClick={() => handleApproveTicket(ticket.id)}>
+// //                                   Approve
+// //                                 </Button>
+// //                               ) : getStatusChip(ticket.status)}
+// //                             </TableCell>
+// //                             <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
+// //                             <TableCell>{dayjs(ticket.dueDate).format('DD MMM YYYY')}</TableCell>
+// //                             <TableCell>
+// //                               <Button variant="outlined" color="primary" size="small" onClick={() => handleViewTicket(ticket.id)}>
+// //                                 View
+// //                               </Button>
+// //                             </TableCell>
+// //                           </TableRow>
+// //                         ))}
+// //                   </TableBody>
+// //                 </Table>
+// //               </TableContainer>
+// //             </CardContent>
+// //           </Card>
+
+// //           {/* --- Chart --- */}
+// //           <Card>
+// //             <CardContent>
+// //               <Typography variant="h6" sx={{ fontWeight: 'bold' }} gutterBottom>Service Projects - Operating Status</Typography>
+// //               <Divider sx={{ mb: 2 }} />
+// //               <Box sx={{ height: 250 }}>
+// //                 <ResponsiveContainer width="100%" height="100%">
+// //                   <LineChart data={operatingStatusData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+// //                     <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+// //                     <XAxis dataKey="month" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
+// //                     <YAxis stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
+// //                     <Tooltip content={<CustomTooltip />} />
+// //                     <Line type="monotone" dataKey="tickets" stroke={theme.palette.primary.main} strokeWidth={3} dot={{ r: 5 }} />
+// //                   </LineChart>
+// //                 </ResponsiveContainer>
+// //               </Box>
+// //             </CardContent>
+// //           </Card>
+// //         </Stack>
+
+// //         {/* --- Create Ticket Dialog --- */}
+// //         <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+// //           <DialogTitle>Create New Service Ticket</DialogTitle>
+// //           <DialogContent>
+// //             <Stack spacing={2.5} sx={{ mt: 2 }}>
+// //               <FormControl fullWidth variant="filled">
+// //                 <InputLabel>Sale ID</InputLabel>
+// //                 <Select label="Sale ID" name="saleId" value={newTicket.saleId} onChange={handleInputChange}>
+// //                   {sales.map(s => (<MenuItem key={s.saleId} value={s.saleId}>{`Sale #${s.saleId} (${s.customerName})`}</MenuItem>))}
+// //                 </Select>
+// //               </FormControl>
+// //               <TextField label="Customer" value={newTicket.customerName} fullWidth variant="filled" InputProps={{ readOnly: true }} />
+// //               <FormControl fullWidth variant="filled" disabled={!newTicket.saleId}>
+// //                 <InputLabel>Product</InputLabel>
+// //                 <Select label="Product" name="productId" value={newTicket.productId} onChange={handleInputChange}>
+// //                   {productsForSelectedSale.map(p => (<MenuItem key={p.productId} value={p.productId}>{p.productName}</MenuItem>))}
+// //                 </Select>
+// //               </FormControl>
+// //               <FormControl fullWidth variant="filled">
+// //                 <InputLabel>Assigned Engineer</InputLabel>
+// //                 <Select label="Assigned Engineer" name="assignedEngineerId" value={newTicket.assignedEngineerId} onChange={handleInputChange}>
+// //                   {engineers.map(e => <MenuItem key={e.userId} value={e.userId}>{e.name}</MenuItem>)}
+// //                 </Select>
+// //               </FormControl>
+// //               <FormControl fullWidth variant="filled">
+// //                 <InputLabel>Priority</InputLabel>
+// //                 <Select label="Priority" name="priority" value={newTicket.priority} onChange={handleInputChange}>
+// //                   {['LOW', 'MEDIUM', 'HIGH'].map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
+// //                 </Select>
+// //               </FormControl>
+// //               <DatePicker label="Due Date" value={newTicket.dueDate} onChange={handleDateChange} sx={{ width: '100%' }} slotProps={{ textField: { variant: 'filled' } }} />
+// //             </Stack>
+// //           </DialogContent>
+// //           <DialogActions sx={{ p: '16px 24px' }}>
+// //             <Button onClick={handleCloseDialog} disabled={isSubmitting}>Cancel</Button>
+// //             <Button onClick={handleCreateTicket} variant="contained" disabled={!newTicket.productId || isSubmitting}>
+// //               {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Create'}
+// //             </Button>
+// //           </DialogActions>
+// //         </Dialog>
+
+// //         {/* --- View Ticket Details Dialog --- */}
+// //         <Dialog open={viewDialogOpen} onClose={handleCloseViewDialog} maxWidth="sm" fullWidth>
+// //           <DialogTitle>Service Visit Details</DialogTitle>
+// //           <DialogContent dividers>
+// //             {isViewing ? (
+// //               <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+// //                 <CircularProgress />
+// //               </Box>
+// //             ) : selectedTicketDetails ? (
+// //               <Stack spacing={1.5}>
+// //                 <Typography><b>Ticket ID:</b> {selectedTicketDetails.ticketId}</Typography>
+// //                 <Typography><b>Engineer:</b> {selectedTicketDetails.engineerName}</Typography>
+// //                 <Typography><b>Visit Status:</b> {selectedTicketDetails.visitStatus}</Typography>
+// //                 <Typography><b>Used Parts:</b> {selectedTicketDetails.usedParts || 'N/A'}</Typography>
+// //                 <Typography><b>Missing Part:</b> {selectedTicketDetails.missingPart || 'N/A'}</Typography>
+// //                 <Typography><b>Replaced Part:</b> {selectedTicketDetails.replacedPart || 'N/A'}</Typography>
+// //                 <Typography><b>Visit Date:</b> {dayjs(selectedTicketDetails.visitDate).format('DD MMM YYYY')}</Typography>
+// //               </Stack>
+// //             ) : (
+// //               <Typography color="error">No details available for this ticket.</Typography>
+// //             )}
+// //           </DialogContent>
+// //           <DialogActions>
+// //             <Button onClick={handleCloseViewDialog}>Close</Button>
+// //           </DialogActions>
+// //         </Dialog>
+// //       </Box>
+// //     </LocalizationProvider>
+// //   );
+// // }
+
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Box, Card, CardContent, Typography, useTheme,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
     Chip, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
-    TextField, FormControl, InputLabel, Select, MenuItem, Divider, CircularProgress, Skeleton
+    TextField, FormControl, InputLabel, Select, MenuItem, Divider, CircularProgress, Skeleton,
+    Paper, Alert
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ImageIcon from '@mui/icons-material/Image';
+import CloseIcon from '@mui/icons-material/Close';
+import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
@@ -19,31 +859,202 @@ import toast from 'react-hot-toast';
 // --- Helper Components ---
 const getStatusChip = (status) => {
     let color;
-    if (status === 'Resolved' || status === 'APPROVED') color = 'success';
-    else if (status === 'In Progress' || status === 'Open' || status === "OPEN") color = 'warning';
-    else if (status === 'Pending') color = 'error';
+    if (['COMPLETED', 'APPROVED', 'CLOSED'].includes(status)) color = 'success';
+    else if (['ASSIGNED', 'IN_PROGRESS', 'EN_ROUTE', 'ON_SITE'].includes(status)) color = 'warning';
+    else if (['OPEN', 'PENDING'].includes(status)) color = 'error';
     else color = 'default';
     return <Chip label={status} color={color} size="small" variant="outlined" sx={{ fontWeight: 'bold' }} />;
 };
+
 const getPriorityChip = (priority) => {
-    let color;
-    if (priority === 'HIGH') color = 'error';
-    else if (priority === 'MEDIUM') color = 'warning';
-    else color = 'success';
+    const color = priority === 'HIGH' ? 'error' : priority === 'MEDIUM' ? 'warning' : 'success';
     return <Chip label={priority} color={color} size="small" />;
 };
+
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return <Card sx={{ p: 1 }}><Typography variant="body2">{`${label}: ${payload[0].value} Tickets`}</Typography></Card>;
     }
     return null;
 };
-const TableSkeleton = ({ columns }) => Array.from(new Array(4)).map((_, i) => <TableRow key={i}><TableCell colSpan={columns}><Skeleton animation="wave" /></TableCell></TableRow>);
-const TableError = ({ columns, message }) => <TableRow><TableCell colSpan={columns} align="center"><Typography color="error">{message}</Typography></TableCell></TableRow>;
 
-// --- Custom Hook for Logic ---
+const TableSkeleton = ({ columns }) => Array.from(new Array(5)).map((_, i) => (
+    <TableRow key={i}><TableCell colSpan={columns}><Skeleton animation="wave" /></TableCell></TableRow>
+));
+
+const TableError = ({ columns, message }) => (
+    <TableRow><TableCell colSpan={columns} align="center"><Typography color="error">{message}</Typography></TableCell></TableRow>
+);
+
+// --- Visit History Modal (Exact Match to ServiceVisitWorkflow) ---
+const VisitHistoryModal = ({ open, onClose, ticketId, visits = [] }) => {
+    const [imageDialog, setImageDialog] = useState({ open: false, url: "", title: "" });
+
+    const openImage = (url, title) => setImageDialog({ open: true, url, title });
+    const closeImage = () => setImageDialog({ open: false, url: "", title: "" });
+
+    const formatDate = (date) => date ? dayjs(date).format('DD MMM YYYY, hh:mm A') : '—';
+
+    if (visits.length === 0) {
+        return (
+            <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+                <DialogTitle>Ticket #{String(ticketId).padStart(3, '0')} - Visit History</DialogTitle>
+                <DialogContent>
+                    <Alert severity="info">No visits recorded yet.</Alert>
+                </DialogContent>
+                <DialogActions><Button onClick={onClose}>Close</Button></DialogActions>
+            </Dialog>
+        );
+    }
+
+    return (
+        <>
+            <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+                <DialogTitle>
+                    <Typography variant="h6" fontWeight="bold">
+                        Ticket #{String(ticketId).padStart(3, '0')} - Visit History
+                    </Typography>
+                    <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers sx={{ p: 0 }}>
+                    <Stack spacing={2} p={3}>
+                        {visits.map((visit, index) => {
+                            const totalTravelled = visit.startKm && visit.endKm
+                                ? Number(visit.endKm) - Number(visit.startKm)
+                                : null;
+
+                            return (
+                                <Paper
+                                    key={visit.visitId || visit.id}
+                                    elevation={0}
+                                    sx={{
+                                        p: 2,
+                                        border: visit.active ? 2 : 1,
+                                        borderColor: visit.active ? 'primary.main' : 'divider',
+                                        bgcolor: visit.active ? 'action.hover' : 'background.paper',
+                                    }}
+                                >
+                                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                        <Typography variant="subtitle2" fontWeight={600}>
+                                            Visit #{index + 1} - {visit.engineerName || 'Engineer'}
+                                            {visit.active && <Chip label="ACTIVE" color="primary" size="small" sx={{ ml: 1 }} />}
+                                        </Typography>
+                                        {getStatusChip(visit.visitStatus || visit.status)}
+                                    </Box>
+
+                                    <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={2} mb={2}>
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">Start KM</Typography>
+                                            <Typography variant="body2" fontWeight={500}>{visit.startKm || '-'}</Typography>
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">End KM</Typography>
+                                            <Typography variant="body2" fontWeight={500}>{visit.endKm || '-'}</Typography>
+                                        </Box>
+                                        {totalTravelled !== null && (
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary">Total Travelled</Typography>
+                                                <Typography variant="body2" fontWeight={600} color="primary.main">
+                                                    {totalTravelled} KM
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">Started At</Typography>
+                                            <Typography variant="body2" fontWeight={500}>{formatDate(visit.startTime || visit.startedAt)}</Typography>
+                                        </Box>
+                                        {visit.endTime && (
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary">Ended At</Typography>
+                                                <Typography variant="body2" fontWeight={500}>{formatDate(visit.endTime || visit.endedAt)}</Typography>
+                                            </Box>
+                                        )}
+                                    </Box>
+
+                                    {(visit.startKmPhoto || visit.startKmPhotoUrl || visit.endKmPhoto || visit.endKmPhotoUrl) && (
+                                        <Box mb={2}>
+                                            <Typography variant="caption" color="text.secondary" display="block" mb={1}>Photos:</Typography>
+                                            <Box display="flex" gap={2}>
+                                                {(visit.startKmPhoto || visit.startKmPhotoUrl) && (
+                                                    <Button
+                                                        size="small"
+                                                        variant="outlined"
+                                                        startIcon={<ImageIcon />}
+                                                        onClick={() => openImage(visit.startKmPhoto || visit.startKmPhotoUrl, `Visit #${index + 1} - Start KM`)}
+                                                    >
+                                                        Start
+                                                    </Button>
+                                                )}
+                                                {(visit.endKmPhoto || visit.endKmPhotoUrl) && (
+                                                    <Button
+                                                        size="small"
+                                                        variant="outlined"
+                                                        startIcon={<ImageIcon />}
+                                                        onClick={() => openImage(visit.endKmPhoto || visit.endKmPhotoUrl, `Visit #${index + 1} - End KM`)}
+                                                    >
+                                                        End
+                                                    </Button>
+                                                )}
+                                            </Box>
+                                        </Box>
+                                    )}
+
+                                    {visit.usedParts && (
+                                        <Box mb={1}>
+                                            <Typography variant="caption" color="text.secondary">Used Parts:</Typography>
+                                            <Typography variant="body2">{visit.usedParts}</Typography>
+                                        </Box>
+                                    )}
+                                    {visit.missingPart && (
+                                        <Box mb={1}>
+                                            <Typography variant="caption" color="text.secondary">Missing Part:</Typography>
+                                            <Typography variant="body2" color="warning.main">{visit.missingPart}</Typography>
+                                        </Box>
+                                    )}
+                                    {visit.remarks && (
+                                        <Box mb={1}>
+                                            <Typography variant="caption" color="text.secondary">Remarks:</Typography>
+                                            <Typography variant="body2">{visit.remarks}</Typography>
+                                        </Box>
+                                    )}
+                                    {visit.lastUpdatedBy && (
+                                        <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                                            Updated by {visit.lastUpdatedBy} at {formatDate(visit.lastUpdatedAt)}
+                                        </Typography>
+                                    )}
+                                </Paper>
+                            );
+                        })}
+                    </Stack>
+                </DialogContent>
+                <DialogActions><Button onClick={onClose}>Close</Button></DialogActions>
+            </Dialog>
+
+            <Dialog open={imageDialog.open} onClose={closeImage} maxWidth="md" fullWidth>
+                <DialogTitle>
+                    {imageDialog.title}
+                    <IconButton onClick={closeImage} sx={{ position: 'absolute', right: 8, top: 8 }}>
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent>
+                    {imageDialog.url && (
+                        <img src={imageDialog.url} alt={imageDialog.title} style={{ width: '100%', height: 'auto' }} />
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
+
+// --- Custom Hook ---
 const useServiceTickets = () => {
     const [tickets, setTickets] = useState([]);
+    const [visitsMap, setVisitsMap] = useState({});
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedTicketId, setSelectedTicketId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
@@ -56,15 +1067,11 @@ const useServiceTickets = () => {
 
     const initialState = { saleId: '', customerId: '', customerName: '', productId: '', assignedEngineerId: '', priority: '', dueDate: null };
     const [newTicket, setNewTicket] = useState(initialState);
-    const [formErrors, setFormErrors] = useState({}); // ← NEW: validation errors
+    const [formErrors, setFormErrors] = useState({});
 
     const token = localStorage.getItem("authKey");
+    const axiosConfig = useMemo(() => ({ headers: { Authorization: `Bearer ${token}` } }), [token]);
 
-    const axiosConfig = useMemo(() => ({
-        headers: { Authorization: `Bearer ${token}` },
-    }), [token]);
-
-    // --- Validation Function ---
     const validateTicket = (t) => {
         const errors = {};
         if (!t.saleId) errors.saleId = 'Sale ID is required';
@@ -80,54 +1087,68 @@ const useServiceTickets = () => {
         setError(null);
         try {
             const response = await fetch(`${VITE_API_BASE_URL}/tickets/get-all`, axiosConfig);
-            if (!response.ok) {
-                throw new Error('Failed to fetch service tickets from API.');
-            }
+            if (!response.ok) throw new Error('Failed to fetch tickets');
             const data = await response.json();
-            
-            const formattedTickets = data.map(ticket => ({
-                id: ticket.ticketId,
-                assignedTo: ticket.assignedEngineerName,
-                customer: ticket.customerName,
-                product: ticket.productName,
-                status: ticket.status,
-                priority: ticket.priority,
-                dueDate: ticket.dueDate,
-                imageUrl: ticket.imageUrl, 
+
+            const formatted = data.map(t => ({
+                id: t.ticketId,
+                assignedTo: t.assignedEngineerName || 'Unassigned',
+                customer: t.customerName,
+                product: t.productName,
+                status: t.status,
+                priority: t.priority,
+                dueDate: t.dueDate,
+                imageUrl: t.imageUrl,
             }));
-            
-            setTickets(formattedTickets);
+            setTickets(formatted);
         } catch (err) {
-            setError("Failed to fetch service tickets.");
+            setError("Failed to fetch tickets");
             toast.error("Failed to load tickets");
-            console.error(err);
         } finally {
             setIsLoading(false);
         }
     }, [axiosConfig]);
 
+    const fetchVisits = async (ticketId) => {
+        try {
+            const res = await fetch(`${VITE_API_BASE_URL}/service-visits/ticket/${ticketId}`, axiosConfig);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            setVisitsMap(prev => ({ ...prev, [ticketId]: data }));
+        } catch {
+            toast.error("Failed to load visit history");
+        }
+    };
+
+    const openVisitModal = async (ticketId) => {
+        setSelectedTicketId(ticketId);
+        setModalOpen(true);
+        if (!visitsMap[ticketId]) {
+            await fetchVisits(ticketId);
+        }
+    };
+
+    const closeVisitModal = () => {
+        setModalOpen(false);
+        setSelectedTicketId(null);
+    };
+
     useEffect(() => {
         const fetchDropdownData = async () => {
             try {
-                const [engineersRes, customersRes, salesRes] = await Promise.all([
+                const [engRes, custRes, salesRes] = await Promise.all([
                     fetch(`${VITE_API_BASE_URL}/admin/users`, axiosConfig),
                     fetch(`${VITE_API_BASE_URL}/customer`, axiosConfig),
                     fetch(`${VITE_API_BASE_URL}/sales/get-all-sales`, axiosConfig)
                 ]);
+                if (!engRes.ok || !custRes.ok || !salesRes.ok) throw new Error();
 
-                if (!engineersRes.ok || !customersRes.ok || !salesRes.ok) {
-                    throw new Error('Failed to fetch form data');
-                }
-                const engineersData = await engineersRes.json();
-                const customersData = await customersRes.json();
-                const salesData = await salesRes.json();
-                const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER');
-                setEngineers(engineerUsers);
-                setCustomers(customersData);
+                const [engData, custData, salesData] = await Promise.all([engRes.json(), custRes.json(), salesRes.json()]);
+                setEngineers(engData.filter(u => u.role.name === 'ENGINEER'));
+                setCustomers(custData);
                 setSales(salesData);
-            } catch (err) {
+            } catch {
                 toast.error("Failed to load form data");
-                console.error("Failed to load dropdown data:", err);
             }
         };
 
@@ -140,32 +1161,30 @@ const useServiceTickets = () => {
         setOpenDialog(false);
         setNewTicket(initialState);
         setProductsForSelectedSale([]);
-        setFormErrors({}); // ← clear errors
+        setFormErrors({});
     };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        // Clear error when user starts typing
-        if (formErrors[name]) {
-            setFormErrors(prev => ({ ...prev, [name]: undefined }));
-        }
+        if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: undefined }));
 
         if (name === 'saleId') {
-            const selectedSale = sales.find(sale => sale.saleId === value);
-            if (selectedSale) {
-                const matchingCustomer = customers.find(cust => cust.customerName?.trim().toLowerCase() === selectedSale.customerName?.trim().toLowerCase());
-                setNewTicket(prev => ({...prev, saleId: value, customerId: matchingCustomer?.customerId || null, customerName: selectedSale.customerName, productId: ''}));
-                setProductsForSelectedSale(selectedSale.items || []);
+            const sale = sales.find(s => s.saleId === value);
+            if (sale) {
+                const cust = customers.find(c => c.customerName?.trim().toLowerCase() === sale.customerName?.trim().toLowerCase());
+                setNewTicket(prev => ({
+                    ...prev, saleId: value, customerId: cust?.customerId || null,
+                    customerName: sale.customerName, productId: ''
+                }));
+                setProductsForSelectedSale(sale.items || []);
             }
         } else {
             setNewTicket(prev => ({ ...prev, [name]: value }));
         }
     };
-    
+
     const handleDateChange = (date) => {
-        if (formErrors.dueDate) {
-            setFormErrors(prev => ({ ...prev, dueDate: undefined }));
-        }
+        if (formErrors.dueDate) setFormErrors(prev => ({ ...prev, dueDate: undefined }));
         setNewTicket(prev => ({ ...prev, dueDate: date }));
     };
 
@@ -173,13 +1192,13 @@ const useServiceTickets = () => {
         const errors = validateTicket(newTicket);
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
-            Object.values(errors).forEach(msg => toast.error(msg));
+            Object.values(errors).forEach(toast.error);
             return;
         }
 
         setIsSubmitting(true);
         try {
-            const ticketData = {
+            const payload = {
                 saleId: newTicket.saleId,
                 customerId: newTicket.customerId,
                 productId: newTicket.productId,
@@ -188,69 +1207,57 @@ const useServiceTickets = () => {
                 dueDate: newTicket.dueDate ? dayjs(newTicket.dueDate).format('YYYY-MM-DD') : null,
             };
 
-            const response = await fetch(`${VITE_API_BASE_URL}/tickets/open`, {
+            const res = await fetch(`${VITE_API_BASE_URL}/tickets/open`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
-                body: JSON.stringify(ticketData),
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(payload),
             });
 
-            if (!response.ok) {
-                const errorBody = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
-                throw new Error(errorBody.message || 'Failed to create ticket');
-            }
-            toast.success("Ticket created successfully");
+            if (!res.ok) throw new Error((await res.json()).message || 'Failed');
+            toast.success("Ticket created");
             handleCloseDialog();
             fetchTickets();
         } catch (err) {
-            toast.error(err.message || "Failed to create ticket");
-            console.error("Failed to create ticket:", err);
+            toast.error(err.message || "Failed to create");
         } finally {
             setIsSubmitting(false);
         }
     };
-    
-    const handleApproveTicket = async (ticketId) => {
+
+    const handleApproveTicket = async (id) => {
         try {
-            const response = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/approve`, {
-                method: 'PATCH',
-                headers: { 'Authorization': `Bearer ${token}` }
+            const res = await fetch(`${VITE_API_BASE_URL}/tickets/${id}/approve`, {
+                method: 'PATCH', headers: { Authorization: `Bearer ${token}` }
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to approve ticket');
-            }
-            const updatedTicket = await response.json();
-
-            setTickets(prevTickets => 
-                prevTickets.map(ticket => 
-                    ticket.id === ticketId ? { ...ticket, status: updatedTicket.status } : ticket
-                )
-            );
-            toast.success("Ticket approved");
-        } catch (err) {
-            toast.error("Failed to approve ticket");
-            console.error(`Error approving ticket ${ticketId}:`, err);
+            if (!res.ok) throw new Error();
+            const updated = await res.json();
+            setTickets(prev => prev.map(t => t.id === id ? { ...t, status: updated.status } : t));
+            toast.success("Approved");
+        } catch {
+            toast.error("Failed to approve");
         }
     };
 
     return {
         tickets, isLoading, error, openDialog, isSubmitting, newTicket,
-        engineers, sales, productsForSelectedSale,
-        formErrors, // ← expose form errors
-        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
-        handleApproveTicket
+        engineers, sales, productsForSelectedSale, formErrors,
+        modalOpen, selectedTicketId, visitsMap,
+        openVisitModal, closeVisitModal,
+        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange,
+        handleCreateTicket, handleApproveTicket
     };
 };
 
-// --- Main UI Component ---
+// --- MAIN COMPONENT ---
 export default function ServiceManagement() {
     const theme = useTheme();
-    const { 
+    const {
         tickets, isLoading, error, openDialog, isSubmitting, newTicket,
-        engineers, sales, productsForSelectedSale,
-        formErrors, // ← destructure
-        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
-        handleApproveTicket
+        engineers, sales, productsForSelectedSale, formErrors,
+        modalOpen, selectedTicketId, visitsMap,
+        openVisitModal, closeVisitModal,
+        handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange,
+        handleCreateTicket, handleApproveTicket
     } = useServiceTickets();
 
     const operatingStatusData = [
@@ -264,6 +1271,7 @@ export default function ServiceManagement() {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box>
                 <Stack spacing={3}>
+                    {/* Service Tickets Table */}
                     <Card>
                         <CardContent>
                             <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={1} mb={1}>
@@ -271,12 +1279,19 @@ export default function ServiceManagement() {
                                     <SupportAgentIcon color="primary" />
                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Service Tickets</Typography>
                                 </Stack>
-                                <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenDialog}>Create New Ticket</Button>
+                                <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenDialog}>
+                                    Create New Ticket
+                                </Button>
                             </Stack>
+
                             <TableContainer sx={{ maxHeight: 'calc(100vh - 450px)', overflowY: 'auto' }}>
                                 <Table stickyHeader size="small">
                                     <TableHead>
-                                        <TableRow>{['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date','View' ].map(h => <TableCell key={h}>{h}</TableCell>)}</TableRow>
+                                        <TableRow>
+                                            {['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date', 'View'].map(h => (
+                                                <TableCell key={h} sx={{ fontWeight: 'bold' }}>{h}</TableCell>
+                                            ))}
+                                        </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {isLoading ? <TableSkeleton columns={8} /> :
@@ -289,36 +1304,22 @@ export default function ServiceManagement() {
                                                         <TableCell>{ticket.product}</TableCell>
                                                         <TableCell>
                                                             {ticket.status === 'OPEN' ? (
-                                                                <Button 
-                                                                    variant="contained" 
-                                                                    size="small" 
-                                                                    onClick={() => handleApproveTicket(ticket.id)}
-                                                                >
+                                                                <Button size="small" variant="contained" onClick={() => handleApproveTicket(ticket.id)}>
                                                                     Approve
                                                                 </Button>
-                                                            ) : (
-                                                                getStatusChip(ticket.status)
-                                                            )}
+                                                            ) : getStatusChip(ticket.status)}
                                                         </TableCell>
                                                         <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
                                                         <TableCell>{dayjs(ticket.dueDate).format('DD MMM YYYY')}</TableCell>
                                                         <TableCell>
-                                                       {ticket.imageUrl ? (
-                                                         <Button
-                                                           variant="outlined"
-                                                           color="primary"
-                                                           size="small"
-                                                           component="a"
-                                                           href={ticket.imageUrl}
-                                                           target="_blank"
-                                                           rel="noopener noreferrer"
-                                                         >
-                                                           View
-                                                         </Button>
-                                                       ) : (
-                                                         'N/A'
-                                                       )}
-                                                     </TableCell>
+                                                            <IconButton
+                                                                size="small"
+                                                                color="primary"
+                                                                onClick={() => openVisitModal(ticket.id)}
+                                                            >
+                                                                <VisibilityIcon />
+                                                            </IconButton>
+                                                        </TableCell>
                                                     </TableRow>
                                                 ))}
                                     </TableBody>
@@ -327,7 +1328,7 @@ export default function ServiceManagement() {
                         </CardContent>
                     </Card>
 
-                    {/* Operating Status Chart Card */}
+                    {/* Chart */}
                     <Card>
                         <CardContent>
                             <Typography variant="h6" sx={{ fontWeight: 'bold' }} gutterBottom>Service Projects - Operating Status</Typography>
@@ -338,7 +1339,7 @@ export default function ServiceManagement() {
                                         <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                                         <XAxis dataKey="month" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
                                         <YAxis stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
-                                        <Tooltip content={<CustomTooltip />} />
+                                        <RechartsTooltip content={<CustomTooltip />} />
                                         <Line type="monotone" dataKey="tickets" stroke={theme.palette.primary.main} strokeWidth={3} dot={{ r: 5 }} />
                                     </LineChart>
                                 </ResponsiveContainer>
@@ -347,32 +1348,33 @@ export default function ServiceManagement() {
                     </Card>
                 </Stack>
 
-                {/* Create New Ticket Dialog */}
+                {/* Create Ticket Dialog */}
                 <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                     <DialogTitle>Create New Service Ticket</DialogTitle>
                     <DialogContent>
                         <Stack spacing={2.5} sx={{ mt: 2 }}>
-                            {/* Sale ID */}
                             <FormControl fullWidth variant="filled" error={!!formErrors.saleId}>
                                 <InputLabel>Sale ID</InputLabel>
                                 <Select label="Sale ID" name="saleId" value={newTicket.saleId} onChange={handleInputChange}>
-                                    {sales.map(s => ( <MenuItem key={s.saleId} value={s.saleId}>{`Sale #${s.saleId} (${s.customerName})`}</MenuItem> ))}
+                                    {sales.map(s => (
+                                        <MenuItem key={s.saleId} value={s.saleId}>{`Sale #${s.saleId} (${s.customerName})`}</MenuItem>
+                                    ))}
                                 </Select>
                                 {formErrors.saleId && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.saleId}</Typography>}
                             </FormControl>
 
                             <TextField label="Customer" value={newTicket.customerName} fullWidth variant="filled" InputProps={{ readOnly: true }} />
 
-                            {/* Product */}
                             <FormControl fullWidth variant="filled" disabled={!newTicket.saleId} error={!!formErrors.productId}>
                                 <InputLabel>Product</InputLabel>
                                 <Select label="Product" name="productId" value={newTicket.productId} onChange={handleInputChange}>
-                                    {productsForSelectedSale.map(p => ( <MenuItem key={p.productId} value={p.productId}>{p.productName}</MenuItem> ))}
+                                    {productsForSelectedSale.map(p => (
+                                        <MenuItem key={p.productId} value={p.productId}>{p.productName}</MenuItem>
+                                    ))}
                                 </Select>
                                 {formErrors.productId && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.productId}</Typography>}
                             </FormControl>
 
-                            {/* Engineer */}
                             <FormControl fullWidth variant="filled" error={!!formErrors.assignedEngineerId}>
                                 <InputLabel>Assigned Engineer</InputLabel>
                                 <Select label="Assigned Engineer" name="assignedEngineerId" value={newTicket.assignedEngineerId} onChange={handleInputChange}>
@@ -381,7 +1383,6 @@ export default function ServiceManagement() {
                                 {formErrors.assignedEngineerId && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.assignedEngineerId}</Typography>}
                             </FormControl>
 
-                            {/* Priority */}
                             <FormControl fullWidth variant="filled" error={!!formErrors.priority}>
                                 <InputLabel>Priority</InputLabel>
                                 <Select label="Priority" name="priority" value={newTicket.priority} onChange={handleInputChange}>
@@ -390,447 +1391,37 @@ export default function ServiceManagement() {
                                 {formErrors.priority && <Typography variant="caption" color="error" sx={{ ml: 1.5, mt: 0.5 }}>{formErrors.priority}</Typography>}
                             </FormControl>
 
-                            {/* Due Date */}
-                            <DatePicker 
-                                label="Due Date" 
-                                value={newTicket.dueDate} 
-                                onChange={handleDateChange} 
-                                sx={{ width: '100%' }} 
-                                slotProps={{ 
-                                    textField: { 
+                            <DatePicker
+                                label="Due Date"
+                                value={newTicket.dueDate}
+                                onChange={handleDateChange}
+                                sx={{ width: '100%' }}
+                                slotProps={{
+                                    textField: {
                                         variant: 'filled',
                                         error: !!formErrors.dueDate,
                                         helperText: formErrors.dueDate
-                                    } 
-                                }} 
+                                    }
+                                }}
                             />
                         </Stack>
                     </DialogContent>
                     <DialogActions sx={{ p: '16px 24px' }}>
                         <Button onClick={handleCloseDialog} disabled={isSubmitting}>Cancel</Button>
                         <Button onClick={handleCreateTicket} variant="contained" disabled={isSubmitting}>
-                            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Create'}
+                            {isSubmitting ? <CircularProgress size={24} /> : 'Create'}
                         </Button>
                     </DialogActions>
                 </Dialog>
+
+                {/* Visit History Modal */}
+                <VisitHistoryModal
+                    open={modalOpen}
+                    onClose={closeVisitModal}
+                    ticketId={selectedTicketId}
+                    visits={selectedTicketId ? (visitsMap[selectedTicketId] || []) : []}
+                />
             </Box>
         </LocalizationProvider>
     );
 }
-
-// import React, { useState, useEffect, useCallback, useMemo } from 'react';
-// import {
-//   Box, Card, CardContent, Typography, useTheme,
-//   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-//   Chip, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
-//   TextField, FormControl, InputLabel, Select, MenuItem, Divider, CircularProgress, Skeleton
-// } from '@mui/material';
-// import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-// import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-// import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-// import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
-// import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-// import dayjs from 'dayjs';
-// import { VITE_API_BASE_URL } from "../../utils/State";
-// import toast from 'react-hot-toast';
-
-// // --- Helper Components ---
-// const getStatusChip = (status) => {
-//   let color;
-//   if (status === 'Resolved' || status === 'APPROVED') color = 'success';
-//   else if (status === 'In Progress' || status === 'Open' || status === "OPEN") color = 'warning';
-//   else if (status === 'Pending') color = 'error';
-//   else color = 'default';
-//   return <Chip label={status} color={color} size="small" variant="outlined" sx={{ fontWeight: 'bold' }} />;
-// };
-
-// const getPriorityChip = (priority) => {
-//   let color;
-//   if (priority === 'HIGH') color = 'error';
-//   else if (priority === 'MEDIUM') color = 'warning';
-//   else color = 'success';
-//   return <Chip label={priority} color={color} size="small" />;
-// };
-
-// const CustomTooltip = ({ active, payload, label }) => {
-//   if (active && payload && payload.length) {
-//     return <Card sx={{ p: 1 }}><Typography variant="body2">{`${label}: ${payload[0].value} Tickets`}</Typography></Card>;
-//   }
-//   return null;
-// };
-
-// const TableSkeleton = ({ columns }) =>
-//   Array.from(new Array(4)).map((_, i) =>
-//     <TableRow key={i}><TableCell colSpan={columns}><Skeleton animation="wave" /></TableCell></TableRow>
-//   );
-
-// const TableError = ({ columns, message }) =>
-//   <TableRow><TableCell colSpan={columns} align="center"><Typography color="error">{message}</Typography></TableCell></TableRow>;
-
-// // --- Custom Hook for Logic ---
-// const useServiceTickets = () => {
-//   const [tickets, setTickets] = useState([]);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [openDialog, setOpenDialog] = useState(false);
-//   const [isSubmitting, setIsSubmitting] = useState(false);
-
-//   const [engineers, setEngineers] = useState([]);
-//   const [sales, setSales] = useState([]);
-//   const [productsForSelectedSale, setProductsForSelectedSale] = useState([]);
-//   const [customers, setCustomers] = useState([]);
-//   const initialState = { saleId: '', customerId: '', customerName: '', productId: '', assignedEngineerId: '', priority: '', dueDate: null };
-//   const [newTicket, setNewTicket] = useState(initialState);
-
-//   // --- View Dialog State ---
-//   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-//   const [selectedTicketDetails, setSelectedTicketDetails] = useState(null);
-//   const [isViewing, setIsViewing] = useState(false);
-
-//   const token = localStorage.getItem("authKey");
-
-//   const axiosConfig = useMemo(() => ({
-//     headers: { Authorization: `Bearer ${token}` },
-//   }), [token]);
-
-//   const fetchTickets = useCallback(async () => {
-//     setIsLoading(true);
-//     setError(null);
-//     try {
-//       const response = await fetch(`${VITE_API_BASE_URL}/tickets/get-all`, axiosConfig);
-//       if (!response.ok) {
-//         throw new Error('Failed to fetch service tickets from API.');
-//       }
-//       const data = await response.json();
-
-//       const formattedTickets = data.map(ticket => ({
-//         id: ticket.ticketId,
-//         assignedTo: ticket.assignedEngineerName,
-//         customer: ticket.customerName,
-//         product: ticket.productName,
-//         status: ticket.status,
-//         priority: ticket.priority,
-//         dueDate: ticket.dueDate,
-//         imageUrl: ticket.imageUrl,
-//       }));
-
-//       setTickets(formattedTickets);
-//     } catch (err) {
-//       setError("Failed to fetch service tickets.");
-//       console.error(err);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   }, [axiosConfig]);
-
-//   useEffect(() => {
-//     const fetchDropdownData = async () => {
-//       try {
-//         const [engineersRes, customersRes, salesRes] = await Promise.all([
-//           fetch(`${VITE_API_BASE_URL}/admin/users`, axiosConfig),
-//           fetch(`${VITE_API_BASE_URL}/customer`, axiosConfig),
-//           fetch(`${VITE_API_BASE_URL}/sales/get-all-sales`, axiosConfig)
-//         ]);
-
-//         if (!engineersRes.ok || !customersRes.ok || !salesRes.ok) {
-//           throw new Error('Failed to fetch form data');
-//         }
-
-//         const engineersData = await engineersRes.json();
-//         const customersData = await customersRes.json();
-//         const salesData = await salesRes.json();
-//         const engineerUsers = engineersData.filter(user => user.role.name === 'ENGINEER');
-//         setEngineers(engineerUsers);
-//         setCustomers(customersData);
-//         setSales(salesData);
-//       } catch (err) {
-//         console.error("Failed to load dropdown data:", err);
-//       }
-//     };
-
-//     fetchTickets();
-//     fetchDropdownData();
-//   }, [fetchTickets, axiosConfig]);
-
-//   const handleOpenDialog = () => setOpenDialog(true);
-//   const handleCloseDialog = () => {
-//     setOpenDialog(false);
-//     setNewTicket(initialState);
-//     setProductsForSelectedSale([]);
-//   };
-
-//   const handleInputChange = (e) => {
-//     const { name, value } = e.target;
-//     if (name === 'saleId') {
-//       const selectedSale = sales.find(sale => sale.saleId === value);
-//       if (selectedSale) {
-//         const matchingCustomer = customers.find(cust => cust.customerName?.trim().toLowerCase() === selectedSale.customerName?.trim().toLowerCase());
-//         setNewTicket(prev => ({
-//           ...prev,
-//           saleId: value,
-//           customerId: matchingCustomer?.customerId || null,
-//           customerName: selectedSale.customerName,
-//           productId: ''
-//         }));
-//         setProductsForSelectedSale(selectedSale.items || []);
-//       }
-//     } else {
-//       setNewTicket(prev => ({ ...prev, [name]: value }));
-//     }
-//   };
-
-//   const handleDateChange = (date) => setNewTicket(prev => ({ ...prev, dueDate: date }));
-
-//   const handleCreateTicket = async () => {
-//     setIsSubmitting(true);
-//     try {
-//       const ticketData = {
-//         saleId: newTicket.saleId,
-//         customerId: newTicket.customerId,
-//         productId: newTicket.productId,
-//         assignedEngineerId: newTicket.assignedEngineerId,
-//         priority: newTicket.priority,
-//         dueDate: newTicket.dueDate ? dayjs(newTicket.dueDate).format('YYYY-MM-DD') : null,
-//       };
-
-//       const response = await fetch(`${VITE_API_BASE_URL}/tickets/open`, {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-//         body: JSON.stringify(ticketData),
-//       });
-
-//       if (!response.ok) {
-//         const errorBody = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
-//         throw new Error(`API Error: ${response.status} - ${errorBody.message || 'Failed to create ticket'}`);
-//       }
-//       handleCloseDialog();
-//       fetchTickets();
-//       toast.success("Ticket created successfully");
-//     } catch (err) {
-//       console.error("Failed to create ticket:", err);
-//       toast.error("Failed to create ticket");
-//     } finally {
-//       setIsSubmitting(false);
-//     }
-//   };
-
-//   const handleApproveTicket = async (ticketId) => {
-//     try {
-//       const response = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/approve`, {
-//         method: 'PATCH',
-//         headers: { 'Authorization': `Bearer ${token}` }
-//       });
-//       if (!response.ok) throw new Error('Failed to approve ticket');
-
-//       const updatedTicket = await response.json();
-//       setTickets(prev =>
-//         prev.map(ticket =>
-//           ticket.id === ticketId ? { ...ticket, status: updatedTicket.status } : ticket
-//         )
-//       );
-//     } catch (err) {
-//       console.error(`Error approving ticket ${ticketId}:`, err);
-//     }
-//   };
-
-//   // --- New: View Ticket Details ---
-//   const handleViewTicket = async (ticketId) => {
-//     setIsViewing(true);
-//     setViewDialogOpen(true);
-//     setSelectedTicketDetails(null);
-//     try {
-//       const response = await fetch(`${VITE_API_BASE_URL}/service-visits/ticket/${ticketId}`, {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
-//       if (!response.ok) throw new Error("Failed to fetch service visit details");
-//       const data = await response.json();
-//       setSelectedTicketDetails(data[0]);
-//     } catch (err) {
-//       console.error("Error fetching service visit details:", err);
-//       toast.error("Failed to load visit details");
-//     } finally {
-//       setIsViewing(false);
-//     }
-//   };
-
-//   const handleCloseViewDialog = () => {
-//     setViewDialogOpen(false);
-//     setSelectedTicketDetails(null);
-//   };
-
-//   return {
-//     tickets, isLoading, error, openDialog, isSubmitting, newTicket,
-//     engineers, sales, productsForSelectedSale,
-//     handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
-//     handleApproveTicket,
-//     viewDialogOpen, selectedTicketDetails, isViewing,
-//     handleViewTicket, handleCloseViewDialog,
-//   };
-// };
-
-// // --- Main Component ---
-// export default function ServiceManagement() {
-//   const theme = useTheme();
-//   const {
-//     tickets, isLoading, error, openDialog, isSubmitting, newTicket,
-//     engineers, sales, productsForSelectedSale,
-//     handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange, handleCreateTicket,
-//     handleApproveTicket,
-//     viewDialogOpen, selectedTicketDetails, isViewing,
-//     handleViewTicket, handleCloseViewDialog,
-//   } = useServiceTickets();
-
-//   const operatingStatusData = [
-//     { month: 'Jan', tickets: 30 }, { month: 'Feb', tickets: 25 }, { month: 'Mar', tickets: 40 },
-//     { month: 'Apr', tickets: 35 }, { month: 'May', tickets: 28 }, { month: 'Jun', tickets: 45 },
-//     { month: 'Jul', tickets: 32 }, { month: 'Aug', tickets: 50 }, { month: 'Sep', tickets: 38 },
-//     { month: 'Oct', tickets: 42 }, { month: 'Nov', tickets: 27 }, { month: 'Dec', tickets: 48 },
-//   ];
-
-//   return (
-//     <LocalizationProvider dateAdapter={AdapterDayjs}>
-//       <Box>
-//         <Stack spacing={3}>
-//           {/* --- Ticket Table --- */}
-//           <Card>
-//             <CardContent>
-//               <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={1} mb={1}>
-//                 <Stack direction="row" spacing={1} alignItems="center">
-//                   <SupportAgentIcon color="primary" />
-//                   <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Service Tickets</Typography>
-//                 </Stack>
-//                 <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenDialog}>
-//                   Create New Ticket
-//                 </Button>
-//               </Stack>
-//               <TableContainer sx={{ maxHeight: 'calc(100vh - 450px)', overflowY: 'auto' }}>
-//                 <Table stickyHeader size="small">
-//                   <TableHead>
-//                     <TableRow>
-//                       {['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date', 'View'].map(h => (
-//                         <TableCell key={h}>{h}</TableCell>
-//                       ))}
-//                     </TableRow>
-//                   </TableHead>
-//                   <TableBody>
-//                     {isLoading ? <TableSkeleton columns={8} /> :
-//                       error ? <TableError columns={8} message={error} /> :
-//                         tickets.map(ticket => (
-//                           <TableRow key={ticket.id} hover>
-//                             <TableCell sx={{ fontWeight: 500 }}>#{String(ticket.id).padStart(3, '0')}</TableCell>
-//                             <TableCell>{ticket.assignedTo}</TableCell>
-//                             <TableCell>{ticket.customer}</TableCell>
-//                             <TableCell>{ticket.product}</TableCell>
-//                             <TableCell>
-//                               {ticket.status === 'OPEN' ? (
-//                                 <Button variant="contained" size="small" onClick={() => handleApproveTicket(ticket.id)}>
-//                                   Approve
-//                                 </Button>
-//                               ) : getStatusChip(ticket.status)}
-//                             </TableCell>
-//                             <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
-//                             <TableCell>{dayjs(ticket.dueDate).format('DD MMM YYYY')}</TableCell>
-//                             <TableCell>
-//                               <Button variant="outlined" color="primary" size="small" onClick={() => handleViewTicket(ticket.id)}>
-//                                 View
-//                               </Button>
-//                             </TableCell>
-//                           </TableRow>
-//                         ))}
-//                   </TableBody>
-//                 </Table>
-//               </TableContainer>
-//             </CardContent>
-//           </Card>
-
-//           {/* --- Chart --- */}
-//           <Card>
-//             <CardContent>
-//               <Typography variant="h6" sx={{ fontWeight: 'bold' }} gutterBottom>Service Projects - Operating Status</Typography>
-//               <Divider sx={{ mb: 2 }} />
-//               <Box sx={{ height: 250 }}>
-//                 <ResponsiveContainer width="100%" height="100%">
-//                   <LineChart data={operatingStatusData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-//                     <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-//                     <XAxis dataKey="month" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
-//                     <YAxis stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
-//                     <Tooltip content={<CustomTooltip />} />
-//                     <Line type="monotone" dataKey="tickets" stroke={theme.palette.primary.main} strokeWidth={3} dot={{ r: 5 }} />
-//                   </LineChart>
-//                 </ResponsiveContainer>
-//               </Box>
-//             </CardContent>
-//           </Card>
-//         </Stack>
-
-//         {/* --- Create Ticket Dialog --- */}
-//         <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-//           <DialogTitle>Create New Service Ticket</DialogTitle>
-//           <DialogContent>
-//             <Stack spacing={2.5} sx={{ mt: 2 }}>
-//               <FormControl fullWidth variant="filled">
-//                 <InputLabel>Sale ID</InputLabel>
-//                 <Select label="Sale ID" name="saleId" value={newTicket.saleId} onChange={handleInputChange}>
-//                   {sales.map(s => (<MenuItem key={s.saleId} value={s.saleId}>{`Sale #${s.saleId} (${s.customerName})`}</MenuItem>))}
-//                 </Select>
-//               </FormControl>
-//               <TextField label="Customer" value={newTicket.customerName} fullWidth variant="filled" InputProps={{ readOnly: true }} />
-//               <FormControl fullWidth variant="filled" disabled={!newTicket.saleId}>
-//                 <InputLabel>Product</InputLabel>
-//                 <Select label="Product" name="productId" value={newTicket.productId} onChange={handleInputChange}>
-//                   {productsForSelectedSale.map(p => (<MenuItem key={p.productId} value={p.productId}>{p.productName}</MenuItem>))}
-//                 </Select>
-//               </FormControl>
-//               <FormControl fullWidth variant="filled">
-//                 <InputLabel>Assigned Engineer</InputLabel>
-//                 <Select label="Assigned Engineer" name="assignedEngineerId" value={newTicket.assignedEngineerId} onChange={handleInputChange}>
-//                   {engineers.map(e => <MenuItem key={e.userId} value={e.userId}>{e.name}</MenuItem>)}
-//                 </Select>
-//               </FormControl>
-//               <FormControl fullWidth variant="filled">
-//                 <InputLabel>Priority</InputLabel>
-//                 <Select label="Priority" name="priority" value={newTicket.priority} onChange={handleInputChange}>
-//                   {['LOW', 'MEDIUM', 'HIGH'].map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
-//                 </Select>
-//               </FormControl>
-//               <DatePicker label="Due Date" value={newTicket.dueDate} onChange={handleDateChange} sx={{ width: '100%' }} slotProps={{ textField: { variant: 'filled' } }} />
-//             </Stack>
-//           </DialogContent>
-//           <DialogActions sx={{ p: '16px 24px' }}>
-//             <Button onClick={handleCloseDialog} disabled={isSubmitting}>Cancel</Button>
-//             <Button onClick={handleCreateTicket} variant="contained" disabled={!newTicket.productId || isSubmitting}>
-//               {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Create'}
-//             </Button>
-//           </DialogActions>
-//         </Dialog>
-
-//         {/* --- View Ticket Details Dialog --- */}
-//         <Dialog open={viewDialogOpen} onClose={handleCloseViewDialog} maxWidth="sm" fullWidth>
-//           <DialogTitle>Service Visit Details</DialogTitle>
-//           <DialogContent dividers>
-//             {isViewing ? (
-//               <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-//                 <CircularProgress />
-//               </Box>
-//             ) : selectedTicketDetails ? (
-//               <Stack spacing={1.5}>
-//                 <Typography><b>Ticket ID:</b> {selectedTicketDetails.ticketId}</Typography>
-//                 <Typography><b>Engineer:</b> {selectedTicketDetails.engineerName}</Typography>
-//                 <Typography><b>Visit Status:</b> {selectedTicketDetails.visitStatus}</Typography>
-//                 <Typography><b>Used Parts:</b> {selectedTicketDetails.usedParts || 'N/A'}</Typography>
-//                 <Typography><b>Missing Part:</b> {selectedTicketDetails.missingPart || 'N/A'}</Typography>
-//                 <Typography><b>Replaced Part:</b> {selectedTicketDetails.replacedPart || 'N/A'}</Typography>
-//                 <Typography><b>Visit Date:</b> {dayjs(selectedTicketDetails.visitDate).format('DD MMM YYYY')}</Typography>
-//               </Stack>
-//             ) : (
-//               <Typography color="error">No details available for this ticket.</Typography>
-//             )}
-//           </DialogContent>
-//           <DialogActions>
-//             <Button onClick={handleCloseViewDialog}>Close</Button>
-//           </DialogActions>
-//         </Dialog>
-//       </Box>
-//     </LocalizationProvider>
-//   );
-// }
