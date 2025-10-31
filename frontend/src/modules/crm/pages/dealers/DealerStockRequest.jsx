@@ -46,13 +46,7 @@ export default function StockRequestPage() {
 
     // 1. Updated fetchHistory to use the live API
     const fetchHistory = useCallback(async () => {
-        // const user = JSON.parse(localStorage.getItem('user'));
-        // if (!user || !user.id) {
-        //     console.error("User ID not found in local storage.");
-        //     setIsHistoryLoading(false);
-        //     return;
-        // }
-
+    
         setIsHistoryLoading(true);
         try {
             const response = await axios.get(`${VITE_API_BASE_URL}/stock-requests/user`, axiosConfig);
