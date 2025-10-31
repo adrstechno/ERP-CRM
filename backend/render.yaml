@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: loagma-crm-backend
+    name: crm-backend
     env: java
     plan: free # you can upgrade later if needed
     buildCommand: mvn clean package -DskipTests
