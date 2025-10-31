@@ -847,8 +847,8 @@ import {
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import ImageIcon from '@mui/icons-material/Image';
 import CloseIcon from '@mui/icons-material/Close';
+import ImageIcon from '@mui/icons-material/Image';
 import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -886,7 +886,7 @@ const TableError = ({ columns, message }) => (
     <TableRow><TableCell colSpan={columns} align="center"><Typography color="error">{message}</Typography></TableCell></TableRow>
 );
 
-// --- Visit History Modal (Exact Match to ServiceVisitWorkflow) ---
+// --- Visit History Modal ---
 const VisitHistoryModal = ({ open, onClose, ticketId, visits = [] }) => {
     const [imageDialog, setImageDialog] = useState({ open: false, url: "", title: "" });
 
@@ -945,31 +945,16 @@ const VisitHistoryModal = ({ open, onClose, ticketId, visits = [] }) => {
                                     </Box>
 
                                     <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={2} mb={2}>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary">Start KM</Typography>
-                                            <Typography variant="body2" fontWeight={500}>{visit.startKm || '-'}</Typography>
-                                        </Box>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary">End KM</Typography>
-                                            <Typography variant="body2" fontWeight={500}>{visit.endKm || '-'}</Typography>
-                                        </Box>
+                                        <Box><Typography variant="caption" color="text.secondary">Start KM</Typography><Typography variant="body2" fontWeight={500}>{visit.startKm || '-'}</Typography></Box>
+                                        <Box><Typography variant="caption" color="text.secondary">End KM</Typography><Typography variant="body2" fontWeight={500}>{visit.endKm || '-'}</Typography></Box>
                                         {totalTravelled !== null && (
-                                            <Box>
-                                                <Typography variant="caption" color="text.secondary">Total Travelled</Typography>
-                                                <Typography variant="body2" fontWeight={600} color="primary.main">
-                                                    {totalTravelled} KM
-                                                </Typography>
+                                            <Box><Typography variant="caption" color="text.secondary">Total Travelled</Typography>
+                                                <Typography variant="body2" fontWeight={600} color="primary.main">{totalTravelled} KM</Typography>
                                             </Box>
                                         )}
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary">Started At</Typography>
-                                            <Typography variant="body2" fontWeight={500}>{formatDate(visit.startTime || visit.startedAt)}</Typography>
-                                        </Box>
+                                        <Box><Typography variant="caption" color="text.secondary">Started At</Typography><Typography variant="body2" fontWeight={500}>{formatDate(visit.startTime || visit.startedAt)}</Typography></Box>
                                         {visit.endTime && (
-                                            <Box>
-                                                <Typography variant="caption" color="text.secondary">Ended At</Typography>
-                                                <Typography variant="body2" fontWeight={500}>{formatDate(visit.endTime || visit.endedAt)}</Typography>
-                                            </Box>
+                                            <Box><Typography variant="caption" color="text.secondary">Ended At</Typography><Typography variant="body2" fontWeight={500}>{formatDate(visit.endTime || visit.endedAt)}</Typography></Box>
                                         )}
                                     </Box>
 
@@ -978,22 +963,14 @@ const VisitHistoryModal = ({ open, onClose, ticketId, visits = [] }) => {
                                             <Typography variant="caption" color="text.secondary" display="block" mb={1}>Photos:</Typography>
                                             <Box display="flex" gap={2}>
                                                 {(visit.startKmPhoto || visit.startKmPhotoUrl) && (
-                                                    <Button
-                                                        size="small"
-                                                        variant="outlined"
-                                                        startIcon={<ImageIcon />}
-                                                        onClick={() => openImage(visit.startKmPhoto || visit.startKmPhotoUrl, `Visit #${index + 1} - Start KM`)}
-                                                    >
+                                                    <Button size="small" variant="outlined" startIcon={<ImageIcon />}
+                                                        onClick={() => openImage(visit.startKmPhoto || visit.startKmPhotoUrl, `Visit #${index + 1} - Start KM`)}>
                                                         Start
                                                     </Button>
                                                 )}
                                                 {(visit.endKmPhoto || visit.endKmPhotoUrl) && (
-                                                    <Button
-                                                        size="small"
-                                                        variant="outlined"
-                                                        startIcon={<ImageIcon />}
-                                                        onClick={() => openImage(visit.endKmPhoto || visit.endKmPhotoUrl, `Visit #${index + 1} - End KM`)}
-                                                    >
+                                                    <Button size="small" variant="outlined" startIcon={<ImageIcon />}
+                                                        onClick={() => openImage(visit.endKmPhoto || visit.endKmPhotoUrl, `Visit #${index + 1} - End KM`)}>
                                                         End
                                                     </Button>
                                                 )}
@@ -1001,24 +978,9 @@ const VisitHistoryModal = ({ open, onClose, ticketId, visits = [] }) => {
                                         </Box>
                                     )}
 
-                                    {visit.usedParts && (
-                                        <Box mb={1}>
-                                            <Typography variant="caption" color="text.secondary">Used Parts:</Typography>
-                                            <Typography variant="body2">{visit.usedParts}</Typography>
-                                        </Box>
-                                    )}
-                                    {visit.missingPart && (
-                                        <Box mb={1}>
-                                            <Typography variant="caption" color="text.secondary">Missing Part:</Typography>
-                                            <Typography variant="body2" color="warning.main">{visit.missingPart}</Typography>
-                                        </Box>
-                                    )}
-                                    {visit.remarks && (
-                                        <Box mb={1}>
-                                            <Typography variant="caption" color="text.secondary">Remarks:</Typography>
-                                            <Typography variant="body2">{visit.remarks}</Typography>
-                                        </Box>
-                                    )}
+                                    {visit.usedParts && <Box mb={1}><Typography variant="caption" color="text.secondary">Used Parts:</Typography><Typography variant="body2">{visit.usedParts}</Typography></Box>}
+                                    {visit.missingPart && <Box mb={1}><Typography variant="caption" color="text.secondary">Missing Part:</Typography><Typography variant="body2" color="warning.main">{visit.missingPart}</Typography></Box>}
+                                    {visit.remarks && <Box mb={1}><Typography variant="caption" color="text.secondary">Remarks:</Typography><Typography variant="body2">{visit.remarks}</Typography></Box>}
                                     {visit.lastUpdatedBy && (
                                         <Typography variant="caption" color="text.secondary" display="block" mt={1}>
                                             Updated by {visit.lastUpdatedBy} at {formatDate(visit.lastUpdatedAt)}
@@ -1033,17 +995,8 @@ const VisitHistoryModal = ({ open, onClose, ticketId, visits = [] }) => {
             </Dialog>
 
             <Dialog open={imageDialog.open} onClose={closeImage} maxWidth="md" fullWidth>
-                <DialogTitle>
-                    {imageDialog.title}
-                    <IconButton onClick={closeImage} sx={{ position: 'absolute', right: 8, top: 8 }}>
-                        <CloseIcon />
-                    </IconButton>
-                </DialogTitle>
-                <DialogContent>
-                    {imageDialog.url && (
-                        <img src={imageDialog.url} alt={imageDialog.title} style={{ width: '100%', height: 'auto' }} />
-                    )}
-                </DialogContent>
+                <DialogTitle>{imageDialog.title}<IconButton onClick={closeImage} sx={{ position: 'absolute', right: 8, top: 8 }}><CloseIcon /></IconButton></DialogTitle>
+                <DialogContent>{imageDialog.url && <img src={imageDialog.url} alt={imageDialog.title} style={{ width: '100%', height: 'auto' }} />}</DialogContent>
             </Dialog>
         </>
     );
@@ -1059,6 +1012,7 @@ const useServiceTickets = () => {
     const [error, setError] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [userRole, setUserRole] = useState(null);
 
     const [engineers, setEngineers] = useState([]);
     const [sales, setSales] = useState([]);
@@ -1071,6 +1025,19 @@ const useServiceTickets = () => {
 
     const token = localStorage.getItem("authKey");
     const axiosConfig = useMemo(() => ({ headers: { Authorization: `Bearer ${token}` } }), [token]);
+
+    // Get Role from JWT
+    useEffect(() => {
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const role = payload.role || payload.authorities?.[0]?.authority || payload.authorities?.[0];
+                setUserRole(role?.replace('ROLE_', ''));
+            } catch (e) {
+                console.error("JWT parse error", e);
+            }
+        }
+    }, [token]);
 
     const validateTicket = (t) => {
         const errors = {};
@@ -1213,8 +1180,28 @@ const useServiceTickets = () => {
                 body: JSON.stringify(payload),
             });
 
-            if (!res.ok) throw new Error((await res.json()).message || 'Failed');
+            if (!res.ok) throw new Error((await res.json()).message || 'Failed to create');
+
+            const createdTicket = await res.json();
+            const ticketId = createdTicket.ticketId;
+
             toast.success("Ticket created");
+
+            // AUTO APPROVE IF ADMIN/SUBADMIN
+            if (['ADMIN', 'SUBADMIN'].includes(userRole)) {
+                try {
+                    const approveRes = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/approve`, {
+                        method: 'PATCH',
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (approveRes.ok) {
+                        toast.success("Ticket auto-approved");
+                    }
+                } catch (err) {
+                    toast.warn("Auto-approve failed");
+                }
+            }
+
             handleCloseDialog();
             fetchTickets();
         } catch (err) {
@@ -1238,13 +1225,30 @@ const useServiceTickets = () => {
         }
     };
 
+    const handleCloseTicket = async (ticketId) => {
+        if (!window.confirm("Are you sure you want to close this ticket?")) return;
+
+        try {
+            const res = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/close`, {
+                method: 'PATCH',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error();
+            const updated = await res.json();
+            setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status: updated.status } : t));
+            toast.success("Ticket closed");
+        } catch {
+            toast.error("Failed to close ticket");
+        }
+    };
+
     return {
         tickets, isLoading, error, openDialog, isSubmitting, newTicket,
         engineers, sales, productsForSelectedSale, formErrors,
-        modalOpen, selectedTicketId, visitsMap,
+        modalOpen, selectedTicketId, visitsMap, userRole,
         openVisitModal, closeVisitModal,
         handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange,
-        handleCreateTicket, handleApproveTicket
+        handleCreateTicket, handleApproveTicket, handleCloseTicket
     };
 };
 
@@ -1254,10 +1258,10 @@ export default function ServiceManagement() {
     const {
         tickets, isLoading, error, openDialog, isSubmitting, newTicket,
         engineers, sales, productsForSelectedSale, formErrors,
-        modalOpen, selectedTicketId, visitsMap,
+        modalOpen, selectedTicketId, visitsMap, userRole,
         openVisitModal, closeVisitModal,
         handleOpenDialog, handleCloseDialog, handleInputChange, handleDateChange,
-        handleCreateTicket, handleApproveTicket
+        handleCreateTicket, handleApproveTicket, handleCloseTicket
     } = useServiceTickets();
 
     const operatingStatusData = [
@@ -1288,7 +1292,7 @@ export default function ServiceManagement() {
                                 <Table stickyHeader size="small">
                                     <TableHead>
                                         <TableRow>
-                                            {['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date', 'View'].map(h => (
+                                            {['Ticket ID', 'Assigned To', 'Customer', 'Product', 'Status', 'Priority', 'Due Date', 'Actions'].map(h => (
                                                 <TableCell key={h} sx={{ fontWeight: 'bold' }}>{h}</TableCell>
                                             ))}
                                         </TableRow>
@@ -1303,22 +1307,27 @@ export default function ServiceManagement() {
                                                         <TableCell>{ticket.customer}</TableCell>
                                                         <TableCell>{ticket.product}</TableCell>
                                                         <TableCell>
-                                                            {ticket.status === 'OPEN' ? (
+                                                            {ticket.status === 'OPEN' && !['ADMIN', 'SUBADMIN'].includes(userRole) ? (
                                                                 <Button size="small" variant="contained" onClick={() => handleApproveTicket(ticket.id)}>
                                                                     Approve
                                                                 </Button>
-                                                            ) : getStatusChip(ticket.status)}
+                                                            ) : (
+                                                                getStatusChip(ticket.status)
+                                                            )}
                                                         </TableCell>
                                                         <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
                                                         <TableCell>{dayjs(ticket.dueDate).format('DD MMM YYYY')}</TableCell>
                                                         <TableCell>
-                                                            <IconButton
-                                                                size="small"
-                                                                color="primary"
-                                                                onClick={() => openVisitModal(ticket.id)}
-                                                            >
-                                                                <VisibilityIcon />
-                                                            </IconButton>
+                                                            <Stack direction="row" spacing={1}>
+                                                                <IconButton size="small" color="primary" onClick={() => openVisitModal(ticket.id)}>
+                                                                    <VisibilityIcon />
+                                                                </IconButton>
+                                                                {ticket.status === 'COMPLETED' && ['ADMIN', 'SUBADMIN'].includes(userRole) && (
+                                                                    <IconButton size="small" color="error" onClick={() => handleCloseTicket(ticket.id)}>
+                                                                        <CloseIcon />
+                                                                    </IconButton>
+                                                                )}
+                                                            </Stack>
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
