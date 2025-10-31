@@ -41,9 +41,6 @@ public class ServiceVisit {
     private Double endKm;
     private String endKmPhotoUrl;
 
-    // For same-day part collection
-    private Double partCollectedKm;
-    private String partCollectedPhotoUrl;
 
     @Enumerated(EnumType.STRING)
     private ServiceStatus visitStatus; // IN_PROGRESS, NEED_PART, COMPLETED

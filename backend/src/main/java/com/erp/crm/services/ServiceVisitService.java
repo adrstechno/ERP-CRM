@@ -114,8 +114,7 @@ public class ServiceVisitService {
         String partPhotoUrl = uploadPhoto(dto.getPartCollectedPhoto(), "tickets/" + ticket.getId() + "/part");
 
         visit.setPartCollectedSameDay(true);
-        visit.setPartCollectedKm(dto.getPartCollectedKm());
-        visit.setPartCollectedPhotoUrl(partPhotoUrl);
+
         visit.setVisitStatus(ServiceStatus.PART_COLLECTED);
 
         ticket.setServiceStatus(ServiceStatus.PART_COLLECTED);
