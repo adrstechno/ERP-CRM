@@ -1,3 +1,5 @@
+// ServiceVisitWorkflow.jsx - FINAL FIX
+
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Box,
@@ -12,80 +14,68 @@ import {
   Step,
   StepLabel,
   Skeleton,
-  useTheme,
-  IconButton,
+  Alert,
   Chip,
+  Paper,
 } from "@mui/material";
-import { ArrowDownward } from "@mui/icons-material";
+import { PlayArrow, Pause, CheckCircle } from "@mui/icons-material";
 import axios from "axios";
-import dayjs from "dayjs";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers";
 import { VITE_API_BASE_URL } from "../../utils/State";
 
-/**
- * ServiceReport.jsx
- *
- * Single-page service visit workflow UI. Matches the workflow:
- * ASSIGNED → EN_ROUTE → ON_SITE → NEED_PART → PART_COLLECTED → FIXED → COMPLETED
- *
- * Endpoints used (assumed):
- * POST  ${VITE_API_BASE_URL}/tickets/start
- * POST  ${VITE_API_BASE_URL}/tickets/arrive
- * POST  ${VITE_API_BASE_URL}/tickets/need-part
- * POST  ${VITE_API_BASE_URL}/tickets/part-collected
- * POST  ${VITE_API_BASE_URL}/tickets/start-next-day
- * POST  ${VITE_API_BASE_URL}/tickets/fixed
- * POST  ${VITE_API_BASE_URL}/tickets/complete
- *
- * GET   ${VITE_API_BASE_URL}/tickets/get-services-by-user
- * GET   ${VITE_API_BASE_URL}/products/all
- * GET   ${VITE_API_BASE_URL}/service-visits/ticket/{ticketId}
- * GET   ${VITE_API_BASE_URL}/service-visits/my-visits
- *
- * Keep your CSS/theme externally; this file uses MUI theme and inline sx similar to your previous page.
- */
-
-export default function ServiceReport() {
-  const theme = useTheme();
+export default function ServiceVisitWorkflow() {
   const token = localStorage.getItem("authKey");
-
+  
   const axiosConfig = useMemo(
-    () => ({
-      headers: { Authorization: `Bearer ${token}` },
-    }),
+    () => ({ headers: { Authorization: `Bearer ${token}` } }),
     [token]
   );
 
-  const [tickets, setTickets] = useState([]);
-  const [visits, setVisits] = useState([]);
-  const [form, setForm] = useState({
-    ticketId: "",
-    startKm: "",
-    endKm: "",
-    usedParts: "",
-    missingPart: "",
-    remarks: "",
-  });
-  const [photo, setPhoto] = useState(null);
-  const [activeStep, setActiveStep] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // === STATE ===
+  const [allTickets, setAllTickets] = useState([]);
+  const [myVisits, setMyVisits] = useState([]);
+  const [activeVisit, setActiveVisit] = useState(null);
+  const [selectedTicketId, setSelectedTicketId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  // Form fields
+  const [startKm, setStartKm] = useState("");
+  const [endKm, setEndKm] = useState("");
+  const [startPhoto, setStartPhoto] = useState(null);
+  const [endPhoto, setEndPhoto] = useState(null);
+  const [usedParts, setUsedParts] = useState("");
+  const [missingPart, setMissingPart] = useState("");
+  const [remarks, setRemarks] = useState("");
+
+  // UI toggles
+  const [showNeedPartForm, setShowNeedPartForm] = useState(false);
+  const [showFixedForm, setShowFixedForm] = useState(false);
 
   const steps = ["ASSIGNED", "EN_ROUTE", "ON_SITE", "NEED_PART", "FIXED", "COMPLETED"];
 
-  // Fetch all tickets and my visits
+  // === FETCH DATA ===
   const fetchData = useCallback(async () => {
     setIsLoading(true);
+    setError("");
     try {
       const [ticketsRes, visitsRes] = await Promise.all([
         axios.get(`${VITE_API_BASE_URL}/tickets/get-by-user`, axiosConfig),
         axios.get(`${VITE_API_BASE_URL}/service-visits/my-visits`, axiosConfig),
       ]);
-      setTickets(ticketsRes.data);
-      setVisits(visitsRes.data);
+      
+      setAllTickets(ticketsRes.data || []);
+      
+      setMyVisits(visitsRes.data || []);
+      console.log(visitsRes);
+      const active = visitsRes.data?.find(v => v.active === true);
+      if (active) {
+        setActiveVisit(active);
+        setSelectedTicketId(active.ticketId);
+      }
     } catch (err) {
       console.error("Error fetching:", err);
+      setError(err.response?.data?.message || "Failed to load data");
     } finally {
       setIsLoading(false);
     }
@@ -95,229 +85,418 @@ export default function ServiceReport() {
     fetchData();
   }, [fetchData]);
 
-  const handleChange = (field) => (e) => {
-    setForm({ ...form, [field]: e.target.value });
+  const clearForm = () => {
+    setStartKm("");
+    setEndKm("");
+    setStartPhoto(null);
+    setEndPhoto(null);
+    setUsedParts("");
+    setMissingPart("");
+    setRemarks("");
+    setShowNeedPartForm(false);
+    setShowFixedForm(false);
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) setPhoto(e.target.files[0]);
-  };
+  const currentStepIndex = useMemo(() => {
+    if (!activeVisit) return 0;
+    const index = steps.indexOf(activeVisit.visitStatus);
+    return index >= 0 ? index : 0;
+  }, [activeVisit]);
 
-  // ----------- Stage Actions (API Calls) -----------
+  const isTicketLocked = !!activeVisit;
+  console.log(allTickets);
+  
+
+  // Filter only ACTIVE tickets (ASSIGNED, NEED_PART, EN_ROUTE, ON_SITE)
+  const availableTickets = useMemo(() => {
+    return allTickets.filter(t => 
+      t.status === "ASSIGNED" || 
+      t.status === "NEED_PART" ||
+      t.status === "EN_ROUTE" ||
+      t.status === "ON_SITE"||
+      t.status === "NEED_PART"
+    );
+  }, [allTickets]);
+
+  console.log(availableTickets);
+  
+  // === API HANDLERS ===
+
   const handleStartVisit = async () => {
-    if (!form.ticketId || !form.startKm || !photo) {
-      alert("Please enter Start KM and upload Start Photo.");
+    if (!selectedTicketId) {
+      setError("Please select a ticket");
       return;
     }
+    if (!startKm || !startPhoto) {
+      setError("Please enter Start KM and upload photo");
+      return;
+    }
+
     setIsSubmitting(true);
+    setError("");
+    
     try {
       const formData = new FormData();
-      formData.append("startKm", form.startKm);
-      formData.append("startKmPhoto", photo);
+      formData.append("startKm", startKm);
+      formData.append("startKmPhoto", startPhoto);
 
       const res = await axios.post(
-        `${VITE_API_BASE_URL}/service-visits/${form.ticketId}/start`,
+        `${VITE_API_BASE_URL}/service-visits/${selectedTicketId}/start`,
         formData,
         { headers: { ...axiosConfig.headers, "Content-Type": "multipart/form-data" } }
       );
 
-      alert("Visit Started — Status: EN_ROUTE");
-      setActiveStep(steps.indexOf("EN_ROUTE"));
-      setPhoto(null);
-      fetchData();
+      setActiveVisit(res.data);
+      clearForm();
+      await fetchData();
+      alert("✅ Visit Started - Status: EN_ROUTE");
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Error starting visit");
+      setError(err.response?.data?.message || "Failed to start visit");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleArrival = async (visitId) => {
+  const handleMarkArrival = async () => {
+    if (!activeVisit) return;
+
     setIsSubmitting(true);
+    setError("");
+    
     try {
-      await axios.patch(`${VITE_API_BASE_URL}/service-visits/${visitId}/arrive`, {}, axiosConfig);
-      alert("Marked as Arrived — Status: ON_SITE");
-      setActiveStep(steps.indexOf("ON_SITE"));
-      fetchData();
+      const res = await axios.patch(
+        `${VITE_API_BASE_URL}/service-visits/${activeVisit.id}/arrive`,
+        {},
+        axiosConfig
+      );
+
+      setActiveVisit(res.data);
+      await fetchData();
+      alert("✅ Arrived at site - Status: ON_SITE");
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Error marking arrival");
+      setError(err.response?.data?.message || "Failed to mark arrival");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleNeedPart = async (visitId) => {
-    if (!form.missingPart) {
-      alert("Please enter missing part details.");
+  const handleNeedPart = async () => {
+    if (!activeVisit) return;
+    if (!missingPart) {
+      setError("Please enter missing part details");
       return;
     }
+
     setIsSubmitting(true);
+    setError("");
+    
     try {
       await axios.patch(
-        `${VITE_API_BASE_URL}/service-visits/${visitId}/need-part`,
+        `${VITE_API_BASE_URL}/service-visits/${activeVisit.id}/need-part`,
         {
-          missingPart: form.missingPart,
-          remarks: form.remarks,
+          missingPart,
+          remarks,
           partUnavailableToday: true,
         },
         axiosConfig
       );
-      alert("Marked as NEED_PART");
-      setActiveStep(steps.indexOf("NEED_PART"));
-      fetchData();
+
+      setActiveVisit(null);
+      clearForm();
+      await fetchData();
+      alert("⏸️ Visit Paused - Need Part. You can start another visit now.");
     } catch (err) {
-      alert(err.response?.data?.message || "Error marking need part");
+      setError(err.response?.data?.message || "Failed to mark need part");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleFixed = async (visitId) => {
-    if (!form.endKm || !photo) {
-      alert("Please provide End KM and Photo");
+  const handleMarkFixed = async () => {
+    if (!activeVisit) return;
+    if (!endKm || !endPhoto) {
+      setError("Please enter End KM and upload photo");
       return;
     }
+
     setIsSubmitting(true);
+    setError("");
+    
     try {
       const formData = new FormData();
-      formData.append("endKm", form.endKm);
-      formData.append("usedParts", form.usedParts);
-      formData.append("endKmPhoto", photo);
+      formData.append("endKm", endKm);
+      formData.append("endKmPhoto", endPhoto);
+      formData.append("usedParts", usedParts || "");
 
-      await axios.patch(
-        `${VITE_API_BASE_URL}/service-visits/${visitId}/fixed`,
+      const res = await axios.patch(
+        `${VITE_API_BASE_URL}/service-visits/${activeVisit.id}/fixed`,
         formData,
         { headers: { ...axiosConfig.headers, "Content-Type": "multipart/form-data" } }
       );
 
-      alert("Marked as FIXED");
-      setActiveStep(steps.indexOf("FIXED"));
-      fetchData();
+      setActiveVisit(res.data);
+      clearForm();
+      await fetchData();
+      alert("✅ Marked as FIXED - Ready to complete");
     } catch (err) {
-      alert(err.response?.data?.message || "Error marking fixed");
+      setError(err.response?.data?.message || "Failed to mark fixed");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleComplete = async (visitId) => {
+  const handleComplete = async () => {
+    if (!activeVisit) return;
+
     setIsSubmitting(true);
+    setError("");
+    
     try {
       await axios.patch(
-        `${VITE_API_BASE_URL}/service-visits/${visitId}/complete`,
+        `${VITE_API_BASE_URL}/service-visits/${activeVisit.id}/complete`,
         null,
-        { ...axiosConfig, params: { remarks: form.remarks || "" } }
+        { ...axiosConfig, params: { remarks: remarks || "" } }
       );
-      alert("Visit Completed Successfully ✅");
-      setActiveStep(steps.indexOf("COMPLETED"));
-      fetchData();
+
+      setActiveVisit(null);
+      setSelectedTicketId("");
+      clearForm();
+      await fetchData();
+      alert("✅ Visit Completed Successfully!");
     } catch (err) {
-      alert(err.response?.data?.message || "Error completing visit");
+      setError(err.response?.data?.message || "Failed to complete visit");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // ----------- Render UI -----------
-  const renderStageFields = () => {
-    const current = steps[activeStep];
+  // === RENDER UI ===
 
-    switch (current) {
-      case "ASSIGNED":
-        return (
-          <Box display="flex" flexDirection="column" gap={2}>
-            <TextField
-              label="Start KM Reading"
-              value={form.startKm}
-              onChange={handleChange("startKm")}
-              type="number"
-              size="small"
+  const renderActionButtons = () => {
+    if (!activeVisit) {
+      return (
+        <Box display="flex" flexDirection="column" gap={2}>
+          <TextField
+            select
+            label="Select Ticket"
+            value={selectedTicketId}
+            onChange={(e) => setSelectedTicketId(e.target.value)}
+            fullWidth
+            size="small"
+            disabled={isTicketLocked}
+          >
+            {availableTickets.length === 0 ? (
+              <MenuItem disabled>No active tickets available</MenuItem>
+            ) : (
+              availableTickets.map((t) => (
+                <MenuItem key={t.ticketId} value={t.ticketId}>
+                  #{t.ticketId} - {t.customerName || 'Customer'} ({t.status})
+                </MenuItem>
+              ))
+            )}
+          </TextField>
+
+          <TextField
+            label="Start KM Reading"
+            value={startKm}
+            onChange={(e) => setStartKm(e.target.value)}
+            type="number"
+            size="small"
+            fullWidth
+          />
+
+          <Box>
+            <Typography variant="body2" mb={1}>Upload Start Photo *</Typography>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={(e) => setStartPhoto(e.target.files[0])}
             />
-            <input type="file" accept="image/*" onChange={handleFileChange} />
-            <Button variant="contained" onClick={handleStartVisit} disabled={isSubmitting}>
-              Start Visit
+          </Box>
+
+          <Button 
+            variant="contained" 
+            onClick={handleStartVisit} 
+            disabled={isSubmitting || !selectedTicketId || availableTickets.length === 0}
+            startIcon={<PlayArrow />}
+            fullWidth
+          >
+            Start Visit
+          </Button>
+        </Box>
+      );
+    }
+
+    switch (activeVisit.visitStatus) {
+      case "EN_ROUTE":
+        return (
+          <Box>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              📍 On the way to customer location
+            </Alert>
+            <Button
+              variant="contained"
+              onClick={handleMarkArrival}
+              disabled={isSubmitting}
+              fullWidth
+            >
+              ✅ Mark Arrival at Site
             </Button>
           </Box>
         );
-      case "EN_ROUTE":
-        return (
-          <Button
-            variant="contained"
-            color="info"
-            onClick={() => handleArrival(visits[0]?.id)}
-            disabled={isSubmitting}
-          >
-            Mark Arrival
-          </Button>
-        );
+
       case "ON_SITE":
         return (
           <Box display="flex" flexDirection="column" gap={2}>
-            <Typography>Diagnose and choose next action.</Typography>
+            <Alert severity="info">
+              🔍 Diagnose the issue and choose action
+            </Alert>
 
             <TextField
-              label="Used Parts"
-              value={form.usedParts}
-              onChange={handleChange("usedParts")}
+              label="Used Parts (if any)"
+              value={usedParts}
+              onChange={(e) => setUsedParts(e.target.value)}
               size="small"
+              multiline
+              rows={2}
+              fullWidth
             />
 
             <TextField
               label="Remarks"
-              value={form.remarks}
-              onChange={handleChange("remarks")}
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
               size="small"
               multiline
               rows={2}
+              fullWidth
             />
 
             <Box display="flex" gap={2}>
               <Button
                 variant="outlined"
                 color="warning"
-                onClick={() => handleNeedPart(visits[0]?.id)}
+                onClick={() => {
+                  setShowNeedPartForm(!showNeedPartForm);
+                  setShowFixedForm(false);
+                }}
+                startIcon={<Pause />}
+                fullWidth
               >
-                Fixed (upload end KM)
-              </Button>
-
-              <Button variant="outlined" color="warning" onClick={() => setActiveStep(steps.indexOf("NEED_PART"))}>
                 Need Part
               </Button>
-              <Button variant="contained" color="success" onClick={() => setActiveStep(steps.indexOf("FIXED"))}>
-                Fixed
+
+              <Button
+                variant="contained"
+                color="success"
+                onClick={() => {
+                  setShowFixedForm(!showFixedForm);
+                  setShowNeedPartForm(false);
+                }}
+                startIcon={<CheckCircle />}
+                fullWidth
+              >
+                Mark Fixed
               </Button>
             </Box>
+
+            {showNeedPartForm && (
+              <Paper elevation={0} sx={{ p: 2, bgcolor: "background.default", border: 1, borderColor: "divider" }}>
+                <Typography variant="subtitle2" fontWeight={600} mb={2}>
+                  Need Part Details
+                </Typography>
+                <TextField
+                  label="Missing Part Details *"
+                  value={missingPart}
+                  onChange={(e) => setMissingPart(e.target.value)}
+                  size="small"
+                  multiline
+                  rows={2}
+                  fullWidth
+                  placeholder="Enter part name, quantity, etc."
+                  sx={{ mb: 2 }}
+                />
+                <Button
+                  variant="contained"
+                  color="warning"
+                  onClick={handleNeedPart}
+                  disabled={isSubmitting || !missingPart}
+                  fullWidth
+                >
+                  Submit Need Part (Pause Visit)
+                </Button>
+              </Paper>
+            )}
+
+            {showFixedForm && (
+              <Paper elevation={0} sx={{ p: 2, bgcolor: "background.default", border: 1, borderColor: "divider" }}>
+                <Typography variant="subtitle2" fontWeight={600} mb={2}>
+                  Mark as Fixed
+                </Typography>
+                <TextField
+                  label="End KM Reading *"
+                  value={endKm}
+                  onChange={(e) => setEndKm(e.target.value)}
+                  type="number"
+                  size="small"
+                  fullWidth
+                  sx={{ mb: 2 }}
+                />
+                <Box mb={2}>
+                  <Typography variant="body2" mb={1}>Upload End Photo *</Typography>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={(e) => setEndPhoto(e.target.files[0])}
+                  />
+                </Box>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={handleMarkFixed}
+                  disabled={isSubmitting || !endKm || !endPhoto}
+                  fullWidth
+                >
+                  Confirm Fixed
+                </Button>
+              </Paper>
+            )}
           </Box>
         );
+
       case "FIXED":
         return (
           <Box display="flex" flexDirection="column" gap={2}>
-            <Typography>Record missing part details.</Typography>
+            <Alert severity="success">
+              ✅ Service Fixed! Add final remarks and complete the visit.
+            </Alert>
+
             <TextField
-              label="End KM Reading"
-              value={form.endKm}
-              onChange={handleChange("endKm")}
-              type="number"
+              label="Final Remarks"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
               size="small"
+              multiline
+              rows={3}
+              fullWidth
             />
-            <input type="file" accept="image/*" onChange={handleFileChange} />
+
             <Button
               variant="contained"
-              color="success"
-              onClick={() => handleFixed(visits[0]?.id)}
+              onClick={handleComplete}
               disabled={isSubmitting}
+              fullWidth
             >
-              Mark Fixed
+              🏁 Complete Visit
             </Button>
           </Box>
         );
+
       case "COMPLETED":
         return (
-          <Typography color="success.main" fontWeight="bold">
-            Ticket Completed ✅
-          </Typography>
+          <Alert severity="success">
+            ✅ Visit Completed! You can start a new visit now.
+          </Alert>
         );
 
       default:
@@ -325,15 +504,30 @@ export default function ServiceReport() {
     }
   };
 
-  return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
+  if (isLoading) {
+    return (
       <Box sx={{ p: 3 }}>
-        <Typography variant="h6" fontWeight="bold" mb={2}>
-          Service Visit Workflow
-        </Typography>
+        <Skeleton height={60} />
+        <Skeleton height={200} sx={{ mt: 2 }} />
+      </Box>
+    );
+  }
 
-        <Card sx={{ p: 3, mb: 4 }}>
-          <Stepper activeStep={activeStep} alternativeLabel>
+  return (
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h5" fontWeight={600} mb={3}>
+        🔧 Service Visit Workflow
+      </Typography>
+
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          {activeVisit && (
+            <Alert severity="info" icon={<PlayArrow />} sx={{ mb: 2 }}>
+              Active Visit: Ticket #{activeVisit.ticketId} - {activeVisit.visitStatus}
+            </Alert>
+          )}
+
+          <Stepper activeStep={currentStepIndex} alternativeLabel>
             {steps.map((label) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
@@ -341,67 +535,85 @@ export default function ServiceReport() {
             ))}
           </Stepper>
 
+          <Divider sx={{ my: 3 }} />
 
-          <Divider sx={{ my: 2 }} />
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+              {error}
+            </Alert>
+          )}
 
-          <TextField
-            select
-            label="Select Ticket"
-            value={form.ticketId}
-            onChange={handleChange("ticketId")}
-            fullWidth
-            size="small"
-          >
-            {tickets.map((t) => (
-              <MenuItem key={t.ticketId} value={t.ticketId}>
-                #{t.ticketId}
-              </MenuItem>
-            ))}
-          </TextField>
+          {renderActionButtons()}
+        </CardContent>
+      </Card>
 
-          <Box mt={3}>{renderStageFields()}</Box>
-        </Card>
+      <Card>
+        <CardContent>
+          <Typography variant="h6" fontWeight={600} mb={2}>📋 My Visit History</Typography>
+          <Divider sx={{ mb: 2 }} />
 
-        {/* My Visits */}
-        <Card>
-          <CardContent>
-            <Typography variant="h6">My Recent Visits</Typography>
-            <Divider sx={{ my: 1 }} />
-            {isLoading ? (
-              Array.from(new Array(5)).map((_, i) => (
-                <Skeleton key={i} height={40} sx={{ my: 0.5 }} />
-              ))
-            ) : (
-              visits.map((v) => (
-                <Box
-                  key={v.id}
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  sx={{
-                    borderBottom: `1px solid ${theme.palette.divider}`,
-                    p: 1,
-                  }}
-                >
-                  <Typography>#{v.ticketId}</Typography>
-                  <Chip label={v.visitStatus} color="primary" />
-                  <Typography>{dayjs(v.startedAt).format("DD MMM, hh:mm A")}</Typography>
-                  <Typography>{v.usedParts || "N/A"}</Typography>
-                  <Typography>{v.missingPart || "-"}</Typography>
-                  <Typography>{v.remarks || "-"}</Typography>
-                  {v.endKmPhotoUrl ? (
-                    <IconButton component="a" href={v.endKmPhotoUrl} target="_blank">
-                      <ArrowDownward fontSize="small" />
-                    </IconButton>
-                  ) : (
-                    "N/A"
-                  )}
+          {myVisits.length === 0 ? (
+            <Typography color="text.secondary">No visits yet</Typography>
+          ) : (
+            myVisits.map((v) => (
+              <Paper 
+                key={v.id} 
+                elevation={0}
+                sx={{ 
+                  p: 2, 
+                  mb: 2,
+                  border: v.active ? 2 : 1,
+                  borderColor: v.active ? "primary.main" : "divider",
+                  bgcolor: v.active ? "action.hover" : "background.paper"
+                }}
+              >
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                  <Typography fontWeight={600}>
+                    Ticket #{v.ticketId}
+                    {v.active && <Chip label="ACTIVE" color="primary" size="small" sx={{ ml: 1 }} />}
+                  </Typography>
+                  <Chip 
+                    label={v.visitStatus} 
+                    color={
+                      v.visitStatus === "COMPLETED" ? "success" :
+                      v.visitStatus === "NEED_PART" ? "warning" :
+                      "primary"
+                    }
+                    size="small"
+                  />
                 </Box>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </Box>
-    </LocalizationProvider>
+
+                <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={1}>
+                  <Typography variant="body2">
+                    <strong>Start KM:</strong> {v.startKm || "-"}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>End KM:</strong> {v.endKm || "-"}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Used Parts:</strong> {v.usedParts || "-"}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Missing Part:</strong> {v.missingPart || "-"}
+                  </Typography>
+                </Box>
+
+                {v.remarks && (
+                  <Typography variant="body2" color="text.secondary" mt={1}>
+                    <strong>Remarks:</strong> {v.remarks}
+                  </Typography>
+                )}
+
+                {v.nextDayRequired && (
+                  <Alert severity="warning" sx={{ mt: 1 }}>
+                    ⏳ This visit requires next day continuation with parts
+                  </Alert>
+                )}
+              </Paper>
+            ))
+          )}
+        </CardContent>
+      </Card>
+    </Box>
   );
 }
