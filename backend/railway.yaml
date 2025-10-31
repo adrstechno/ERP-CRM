@@ -2,7 +2,7 @@
 services:
   - name: crm-backend
     rootDirectory: .
-    buildCommand: "./mvnw clean package -DskipTests"
+    buildCommand: "mvn clean package -DskipTests"
     startCommand: "java -jar target/ERP-CRM.jar"
     autoDeploy: true
 
