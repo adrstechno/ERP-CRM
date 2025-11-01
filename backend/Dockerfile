@@ -1,32 +1,29 @@
-# =============================
-# 1️⃣ Build Stage
-# =============================
+# --- Build Stage ---
 FROM maven:3.9.6-eclipse-temurin-21 AS builder
+
 WORKDIR /app
 
-# Copy Maven files first for dependency caching
+# Copy project files
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Copy source
 COPY src ./src
 
-# Force annotation processing for Lombok
-RUN mvn clean package -DskipTests \
+# Download dependencies
+RUN mvn dependency:go-offline
+
+# Force Lombok annotation processing during build
+RUN mvn clean compile \
     -Dmaven.compiler.source=21 \
     -Dmaven.compiler.target=21 \
     -Dmaven.compiler.showWarnings=true \
     -Dmaven.compiler.failOnError=true \
-    -X
+    -Dmaven.compiler.verbose=true
 
-# =============================
-# 2️⃣ Runtime Stage
-# =============================
+# Package the app
+RUN mvn package -DskipTests
+
+# --- Runtime Stage ---
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-
-# Copy JAR from builder stage
 COPY --from=builder /app/target/*.jar app.jar
-
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
