@@ -3,8 +3,6 @@ services:
     name: crm-backend
     env: docker
     plan: free
-    dockerfilePath: backend/Dockerfile
-    dockerContext: backend
     autoDeploy: true
     envVars:
       - key: SPRING_DATASOURCE_URL
@@ -23,9 +21,9 @@ services:
         value: admin@gmail.com
       - key: ADMIN_PASSWORD
         value: admin123
-      - key: cloudinary.cloud_name
+      - key: CLOUDINARY_CLOUD_NAME
         value: dhy4osny1
-      - key: cloudinary.api_key
+      - key: CLOUDINARY_API_KEY
         value: 865596957416389
-      - key: cloudinary.api_secret
+      - key: CLOUDINARY_API_SECRET
         value: 97oWr1Kqow8ODafY_fizJCeXXG4
