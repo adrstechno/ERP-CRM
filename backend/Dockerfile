@@ -1,27 +1,29 @@
-# =========================
-# Stage 1 — Build the JAR
-# =========================
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
+
 WORKDIR /app
 
-# Copy only pom first to leverage Docker layer caching
+# Copy the Maven project files
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
 
-# Now copy the actual source
+# Download dependencies (cached layer)
+RUN mvn dependency:go-offline
+
+# Copy the entire source code
 COPY src ./src
 
-# 👇 Force annotation processing explicitly for Lombok
-RUN mvn clean compile -DskipTests -Dmaven.compiler.forceJavacCompilerUse=true \
-    && mvn package -DskipTests
+# Compile and package (skip tests for faster builds)
+RUN mvn clean package -DskipTests
 
-# =========================
-# Stage 2 — Run the JAR
-# =========================
-FROM eclipse-temurin:21-jdk
+# Runtime Stage
+
+FROM eclipse-temurin:21-jre
+
 WORKDIR /app
 
-COPY --from=build /app/target/ERP-CRM.jar app.jar
+# Copy JAR from the builder stage
+COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","app.jar"]
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
