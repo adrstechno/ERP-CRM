@@ -14,7 +14,6 @@ import InventoryManagement from "./pages/admin/InventoryManagement"
 import Sales from "./pages/admin/Sales"
 import Service from "./pages/admin/Service"
 import BillingNInvoice from "./pages/admin/BillingNInvoice"
-import Setting from "./pages/admin/settings"
 
 
 
@@ -79,7 +78,6 @@ export default function CRMModule() {
             <Route path="service" element={<Service />} />
             <Route path="invoices" element={<BillingNInvoice />} />
             <Route path="expenses/approve" element={<ApproveExpenses />} />
-            <Route path="settings" element={<Setting />} />
 
           </>
 
