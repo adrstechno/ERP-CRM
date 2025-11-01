@@ -13,10 +13,17 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173","https://erp-crm-hua2.onrender.com")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH")
-                .allowedHeaders("*")
-                .allowCredentials(true);
+                    .allowedOrigins(
+                        "http://localhost:5173",  // Vite dev server
+                        "http://localhost:4173",  // Vite preview
+                        "https://erp-crm-hua2.onrender.com",  // Production URL
+                        "https://erp-crm-iota.vercel.app"     // Vercel URL
+                    )
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                    .allowedHeaders("*")
+                    .exposedHeaders("Authorization")
+                    .allowCredentials(true)
+                    .maxAge(3600); // Cache preflight requests for 1 hour
             }
         };
     }
