@@ -1,15 +1,17 @@
 services:
   - type: web
     name: crm-backend
-    env: java
-    plan: free # you can upgrade later if needed
-    buildCommand: mvn clean package -DskipTests
-    startCommand: java -jar target/loagma-crm.jar
+    env: docker
+    plan: free
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
     autoDeploy: true
     envVars:
-      - key: DB_USER
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-red-shadow-ahhgmkdb-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require
+      - key: SPRING_DATASOURCE_USERNAME
         value: neondb_owner
-      - key: DB_PASS
+      - key: SPRING_DATASOURCE_PASSWORD
         value: npg_7TpgUNEzZD4w
       - key: SERVER_PORT
         value: 8080
