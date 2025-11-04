@@ -100,8 +100,8 @@ export default function InventoryManagementContent() {
             p.stock === 0
               ? "Out of Stock"
               : p.stock < 10
-              ? "Low Stock"
-              : "In Stock",
+                ? "Low Stock"
+                : "In Stock",
         }))
       );
     } catch (err) {
@@ -134,19 +134,42 @@ export default function InventoryManagementContent() {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!newProduct.name.trim()) newErrors.name = "Product name is required.";
-    if (!newProduct.category)
+    // Helper to check numeric fields with limit
+    const isInvalidNumber = (value, min, max) =>
+      value === "" || isNaN(value) || value < min || value > max;
+
+    // Product Name
+    if (!newProduct.name.trim()) {
+      newErrors.name = "Product name is required.";
+    } else if (newProduct.name.length > 100) {
+      newErrors.name = "Product name cannot exceed 100 characters.";
+    }
+
+    // Category
+    if (!newProduct.category) {
       newErrors.category = "Please select a category.";
-    if (newProduct.price === "" || newProduct.price < 0)
-      newErrors.price = "Enter a valid price.";
-    if (newProduct.stock === "" || newProduct.stock < 0)
-      newErrors.stock = "Enter a valid stock quantity.";
-    if (newProduct.warrantyMonths === "" || newProduct.warrantyMonths < 0)
-      newErrors.warrantyMonths = "Enter valid warranty months.";
+    }
+
+    // Price
+    if (isInvalidNumber(newProduct.price, 0, 1000000)) {
+      newErrors.price = "Enter a valid price (0 - 1,000,000).";
+    }
+
+    // Stock Quantity
+    if (isInvalidNumber(newProduct.stock, 0, 100000)) {
+      newErrors.stock = "Enter a valid stock quantity (0 - 100,000).";
+    }
+
+    // Warranty Months
+    if (isInvalidNumber(newProduct.warrantyMonths, 0, 120)) {
+      newErrors.warrantyMonths = "Warranty must be between 0 and 120 months.";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+
 
   //  Add Product
   const handleAddProduct = async () => {
@@ -182,8 +205,8 @@ export default function InventoryManagementContent() {
             data.stock === 0
               ? "Out of Stock"
               : data.stock < 10
-              ? "Low Stock"
-              : "In Stock",
+                ? "Low Stock"
+                : "In Stock",
         },
       ]);
       toast.success("Product added successfully!");
@@ -236,19 +259,19 @@ export default function InventoryManagementContent() {
         prev.map((p) =>
           p.id === selectedId
             ? {
-                id: updated.productId,
-                name: updated.name,
-                category: updated.category,
-                price: updated.price,
-                stock: updated.stock,
-                warrantyMonths: updated.warrantyMonths,
-                status:
-                  updated.stock === 0
-                    ? "Out of Stock"
-                    : updated.stock < 10
+              id: updated.productId,
+              name: updated.name,
+              category: updated.category,
+              price: updated.price,
+              stock: updated.stock,
+              warrantyMonths: updated.warrantyMonths,
+              status:
+                updated.stock === 0
+                  ? "Out of Stock"
+                  : updated.stock < 10
                     ? "Low Stock"
                     : "In Stock",
-              }
+            }
             : p
         )
       );
@@ -411,12 +434,12 @@ export default function InventoryManagementContent() {
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton
+                      {/* <IconButton
                         size="small"
                         onClick={() => handleDeleteProduct(product.id)}
                       >
                         <DeleteIcon fontSize="small" />
-                      </IconButton>
+                      </IconButton> */}
                     </TableCell>
                   </TableRow>
                 ))}
