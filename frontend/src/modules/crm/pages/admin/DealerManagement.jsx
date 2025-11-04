@@ -190,284 +190,282 @@ export default function DealerManagement() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Grid container spacing={3}>
-        {/* LEFT: Dealer List */}
-        <Grid item xs={12} md={3}>
-          <Card
-            sx={{
-              height: "calc(100vh - 120px)",
-              display: "flex",
-              flexDirection: "column",
+<Box sx={{ p: 3 }}>
+  <Grid
+    container
+    spacing={3}
+    sx={{
+      height: { xs: "auto", md: "calc(100vh - 120px)" },
+      flexWrap: { xs: "wrap", md: "nowrap" },
+    }}
+  >
+    {/* LEFT: Dealer List */}
+    <Grid
+      item
+      xs={12}
+      md={4}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: { xs: "auto", md: "100%" },
+      }}
+    >
+      <Card
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+        }}
+      >
+        <CardContent>
+          <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+            Dealer List
+          </Typography>
+          <TextField
+            fullWidth
+            variant="outlined"
+            size="small"
+            placeholder="Search Dealers..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            error={!!searchError}
+            helperText={searchError}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
             }}
-          >
-            <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-                Dealer List
+          />
+        </CardContent>
+
+        {/* Scrollable Dealer List */}
+        <CardContent
+          sx={{
+            flexGrow: 1,
+            overflowY: "auto",
+            p: 0,
+          }}
+        >
+          <List sx={{ p: 2, pt: 0 }}>
+            {loadingDealers ? (
+              <Typography variant="body2" sx={{ p: 2 }}>
+                Loading dealers...
               </Typography>
-              <TextField
-                fullWidth
-                variant="outlined"
-                size="small"
-                placeholder="Search Dealers..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                error={!!searchError}
-                helperText={searchError}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </CardContent>
-
-            <CardContent sx={{ flexGrow: 1, overflow: "hidden", p: 0 }}>
-              <List sx={{ height: "100%", overflowY: "auto", p: 2, pt: 0 }}>
-                {loadingDealers ? (
-                  <Typography variant="body2" sx={{ p: 2 }}>
-                    Loading dealers...
-                  </Typography>
-                ) : filteredDealers.length > 0 ? (
-                  filteredDealers.map((dealer) => (
-                    <ListItem key={dealer.id} disablePadding sx={{ mb: 1 }}>
-                      <ListItemButton
-                        selected={selectedDealer?.id === dealer.id}
-                        onClick={() => handleDealerSelect(dealer)}
-                      >
-                        <ListItemAvatar>
-                          <Avatar alt={dealer.name} src={dealer.avatar} />
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={
-                            <Box display="flex" alignItems="center" gap={1}>
-                              <Typography
-                                variant="subtitle2"
-                                sx={{ fontWeight: "bold" }}
-                              >
-                                {dealer.name}
-                              </Typography>
-                              {!dealer.isActive && (
-                                <Chip
-                                  label="Deactivated"
-                                  color="error"
-                                  size="small"
-                                />
-                              )}
-                            </Box>
-                          }
-                          secondary={dealer.email}
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  ))
-                ) : (
-                  <Typography variant="body2" sx={{ p: 2 }}>
-                    No dealers found
-                  </Typography>
-                )}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* RIGHT: Dealer Info + Requests */}
-        <Grid item xs={12} md={9}>
-          <Card sx={{ p: 2, height: "calc(100vh - 120px)", overflowY: "auto" }}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: "bold",
-                mb: 2,
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <BusinessIcon color="primary" sx={{ mr: 1 }} />
-              Dealer Information
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
-
-            {selectedDealer ? (
-              <>
-                {!selectedDealer.isActive && (
-                  <Alert severity="error" sx={{ mb: 3 }}>
-                    This dealer account is <strong>Deactivated</strong>.
-                  </Alert>
-                )}
-
-                <TableContainer sx={{ mb: 4 }}>
-                  <Table size="small">
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>
-                          <DetailItem
-                            label="Name"
-                            value={selectedDealer.name}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <DetailItem
-                            label="Mobile No"
-                            value={selectedDealer.phone}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <DetailItem
-                            label="E-Mail"
-                            value={selectedDealer.email}
-                          />
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <DetailItem
-                            label="Address"
-                            value={selectedDealer.profile?.address}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <DetailItem
-                            label="City"
-                            value={selectedDealer.profile?.city}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <DetailItem
-                            label="State"
-                            value={selectedDealer.profile?.state}
-                          />
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <DetailItem
-                            label="Pincode"
-                            value={selectedDealer.profile?.pincode}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <DetailItem
-                            label="GST No"
-                            value={selectedDealer.profile?.gstNumber}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <DetailItem
-                            label="Account No"
-                            value={selectedDealer.profile?.accountNo}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-
-                {/* Requests Section */}
-                <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-                  Request Approval Table
-                </Typography>
-                {successMessage && (
-                  <Alert severity="success" sx={{ mb: 2 }}>
-                    {successMessage}
-                  </Alert>
-                )}
-
-                <TableContainer sx={{ maxHeight: 300 }}>
-                  <Table stickyHeader size="small">
-                    <TableHead>
-                      <TableRow>
-                        {["Request No.", "Product", "QTY", "Action"].map(
-                          (head) => (
-                            <TableCell key={head}>{head}</TableCell>
-                          )
-                        )}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {loadingRequests ? (
-                        <TableRow>
-                          <TableCell colSpan={4} align="center">
-                            Loading requests...
-                          </TableCell>
-                        </TableRow>
-                      ) : requests.length > 0 ? (
-                        requests.map((req) => (
-                          <TableRow key={req.id} hover>
-                            <TableCell sx={{ fontWeight: 500 }}>
-                              {req.reqNo}
-                            </TableCell>
-                            <TableCell>{req.product}</TableCell>
-                            <TableCell>{req.qty}</TableCell>
-                            <TableCell>
-                              {req.status === "Pending" ? (
-                                <Button
-                                  variant="contained"
-                                  size="small"
-                                  onClick={() =>
-                                    handleApproveClick(req.id)
-                                  }
-                                >
-                                  Approve
-                                </Button>
-                              ) : (
-                                <Chip
-                                  icon={
-                                    <CheckCircleOutlineIcon fontSize="small" />
-                                  }
-                                  label="Approved"
-                                  color="success"
-                                  size="small"
-                                  variant="outlined"
-                                />
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={4} align="center">
-                            No requests found
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </>
+            ) : filteredDealers.length > 0 ? (
+              filteredDealers.map((dealer) => (
+                <ListItem key={dealer.id} disablePadding sx={{ mb: 1 }}>
+                  <ListItemButton
+                    selected={selectedDealer?.id === dealer.id}
+                    onClick={() => handleDealerSelect(dealer)}
+                  >
+                    <ListItemAvatar>
+                      <Avatar alt={dealer.name} src={dealer.avatar} />
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: "bold" }}
+                          >
+                            {dealer.name}
+                          </Typography>
+                          {!dealer.isActive && (
+                            <Chip
+                              label="Deactivated"
+                              color="error"
+                              size="small"
+                            />
+                          )}
+                        </Box>
+                      }
+                      secondary={dealer.email}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              ))
             ) : (
-              <Typography variant="body2">
-                Select a dealer to view details
+              <Typography variant="body2" sx={{ p: 2 }}>
+                No dealers found
               </Typography>
             )}
-          </Card>
-        </Grid>
-      </Grid>
+          </List>
+        </CardContent>
+      </Card>
+    </Grid>
 
-      {/* Approval Dialog */}
-      <Dialog
-        open={approveDialog.open}
-        onClose={() => setApproveDialog({ open: false, requestId: null })}
+    {/* RIGHT: Dealer Info + Requests */}
+    <Grid
+      item
+      xs={12}
+      md={8}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: { xs: "auto", md: "100%" },
+      }}
+    >
+      <Card
+        sx={{
+          flex: 1,
+          p: 2,
+          overflowY: "auto",
+          height: { xs: "auto", md: "100%" },
+        }}
       >
-        <DialogTitle>Confirm Approval</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to approve this request?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setApproveDialog({ open: false, requestId: null })}
-          >
-            Cancel
-          </Button>
-          <Button variant="contained" onClick={handleApproveConfirm}>
-            Approve
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: "bold",
+            mb: 2,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <BusinessIcon color="primary" sx={{ mr: 1 }} />
+          Dealer Information
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+
+        {selectedDealer ? (
+          <>
+            {!selectedDealer.isActive && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                This dealer account is <strong>Deactivated</strong>.
+              </Alert>
+            )}
+
+            {/* Dynamic Info Table */}
+            <TableContainer sx={{ mb: 4 }}>
+              <Table size="small">
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      <DetailItem label="Name" value={selectedDealer.name} />
+                    </TableCell>
+                    <TableCell>
+                      <DetailItem
+                        label="Mobile No"
+                        value={selectedDealer.phone}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <DetailItem
+                        label="E-Mail"
+                        value={selectedDealer.email}
+                      />
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={3}>
+                      <DetailItem
+                        label="Address"
+                        value={selectedDealer.profile?.address}
+                      />
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <DetailItem
+                        label="City"
+                        value={selectedDealer.profile?.city}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <DetailItem
+                        label="State"
+                        value={selectedDealer.profile?.state}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <DetailItem
+                        label="Pincode"
+                        value={selectedDealer.profile?.pincode}
+                      />
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* Requests */}
+            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+              Request Approval Table
+            </Typography>
+            {successMessage && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {successMessage}
+              </Alert>
+            )}
+
+            <TableContainer sx={{ maxHeight: 300 }}>
+              <Table stickyHeader size="small">
+                <TableHead>
+                  <TableRow>
+                    {["Request No.", "Product", "QTY", "Action"].map((head) => (
+                      <TableCell key={head}>{head}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {loadingRequests ? (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center">
+                        Loading requests...
+                      </TableCell>
+                    </TableRow>
+                  ) : requests.length > 0 ? (
+                    requests.map((req) => (
+                      <TableRow key={req.id} hover>
+                        <TableCell sx={{ fontWeight: 500 }}>
+                          {req.reqNo}
+                        </TableCell>
+                        <TableCell>{req.product}</TableCell>
+                        <TableCell>{req.qty}</TableCell>
+                        <TableCell>
+                          {req.status === "Pending" ? (
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => handleApproveClick(req.id)}
+                            >
+                              Approve
+                            </Button>
+                          ) : (
+                            <Chip
+                              icon={
+                                <CheckCircleOutlineIcon fontSize="small" />
+                              }
+                              label="Approved"
+                              color="success"
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center">
+                        No requests found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
+        ) : (
+          <Typography variant="body2">Select a dealer to view details</Typography>
+        )}
+      </Card>
+    </Grid>
+  </Grid>
+</Box>
+
   );
 }
