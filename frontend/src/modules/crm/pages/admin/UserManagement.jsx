@@ -115,16 +115,53 @@ const validateUserForm = (data = {}) => {
 
 const validateProfileForm = (data = {}) => {
   const newErrors = {};
-  if (!data.gstNumber || !String(data.gstNumber).trim()) newErrors.gstNumber = 'GST number required';
-  if (!data.panNumber || !String(data.panNumber).trim()) newErrors.panNumber = 'PAN number required';
-  if (!data.address || !String(data.address).trim()) newErrors.address = 'Address is required';
-  if (!data.city || !String(data.city).trim()) newErrors.city = 'City required';
-  if (!data.state || !String(data.state).trim()) newErrors.state = 'State required';
-  if (!data.pincode && data.pincode !== 0) newErrors.pincode = 'Pincode required';
-  else if (data.pincode && !/^\d{6}$/.test(String(data.pincode))) newErrors.pincode = 'Pincode must be 6 digits';
-  if (!data.accountNo || !String(data.accountNo).trim()) newErrors.accountNo = 'Account number required';
-  if (!data.bankName || !String(data.bankName).trim()) newErrors.bankName = 'Bank name required';
-  if (!data.ifscCode || !String(data.ifscCode).trim()) newErrors.ifscCode = 'IFSC required';
+  // GST Number
+  if (!data.gstNumber?.trim()) {
+    newErrors.gstNumber = 'GST number is required (e.g. 22AAAAA0000A1Z5)';
+  } else if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(data.gstNumber.trim())) {
+    newErrors.gstNumber = 'Invalid GST number format (e.g. 22AAAAA0000A1Z5)';
+  }
+
+  // PAN Number
+  if (!data.panNumber?.trim()) {
+    newErrors.panNumber = 'PAN number is required (e.g. ABCDE1234F)';
+  } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(data.panNumber.trim())) {
+    newErrors.panNumber = 'Invalid PAN number format (e.g. ABCDE1234F)';
+  }
+
+  // Address
+  if (!data.address?.trim()) newErrors.address = 'Address is required (e.g. 221B Baker Street)';
+
+  // City
+  if (!data.city?.trim()) newErrors.city = 'City is required (e.g. Mumbai)';
+
+  // State
+  if (!data.state?.trim()) newErrors.state = 'State is required (e.g. Maharashtra)';
+
+  // Pincode
+  if (data.pincode === undefined || data.pincode === null || data.pincode === '') {
+    newErrors.pincode = 'Pincode is required (e.g. 400001)';
+  } else if (!/^\d{6}$/.test(String(data.pincode))) {
+    newErrors.pincode = 'Pincode must be 6 digits (e.g. 400001)';
+  }
+
+  // Account Number
+  if (!data.accountNo?.trim()) {
+    newErrors.accountNo = 'Account number is required (e.g. 123456789012)';
+  } else if (!/^\d{9,18}$/.test(data.accountNo.trim())) {
+    newErrors.accountNo = 'Invalid account number (must be 9–18 digits, e.g. 123456789012)';
+  }
+
+  // Bank Name
+  if (!data.bankName?.trim()) newErrors.bankName = 'Bank name is required (e.g. HDFC Bank)';
+
+  // IFSC Code
+  if (!data.ifscCode?.trim()) {
+    newErrors.ifscCode = 'IFSC code is required (e.g. HDFC0001234)';
+  } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(data.ifscCode.trim())) {
+    newErrors.ifscCode = 'Invalid IFSC code format (e.g. HDFC0001234)';
+  }
+
   return newErrors;
 };
 
@@ -257,16 +294,24 @@ export default function UserManagement() {
   /* ---------- Create user ---------- */
   const handleChange = (event) => {
     const { name, value } = event.target;
-    if (name === 'phone') {
-      if (/^\d*$/.test(value) && String(value).length <= 10) {
+
+    if (name === "phone") {
+      // Allow only digits and optional country code (+91)
+      const phoneRegex = /^(\+91[\-\s]?)?[6-9]\d{0,9}$/;
+
+      // Limit total digits (excluding +91)
+      if (phoneRegex.test(value) || value === "" || value === "+91") {
         setFormData((prev) => ({ ...prev, [name]: value }));
       }
+
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
-    // Clear specific error on change
+
+    // Clear error for this field
     setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
+
 
   const handleCreateUser = async () => {
     const validationErrors = validateUserForm(formData);
@@ -305,6 +350,7 @@ export default function UserManagement() {
       const response = await axios.get(`${VITE_API_BASE_URL}/profiles/${user.userId}`, {
         headers: { Authorization: `Bearer ${authKey}` },
       });
+      console.log('Profile data fetched:', response.data);
       setViewUser(response.data || null);
     } catch (error) {
       console.warn('No profile found for this user:', error);
@@ -424,7 +470,7 @@ export default function UserManagement() {
       await axios.delete(`${VITE_API_BASE_URL}/user/delete/${userId}`, { headers: { Authorization: `Bearer ${authKey}` } });
       const usersResp = await axios.get(`${VITE_API_BASE_URL}/admin/users`, { headers: { Authorization: `Bearer ${authKey}` } });
       setUsersData(usersResp.data || []);
-      toast.success('Profile Deleted Successfully!');
+      toast.success('User Deactivated Successfully!');
     } catch (error) {
       console.error('Failed to delete profile:', error);
       toast.error(error.response?.data?.message || 'Error deleting profile. Please try again.');
@@ -598,7 +644,7 @@ export default function UserManagement() {
           {editExtraUser ? (
             <Stack spacing={2} sx={{ mt: 2 }}>
               {Object.entries(editExtraUser)
-                .filter(([key]) => key !== 'userId' && key !== 'createdAt' && key !== 'updatedAt')
+                .filter(([key]) => key !== 'userId' && key !== 'id' && key !== 'createdAt' && key !== 'updatedAt')
                 .map(([key, value]) => (
                   <TextField
                     key={key}
@@ -644,6 +690,7 @@ export default function UserManagement() {
                 name="email"
                 label="Email Address"
                 fullWidth
+                disabled
                 variant="outlined"
                 value={editUser.email || ''}
                 onChange={handleEditChange}
@@ -708,7 +755,7 @@ export default function UserManagement() {
           ) : viewUser ? (
             <Stack spacing={1.5} sx={{ mt: 2 }}>
               {Object.entries(viewUser)
-                .filter(([key]) => key !== 'userId' && key !== 'createdAt' && key !== 'updatedAt')
+                .filter(([key]) => key !== 'userId' && key !== 'id' && key !== 'createdAt' && key !== 'updatedAt')
                 .map(([key, value]) => (
                   <Typography key={key}><b>{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}:</b> {value || '—'}</Typography>
                 ))}
