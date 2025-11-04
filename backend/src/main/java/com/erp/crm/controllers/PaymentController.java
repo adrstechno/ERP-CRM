@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -74,6 +75,56 @@ public class PaymentController {
     @GetMapping("/{invoiceId}")
     public ResponseEntity<List<PaymentResponseDTO>> getPaymentsByInvoice(@PathVariable Long invoiceId) {
         return ResponseEntity.ok(paymentService.getPaymentsByInvoice(invoiceId));
+    }
+
+    // --------------------- Get Monthly Payment Collection for Charts ---------------------
+    @GetMapping("/monthly-collection")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('SUBADMIN')")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMonthlyPaymentCollection() {
+        try {
+            List<Map<String, Object>> monthlyData = paymentService.getMonthlyPaymentCollection();
+            
+            ApiResponse<List<Map<String, Object>>> response = new ApiResponse<>(
+                true,
+                "Monthly payment collection data fetched successfully",
+                monthlyData
+            );
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            ApiResponse<List<Map<String, Object>>> response = new ApiResponse<>(
+                false,
+                "Failed to fetch monthly payment collection: " + ex.getMessage(),
+                null
+            );
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    // --------------------- Get Payment Statistics for Dashboard ---------------------
+    @GetMapping("/statistics")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('SUBADMIN')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getPaymentStatistics() {
+        try {
+            Map<String, Object> stats = paymentService.getPaymentStatistics();
+            
+            ApiResponse<Map<String, Object>> response = new ApiResponse<>(
+                true,
+                "Payment statistics fetched successfully",
+                stats
+            );
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            ApiResponse<Map<String, Object>> response = new ApiResponse<>(
+                false,
+                "Failed to fetch payment statistics: " + ex.getMessage(),
+                null
+            );
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
 }
