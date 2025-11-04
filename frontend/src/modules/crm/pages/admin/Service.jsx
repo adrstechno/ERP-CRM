@@ -509,7 +509,7 @@ export default function ServiceManagement() {
                                     <LineChart data={operatingStatusData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                                         <XAxis dataKey="month" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
-                                        <YAxis stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
+                                        <YAxis dataKey="status" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
                                         <RechartsTooltip content={<CustomTooltip />} />
                                         <Line type="monotone" dataKey="tickets" stroke={theme.palette.primary.main} strokeWidth={3} dot={{ r: 5 }} />
                                     </LineChart>

@@ -23,6 +23,12 @@ public class ServiceVisitService {
     private final UserRepository userRepo;
     private final FileUploadService fileUploadService;
 
+    private void updateVisitMetadata(ServiceVisit visit) {
+        User engineer = getCurrentUser();
+        visit.setUpdatedAt(LocalDateTime.now());
+        visit.setUpdatedBy(engineer.getName());
+    }
+
     public ServiceVisitService(ServiceVisitRepository visitRepo,
             ServiceTicketRepository ticketRepo,
             UserRepository userRepo,
@@ -55,6 +61,7 @@ public class ServiceVisitService {
                 .active(true)
                 .build();
 
+        updateVisitMetadata(visit);
         visitRepo.save(visit);
         ticket.setServiceStatus(ServiceStatus.EN_ROUTE);
         ticketRepo.save(ticket);
@@ -72,6 +79,8 @@ public class ServiceVisitService {
 
         visit.setVisitStatus(ServiceStatus.ON_SITE);
         ticket.setServiceStatus(ServiceStatus.ON_SITE);
+
+        updateVisitMetadata(visit);
 
         visitRepo.save(visit);
         ticketRepo.save(ticket);
@@ -103,6 +112,8 @@ public class ServiceVisitService {
         }
 
         ticket.setServiceStatus(ServiceStatus.NEED_PART);
+        updateVisitMetadata(visit);
+
         visitRepo.save(visit);
         ticketRepo.save(ticket);
 
@@ -123,6 +134,8 @@ public class ServiceVisitService {
         visit.setVisitStatus(ServiceStatus.PART_COLLECTED);
 
         ticket.setServiceStatus(ServiceStatus.PART_COLLECTED);
+        updateVisitMetadata(visit);
+
         visitRepo.save(visit);
         ticketRepo.save(ticket);
 
@@ -154,6 +167,7 @@ public class ServiceVisitService {
             visit.setEndedAt(LocalDateTime.now());
             visit.setActive(false);
         }
+        updateVisitMetadata(visit);
 
         visitRepo.save(visit);
         ticketRepo.save(ticket);
@@ -174,6 +188,8 @@ public class ServiceVisitService {
         visit.setActive(false);
 
         ticket.setServiceStatus(ServiceStatus.COMPLETED);
+                updateVisitMetadata(visit);
+
         visitRepo.save(visit);
         ticketRepo.save(ticket);
 
@@ -205,7 +221,7 @@ public class ServiceVisitService {
 
         previous.setActive(false); // End old visit
         previous.setEndedAt(LocalDateTime.now());
-
+        updateVisitMetadata(previous);
         visitRepo.save(previous);
         visitRepo.save(newVisit);
 
