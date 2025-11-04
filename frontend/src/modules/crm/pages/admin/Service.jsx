@@ -203,13 +203,23 @@ const useServiceTickets = () => {
 
     const validateTicket = (t) => {
         const errors = {};
+        const today = dayjs().startOf('day');
+
+        //  Past date restriction
+        if (t.dueDate && dayjs(t.dueDate).isBefore(today)) {
+            errors.dueDate = 'Due date cannot be a past date';
+        }
+
+        //  Required field checks
         if (!t.saleId) errors.saleId = 'Sale ID is required';
         if (!t.productId) errors.productId = 'Product is required';
         if (!t.assignedEngineerId) errors.assignedEngineerId = 'Engineer is required';
         if (!t.priority) errors.priority = 'Priority is required';
-        if (!t.dueDate) errors.dueDate = 'Due date is required';
+        if (!t.dueDate) errors.dueDate = errors.dueDate || 'Due date is required';
+
         return errors;
     };
+
 
     const fetchTickets = useCallback(async () => {
         setIsLoading(true);
@@ -273,7 +283,9 @@ const useServiceTickets = () => {
                 if (!engRes.ok || !custRes.ok || !salesRes.ok) throw new Error();
 
                 const [engData, custData, salesData] = await Promise.all([engRes.json(), custRes.json(), salesRes.json()]);
-                setEngineers(engData.filter(u => u.role.name === 'ENGINEER'));
+                setEngineers(
+                    engData.filter(u => u.role.name === 'ENGINEER' && u.isActive)
+                );
                 setCustomers(custData);
                 setSales(salesData);
             } catch {
