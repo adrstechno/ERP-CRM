@@ -84,6 +84,20 @@ public class ServiceTicketController {
         return ResponseEntity.ok(ticketService.getServiceTicketByUser());
     }
 
+    // Get Monthly Ticket Statistics for Charts
+    @GetMapping("/statistics/monthly")
+    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN')")
+    public ResponseEntity<List<java.util.Map<String, Object>>> getMonthlyTicketStatistics() {
+        return ResponseEntity.ok(ticketService.getMonthlyTicketStatistics());
+    }
+
+    // Get Ticket Statistics for Dashboard
+    @GetMapping("/statistics")
+    @PreAuthorize("hasAnyRole('ADMIN','SUBADMIN')")
+    public ResponseEntity<java.util.Map<String, Object>> getTicketStatistics() {
+        return ResponseEntity.ok(ticketService.getTicketStatistics());
+    }
+
     // @PatchMapping("/{ticketId}/start")
     // @PreAuthorize("hasRole('ENGINEER')")
     // public ResponseEntity<ServiceTicketResponseDTO> startVisit(

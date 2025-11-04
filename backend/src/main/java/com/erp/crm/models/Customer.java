@@ -1,5 +1,6 @@
 package com.erp.crm.models;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -11,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,8 +34,16 @@ public class Customer {
     private String email;
     private String address;
 
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
     // Map sales only for retail customers
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Sale> sales;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }

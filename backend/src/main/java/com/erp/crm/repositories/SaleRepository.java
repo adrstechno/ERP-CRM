@@ -23,4 +23,8 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
 
     @Query("SELECT si.product.productId, si.product.name, SUM(si.quantity), SUM(si.quantity * si.unitPrice) FROM SaleItem si JOIN si.sale s GROUP BY si.product.productId, si.product.name ORDER BY SUM(si.quantity) DESC")
     List<Object[]> getTopProducts(Pageable pageable);
+    
+    // Additional methods for marketer analytics
+    List<Sale> findBySaleDateBetween(LocalDate startDate, LocalDate endDate);
+    List<Sale> findTop10ByOrderBySaleDateDesc();
 }

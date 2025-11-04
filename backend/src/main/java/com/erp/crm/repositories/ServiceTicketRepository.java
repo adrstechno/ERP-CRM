@@ -4,6 +4,7 @@ import com.erp.crm.models.ServiceStatus;
 import com.erp.crm.models.ServiceTicket;
 import com.erp.crm.models.User;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +18,7 @@ public interface ServiceTicketRepository extends JpaRepository<ServiceTicket, Lo
             List<ServiceStatus> statuses);
 
     List<ServiceTicket> findByAssignedEngineer(User assignedEngineer);
+    
+    // Find tickets by date range for analytics
+    List<ServiceTicket> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }
