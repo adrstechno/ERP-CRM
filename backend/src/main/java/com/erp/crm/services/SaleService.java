@@ -30,6 +30,24 @@ public class SaleService {
     private final ServiceEntitlementRepository serviceEntitlementRepo;
     private final SecurityUtils securityUtils;
 
+    private void updateProductStock(Sale sale) {
+        if (sale.getSaleItems() == null || sale.getSaleItems().isEmpty())
+            return;
+
+        for (SaleItem item : sale.getSaleItems()) {
+            Product product = item.getProduct();
+            int quantity = item.getQuantity();
+
+            // Check stock availability before updating
+            if (product.getStock() < quantity) {
+                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+            }
+
+            product.setStock(product.getStock() - quantity);
+            productRepo.save(product);
+        }
+    }
+
     // Update Sale Status
     public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
         Sale sale = saleRepo.findById(saleId)
@@ -50,6 +68,8 @@ public class SaleService {
 
         // Generate invoice only when status changes from PENDING to APPROVED
         if (oldStatus == Status.PENDING && status == Status.APPROVED) {
+            updateProductStock(savedSale); // Deduct stock
+
             generateInvoice(savedSale);
             createServiceEntitlements(savedSale);
             // createServiceEntitlements(savedSale); // Create 2 free services
@@ -105,7 +125,7 @@ public class SaleService {
 
             sale.setCreatedBy(user);
 
-            //  Auto-approve if created by Admin
+            // Auto-approve if created by Admin
             if (user.getRole().getName().equalsIgnoreCase("ADMIN")) {
                 sale.setSaleStatus(Status.APPROVED);
             } else {
