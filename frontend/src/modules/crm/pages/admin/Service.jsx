@@ -438,17 +438,106 @@ export default function ServiceManagement() {
         handleCreateTicket, handleApproveTicket, handleCloseTicket
     } = useServiceTickets();
 
-    const operatingStatusData = [
-        { month: 'Jan', tickets: 30 }, { month: 'Feb', tickets: 25 }, { month: 'Mar', tickets: 40 },
-        { month: 'Apr', tickets: 35 }, { month: 'May', tickets: 28 }, { month: 'Jun', tickets: 45 },
-        { month: 'Jul', tickets: 32 }, { month: 'Aug', tickets: 50 }, { month: 'Sep', tickets: 38 },
-        { month: 'Oct', tickets: 42 }, { month: 'Nov', tickets: 27 }, { month: 'Dec', tickets: 48 },
-    ];
+    // Analytics state
+    const [ticketStats, setTicketStats] = useState({});
+    const [monthlyData, setMonthlyData] = useState([]);
+    const [analyticsLoading, setAnalyticsLoading] = useState(true);
+
+    // Fetch analytics data
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            setAnalyticsLoading(true);
+            try {
+                const token = localStorage.getItem("authKey");
+                const config = { headers: { Authorization: `Bearer ${token}` } };
+                
+                const [statsRes, monthlyRes] = await Promise.all([
+                    fetch(`${VITE_API_BASE_URL}/tickets/statistics`, config),
+                    fetch(`${VITE_API_BASE_URL}/tickets/statistics/monthly`, config)
+                ]);
+
+                if (statsRes.ok && monthlyRes.ok) {
+                    const [statsData, monthlyStatsData] = await Promise.all([
+                        statsRes.json(),
+                        monthlyRes.json()
+                    ]);
+                    
+                    setTicketStats(statsData);
+                    
+                    // Format monthly data for chart
+                    const formattedMonthly = monthlyStatsData.map(item => ({
+                        month: new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+                        totalTickets: item.totalTickets,
+                        openTickets: item.openTickets,
+                        completedTickets: item.completedTickets,
+                        closedTickets: item.closedTickets
+                    }));
+                    setMonthlyData(formattedMonthly);
+                }
+            } catch (error) {
+                console.error('Failed to fetch analytics:', error);
+                toast.error('Failed to load analytics data');
+            } finally {
+                setAnalyticsLoading(false);
+            }
+        };
+
+        fetchAnalytics();
+    }, []);
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box>
                 <Stack spacing={3}>
+                    {/* KPI Cards */}
+                    <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }} gap={2}>
+                        {analyticsLoading ? (
+                            Array.from(new Array(4)).map((_, i) => (
+                                <Card key={i}>
+                                    <CardContent>
+                                        <Skeleton variant="text" width="60%" />
+                                        <Skeleton variant="text" width="40%" height={32} />
+                                    </CardContent>
+                                </Card>
+                            ))
+                        ) : (
+                            <>
+                                <Card>
+                                    <CardContent>
+                                        <Typography variant="body2" color="text.secondary">Total Tickets</Typography>
+                                        <Typography variant="h4" fontWeight="bold" color="primary.main">
+                                            {ticketStats.totalTickets || 0}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent>
+                                        <Typography variant="body2" color="text.secondary">Open Tickets</Typography>
+                                        <Typography variant="h4" fontWeight="bold" color="warning.main">
+                                            {ticketStats.openTickets || 0}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent>
+                                        <Typography variant="body2" color="text.secondary">Completed</Typography>
+                                        <Typography variant="h4" fontWeight="bold" color="success.main">
+                                            {ticketStats.completedTickets || 0}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent>
+                                        <Typography variant="body2" color="text.secondary">This Month</Typography>
+                                        <Typography variant="h4" fontWeight="bold" color="info.main">
+                                            {ticketStats.thisMonthTickets || 0}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </>
+                        )}
+                    </Box>
+
                     {/* Service Tickets Table */}
                     <Card>
                         <CardContent>
@@ -511,21 +600,75 @@ export default function ServiceManagement() {
                         </CardContent>
                     </Card>
 
-                    {/* Chart */}
+                    {/* Monthly Ticket Trends Chart */}
                     <Card>
                         <CardContent>
-                            <Typography variant="h6" sx={{ fontWeight: 'bold' }} gutterBottom>Service Projects - Operating Status</Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold' }} gutterBottom>Monthly Ticket Trends</Typography>
                             <Divider sx={{ mb: 2 }} />
-                            <Box sx={{ height: 250 }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={operatingStatusData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                                        <XAxis dataKey="month" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
-                                        <YAxis dataKey="status" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
-                                        <RechartsTooltip content={<CustomTooltip />} />
-                                        <Line type="monotone" dataKey="tickets" stroke={theme.palette.primary.main} strokeWidth={3} dot={{ r: 5 }} />
-                                    </LineChart>
-                                </ResponsiveContainer>
+                            <Box sx={{ height: 300 }}>
+                                {analyticsLoading ? (
+                                    <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                                        <CircularProgress />
+                                    </Box>
+                                ) : monthlyData.length === 0 ? (
+                                    <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                                        <Typography color="text.secondary">No data available</Typography>
+                                    </Box>
+                                ) : (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                                            <XAxis 
+                                                dataKey="month" 
+                                                stroke={theme.palette.text.secondary} 
+                                                tick={{ fontSize: 12 }} 
+                                            />
+                                            <YAxis 
+                                                stroke={theme.palette.text.secondary} 
+                                                tick={{ fontSize: 12 }} 
+                                            />
+                                            <RechartsTooltip 
+                                                contentStyle={{
+                                                    backgroundColor: theme.palette.background.paper,
+                                                    border: `1px solid ${theme.palette.divider}`,
+                                                    borderRadius: 4
+                                                }}
+                                            />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="totalTickets" 
+                                                stroke={theme.palette.primary.main} 
+                                                strokeWidth={3} 
+                                                dot={{ r: 4 }} 
+                                                name="Total Tickets"
+                                            />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="openTickets" 
+                                                stroke={theme.palette.warning.main} 
+                                                strokeWidth={2} 
+                                                dot={{ r: 3 }} 
+                                                name="Open Tickets"
+                                            />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="completedTickets" 
+                                                stroke={theme.palette.success.main} 
+                                                strokeWidth={2} 
+                                                dot={{ r: 3 }} 
+                                                name="Completed"
+                                            />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="closedTickets" 
+                                                stroke={theme.palette.info.main} 
+                                                strokeWidth={2} 
+                                                dot={{ r: 3 }} 
+                                                name="Closed"
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                )}
                             </Box>
                         </CardContent>
                     </Card>

@@ -81,6 +81,8 @@ export default function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [paymentStats, setPaymentStats] = useState(null);
   const [monthlyPayments, setMonthlyPayments] = useState([]);
+  const [ticketStats, setTicketStats] = useState(null);
+  const [monthlyTickets, setMonthlyTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -133,6 +135,33 @@ export default function AdminDashboard() {
         }
       }
 
+      // Fetch service ticket statistics
+      const ticketStatsResponse = await fetch(`${VITE_API_BASE_URL}/tickets/statistics`, {
+        headers: axiosConfig.headers,
+      });
+      
+      if (ticketStatsResponse.ok) {
+        const ticketStatsResult = await ticketStatsResponse.json();
+        setTicketStats(ticketStatsResult);
+      }
+
+      // Fetch monthly ticket statistics
+      const monthlyTicketsResponse = await fetch(`${VITE_API_BASE_URL}/tickets/statistics/monthly`, {
+        headers: axiosConfig.headers,
+      });
+      
+      if (monthlyTicketsResponse.ok) {
+        const monthlyTicketsResult = await monthlyTicketsResponse.json();
+        const processedTicketData = monthlyTicketsResult.map(item => ({
+          month: new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+          totalTickets: item.totalTickets || 0,
+          openTickets: item.openTickets || 0,
+          completedTickets: item.completedTickets || 0,
+          closedTickets: item.closedTickets || 0,
+        }));
+        setMonthlyTickets(processedTicketData);
+      }
+
     } catch (err) {
       console.error('Dashboard fetch error:', err);
       setError(err.message);
@@ -148,7 +177,7 @@ export default function AdminDashboard() {
 
   // Process KPI data
   const kpiData = useMemo(() => {
-    // Combine dashboard data and payment stats for comprehensive KPIs
+    // Combine dashboard data, payment stats, and ticket stats for comprehensive KPIs
     const totalSales = dashboardData?.totalSales || 0;
     const totalPayments = paymentStats?.totalPayments || dashboardData?.totalPayments || 0;
     const outstandingPayments = paymentStats?.outstandingPayments || dashboardData?.outstandingPayments || 0;
@@ -194,6 +223,46 @@ export default function AdminDashboard() {
     ];
   }, [dashboardData, paymentStats]);
 
+  // Service ticket KPI data
+  const ticketKpiData = useMemo(() => {
+    if (!ticketStats) return [];
+    
+    return [
+      {
+        id: 'ticket-1',
+        title: 'Total Tickets',
+        value: ticketStats.totalTickets || 0,
+        change: '+0%',
+        trend: 'up',
+        icon: <ShoppingCart size={20} />,
+      },
+      {
+        id: 'ticket-2',
+        title: 'Open Tickets',
+        value: ticketStats.openTickets || 0,
+        change: '0%',
+        trend: 'neutral',
+        icon: <AlertTriangle size={20} />,
+      },
+      {
+        id: 'ticket-3',
+        title: 'Completed',
+        value: ticketStats.completedTickets || 0,
+        change: '+0%',
+        trend: 'up',
+        icon: <TrendingUp size={20} />,
+      },
+      {
+        id: 'ticket-4',
+        title: 'This Month',
+        value: ticketStats.thisMonthTickets || 0,
+        change: '+0%',
+        trend: 'up',
+        icon: <TrendingUp size={20} />,
+      },
+    ];
+  }, [ticketStats]);
+
   if (loading) {
     return (
       <Box sx={{ p: 3 }}>
@@ -235,11 +304,30 @@ export default function AdminDashboard() {
         ))}
       </Grid>
 
+      {/* Service Ticket KPI Cards */}
+      {ticketStats && (
+        <>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2, mt: 2 }}>
+            Service Ticket Analytics
+          </Typography>
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            {ticketKpiData.map((item, idx) => (
+              <Grid item xs={12} sm={6} md={3} key={item.id}>
+                <KPI
+                  {...item}
+                  variant={idx % 2 === 0 ? 'green' : 'orange'}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      )}
+
       {/* Charts Row */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         {/* Monthly Payment Trends Chart */}
         {monthlyPayments.length > 0 && (
-          <Grid item xs={12} lg={8}>
+          <Grid item xs={12} lg={6}>
             <Card>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
@@ -278,9 +366,68 @@ export default function AdminDashboard() {
           </Grid>
         )}
 
-        {/* User Stats Pie Chart */}
-        {dashboardData?.userStats && dashboardData.userStats.length > 0 && (
-          <Grid item xs={12} lg={4}>
+        {/* Monthly Service Ticket Trends Chart */}
+        {monthlyTickets.length > 0 && (
+          <Grid item xs={12} lg={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  Monthly Service Ticket Trends
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyTickets}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke={theme.palette.text.secondary}
+                        fontSize={12}
+                      />
+                      <YAxis 
+                        stroke={theme.palette.text.secondary}
+                        fontSize={12}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="totalTickets"
+                        stroke={theme.palette.primary.main}
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                        name="Total Tickets"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="openTickets"
+                        stroke={theme.palette.warning.main}
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        name="Open Tickets"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="completedTickets"
+                        stroke={theme.palette.success.main}
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        name="Completed"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+      </Grid>
+
+      {/* User Stats Row */}
+      {dashboardData?.userStats && dashboardData.userStats.length > 0 && (
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12} md={6} lg={4}>
             <Card>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
@@ -310,8 +457,8 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </Grid>
-        )}
-      </Grid>
+        </Grid>
+      )}
 
       {/* Bottom Row */}
       <Grid container spacing={3}>
