@@ -36,6 +36,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CancelIcon from "@mui/icons-material/Cancel";
 import {
   BarChart,
   Bar,
@@ -43,9 +44,8 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  LineChart,
+  Line,
   Legend,
 } from "recharts";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
@@ -175,6 +175,23 @@ export default function SalesManagement() {
     } catch (err) {
       console.error("Approve error:", err);
       toast.error("Failed to approve sale.");
+    }
+  };
+
+  const handleRejectSale = async (saleId) => {
+    try {
+      const res = await axios.patch(
+        `${VITE_API_BASE_URL}/sales/${saleId}/status`,
+        { saleStatus: "REJECTED" },
+        axiosConfig
+      );
+      if (res.status === 200) {
+        toast.success(`Sale ${saleId} Rejected Successfully!`);
+        fetchSales();
+      }
+    } catch (err) {
+      console.error("Reject error:", err);
+      toast.error("Failed to reject sale.");
     }
   };
 
@@ -367,7 +384,39 @@ export default function SalesManagement() {
     }
   };
 
-  const PIE_CHART_COLORS = [theme.palette.primary.main, theme.palette.success.main, theme.palette.warning.main, theme.palette.error.main];
+  // Process sales data for monthly trends
+  const monthlySalesData = useMemo(() => {
+    const monthlyData = {};
+    
+    salesData.forEach(sale => {
+      const month = dayjs(sale.saleDate).format('MMM YYYY');
+      if (!monthlyData[month]) {
+        monthlyData[month] = {
+          month,
+          totalSales: 0,
+          totalAmount: 0,
+          approvedSales: 0,
+          pendingSales: 0,
+          rejectedSales: 0
+        };
+      }
+      
+      monthlyData[month].totalSales += 1;
+      monthlyData[month].totalAmount += sale.totalAmount;
+      
+      if (sale.saleStatus === 'APPROVED') {
+        monthlyData[month].approvedSales += 1;
+      } else if (sale.saleStatus === 'PENDING') {
+        monthlyData[month].pendingSales += 1;
+      } else if (sale.saleStatus === 'REJECTED') {
+        monthlyData[month].rejectedSales += 1;
+      }
+    });
+    
+    return Object.values(monthlyData).sort((a, b) => 
+      dayjs(a.month, 'MMM YYYY').valueOf() - dayjs(b.month, 'MMM YYYY').valueOf()
+    );
+  }, [salesData]);
 
   /* ---------------- Dialog style: invoice feel ---------------- */
   const dialogPaperSx = {
@@ -385,87 +434,140 @@ export default function SalesManagement() {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ p: 3 }}>
-        <Stack spacing={3}>
-          {/* Charts */}
-          <Grid container spacing={8}>
-            <Grid item xs={12} md={7}>
-              <Card sx={{ height: "100%", minHeight: 260 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                    Dealer-wise Sales
-                  </Typography>
-                  <Divider sx={{ my: 1 }} />
-                  <Box sx={{ height: 260 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={salesData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                        <XAxis dataKey="customerName" stroke={theme.palette.text.secondary} />
-                        <YAxis stroke={theme.palette.text.secondary} />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: theme.palette.action.hover }} />
-                        <Legend />
-                        <Bar dataKey="totalAmount" fill={theme.palette.primary.main} barSize={30} radius={[5, 5, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={5}>
-              <Card sx={{ height: "100%", minHeight: 260 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                    Sale Status Distribution
-                  </Typography>
-                  <Divider sx={{ my: 1 }} />
-                  <Box sx={{ height: 260 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: "Pending", value: salesData.filter((s) => s.saleStatus === "PENDING").length },
-                            { name: "Approved", value: salesData.filter((s) => s.saleStatus === "APPROVED").length },
-                            { name: "Cancelled", value: salesData.filter((s) => s.saleStatus === "CANCELLED").length },
-                          ]}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          innerRadius={50}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {[0, 1, 2].map((_, i) => (
-                            <Cell key={`cell-${i}`} fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Sales table */}
+      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        <Stack spacing={2}>
+          {/* Monthly Sales Trend Chart */}
           <Card>
-            <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+            <CardContent sx={{ p: { xs: 2, sm: 1 } }}>
+              <Typography
+                variant="h6"
+                sx={{ 
+                  fontWeight: "bold", 
+                  fontSize: { xs: "1rem", sm: "1.1rem" }, 
+                  mb: 1 
+                }}
+              >
+                Monthly Sales Trend
+              </Typography>
+              <Divider sx={{ mb: 1 }} />
+              <Box sx={{ width: "100%", height: { xs: 300, sm: 350, md: 400 } }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={monthlySalesData}
+                    margin={{ 
+                      top: 20, 
+                      right: 30, 
+                      left: 20, 
+                      bottom: 20 
+                    }}
+                  >
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: { xs: 10, sm: 12 } }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: { xs: 10, sm: 12 } }}
+                      tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
+                    />
+                    <Tooltip 
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <Card sx={{ p: 2 }}>
+                              <Typography variant="body2" sx={{ fontWeight: "bold", mb: 1 }}>
+                                {label}
+                              </Typography>
+                              {payload.map((entry, index) => (
+                                <Typography
+                                  key={`item-${index}`}
+                                  sx={{ color: entry.color, fontSize: "0.875rem" }}
+                                >
+                                  {entry.name}: {entry.name.includes('Amount') 
+                                    ? `₹${entry.value.toLocaleString("en-IN")}` 
+                                    : `${entry.value} sales`}
+                                </Typography>
+                              ))}
+                            </Card>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Legend />
+                    <Bar
+                      dataKey="totalAmount"
+                      fill={theme.palette.primary.main}
+                      name="Total Amount"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </Card>
+
+
+          {/* Sales table - Improved responsiveness */}
+          <Card>
+            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+              <Stack 
+                direction={{ xs: "column", sm: "row" }} 
+                justifyContent="space-between" 
+                alignItems={{ xs: "stretch", sm: "center" }} 
+                spacing={2}
+                mb={2}
+              >
                 <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                   Sales Entry Table
                 </Typography>
-                <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openCreateDialog}>
+                <Button 
+                  variant="contained" 
+                  startIcon={<AddCircleOutlineIcon />} 
+                  onClick={openCreateDialog}
+                  fullWidth={{ xs: true, sm: false }}
+                  sx={{ minWidth: { sm: "auto" } }}
+                >
                   Create New Sale
                 </Button>
               </Stack>
 
-              <TableContainer sx={{ maxHeight: 440 }}>
+              <TableContainer
+                sx={{
+                  maxHeight: { xs: 400, sm: 500 },
+                  overflowX: "auto",
+                  overflowY: "auto",
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 1,
+                }}
+              >
                 <Table stickyHeader size="small">
                   <TableHead>
                     <TableRow>
-                      {["Sale ID", "Date", "Customer", "Created By", "Amount", "Status", "Action"].map((head) => (
-                        <TableCell key={head}>{head}</TableCell>
+                      {[
+                        { label: "Sale ID", minWidth: 80 },
+                        { label: "Date", minWidth: 100 },
+                        { label: "Customer", minWidth: 150 },
+                        { label: "Created By", minWidth: 120 },
+                        { label: "Amount", minWidth: 100 },
+                        { label: "Status", minWidth: 150 },
+                        { label: "Action", minWidth: 80 }
+                      ].map((head) => (
+                        <TableCell 
+                          key={head.label}
+                          sx={{
+                            fontWeight: "bold",
+                            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                            minWidth: head.minWidth,
+                            whiteSpace: "nowrap",
+                            backgroundColor: "background.paper"
+                          }}
+                        >
+                          {head.label}
+                        </TableCell>
                       ))}
                     </TableRow>
                   </TableHead>
@@ -473,29 +575,118 @@ export default function SalesManagement() {
                   <TableBody>
                     {loading ? (
                       <TableRow>
-                        <TableCell colSpan={7} align="center">
+                        <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                           <CircularProgress />
                         </TableCell>
                       </TableRow>
                     ) : salesData.length > 0 ? (
                       salesData.map((sale) => (
                         <TableRow key={sale.saleId} hover>
-                          <TableCell>{sale.saleId}</TableCell>
-                          <TableCell>{dayjs(sale.saleDate).format("DD MMM YYYY")}</TableCell>
-                          <TableCell>{sale.customerName}</TableCell>
-                          <TableCell>{sale.createdBy}</TableCell>
-                          <TableCell>₹{sale.totalAmount.toLocaleString("en-IN")}</TableCell>
+                          <TableCell 
+                            sx={{ 
+                              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                              fontWeight: "medium"
+                            }}
+                          >
+                            {sale.saleId}
+                          </TableCell>
+                          <TableCell 
+                            sx={{ 
+                              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                              whiteSpace: "nowrap"
+                            }}
+                          >
+                            {dayjs(sale.saleDate).format("DD MMM YYYY")}
+                          </TableCell>
+                          <TableCell 
+                            sx={{ 
+                              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                              maxWidth: { xs: 120, sm: 200 },
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap"
+                            }}
+                            title={sale.customerName}
+                          >
+                            {sale.customerName}
+                          </TableCell>
+                          <TableCell 
+                            sx={{ 
+                              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                              maxWidth: { xs: 100, sm: 150 },
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap"
+                            }}
+                            title={sale.createdBy}
+                          >
+                            {sale.createdBy}
+                          </TableCell>
+                          <TableCell 
+                            sx={{ 
+                              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                              fontWeight: "medium",
+                              whiteSpace: "nowrap"
+                            }}
+                          >
+                            ₹{sale.totalAmount.toLocaleString("en-IN")}
+                          </TableCell>
                           <TableCell>
                             {sale.saleStatus === "PENDING" ? (
-                              <Button variant="contained" size="small" onClick={() => handleApproveSale(sale.saleId)}>
-                                Approve
-                              </Button>
+                              <Stack direction="row" spacing={1}>
+                                <Button 
+                                  variant="contained" 
+                                  size="small" 
+                                  color="success"
+                                  onClick={() => handleApproveSale(sale.saleId)}
+                                  sx={{ 
+                                    fontSize: { xs: "0.65rem", sm: "0.7rem" },
+                                    px: { xs: 0.5, sm: 1 },
+                                    minWidth: { xs: 60, sm: 70 }
+                                  }}
+                                >
+                                  Approve
+                                </Button>
+                                <Button 
+                                  variant="contained" 
+                                  size="small" 
+                                  color="error"
+                                  onClick={() => handleRejectSale(sale.saleId)}
+                                  sx={{ 
+                                    fontSize: { xs: "0.65rem", sm: "0.7rem" },
+                                    px: { xs: 0.5, sm: 1 },
+                                    minWidth: { xs: 60, sm: 70 }
+                                  }}
+                                >
+                                  Reject
+                                </Button>
+                              </Stack>
                             ) : (
-                              <Chip label={sale.saleStatus} color={sale.saleStatus === "APPROVED" ? "success" : "default"} size="small" icon={sale.saleStatus === "APPROVED" ? <CheckCircleIcon /> : null} variant="outlined" />
+                              <Chip 
+                                label={sale.saleStatus} 
+                                color={
+                                  sale.saleStatus === "APPROVED" ? "success" : 
+                                  sale.saleStatus === "REJECTED" ? "error" : "default"
+                                } 
+                                size="small" 
+                                icon={
+                                  sale.saleStatus === "APPROVED" ? <CheckCircleIcon /> : 
+                                  sale.saleStatus === "REJECTED" ? <CancelIcon /> : null
+                                } 
+                                variant="outlined"
+                                sx={{ 
+                                  fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                                  height: { xs: 24, sm: 28 }
+                                }}
+                              />
                             )}
                           </TableCell>
                           <TableCell>
-                            <IconButton size="small" color="primary" onClick={() => handleViewDetails(sale.saleId)}>
+                            <IconButton 
+                              size="small" 
+                              color="primary" 
+                              onClick={() => handleViewDetails(sale.saleId)}
+                            >
                               <VisibilityIcon fontSize="small" />
                             </IconButton>
                           </TableCell>
@@ -503,8 +694,10 @@ export default function SalesManagement() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={7} align="center">
-                          No sales found
+                        <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                          <Typography color="text.secondary">
+                            No sales found
+                          </Typography>
                         </TableCell>
                       </TableRow>
                     )}
@@ -517,7 +710,7 @@ export default function SalesManagement() {
 
 
         {/* Sale details dialog */}
-       {/* Sale details dialog */}
+        {/* Sale details dialog */}
         <Dialog
           open={isDetailsDialogOpen}
           onClose={closeDetails}
@@ -617,10 +810,15 @@ export default function SalesManagement() {
                             ? "success"
                             : selectedSaleDetails.saleStatus === "PENDING"
                               ? "warning"
-                              : "default"
+                              : selectedSaleDetails.saleStatus === "REJECTED"
+                                ? "error"
+                                : "default"
                         }
                         size="small"
-                        icon={selectedSaleDetails.saleStatus === "APPROVED" ? <CheckCircleIcon /> : null}
+                        icon={
+                          selectedSaleDetails.saleStatus === "APPROVED" ? <CheckCircleIcon /> : 
+                          selectedSaleDetails.saleStatus === "REJECTED" ? <CancelIcon /> : null
+                        }
                         sx={{
                           fontWeight: 700,
                           fontSize: "0.8rem",
@@ -991,12 +1189,12 @@ export default function SalesManagement() {
                     {(form.items || []).map((item, idx) => {
                       const itemErr = (formErrors.items && formErrors.items[idx]) || {};
                       return (
-                        <Paper 
-                          key={idx} 
-                          sx={{ 
-                            p: 2.5, 
-                            borderRadius: 2, 
-                            background: isDark ? "#071027" : "#fff", 
+                        <Paper
+                          key={idx}
+                          sx={{
+                            p: 2.5,
+                            borderRadius: 2,
+                            background: isDark ? "#071027" : "#fff",
                             boxShadow: "0 6px 18px rgba(15,15,15,0.04)",
                             border: 1,
                             borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"
@@ -1011,18 +1209,18 @@ export default function SalesManagement() {
                                   label="Product"
                                   onChange={(e) => {
                                     const selectedProductId = e.target.value;
-                                    
+
                                     // Check if product already exists in form items
                                     const existingItemIndex = form.items.findIndex(
                                       (it, i) => i !== idx && String(it.productId) === String(selectedProductId)
                                     );
-                                    
+
                                     if (existingItemIndex !== -1) {
                                       // Product already exists, show alert and don't add
                                       alert("This product is already added. Please update the quantity of the existing item.");
                                       return;
                                     }
-                                    
+
                                     // If product doesn't exist, proceed with normal product change
                                     handleProductChange(e, idx);
                                   }}
@@ -1052,7 +1250,7 @@ export default function SalesManagement() {
                                     const isAlreadySelected = form.items.some(
                                       (it, i) => i !== idx && String(it.productId) === String(p.productId)
                                     );
-                                    
+
                                     return (
                                       <MenuItem
                                         key={p.productId}
@@ -1139,9 +1337,9 @@ export default function SalesManagement() {
                   </Stack>
 
                   <Box sx={{ mt: 2 }}>
-                    <Button 
-                      startIcon={<AddCircleOutlineIcon />} 
-                      onClick={handleAddItem} 
+                    <Button
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={handleAddItem}
                       disabled={isSubmitting}
                       sx={{ fontWeight: 600 }}
                     >
@@ -1191,11 +1389,11 @@ export default function SalesManagement() {
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       Total Amount:
                     </Typography>
-                    <Box sx={{ 
-                      background: theme.palette.mode === "dark" ? "rgba(255,255,255,0.06)" : "#e8f0fe", 
-                      px: 4, 
-                      py: 2, 
-                      borderRadius: 2 
+                    <Box sx={{
+                      background: theme.palette.mode === "dark" ? "rgba(255,255,255,0.06)" : "#e8f0fe",
+                      px: 4,
+                      py: 2,
+                      borderRadius: 2
                     }}>
                       <Typography variant="h5" sx={{ fontWeight: 800, color: theme.palette.primary.main }}>
                         ₹{Math.round(totalAmount).toLocaleString("en-IN")}
@@ -1210,10 +1408,10 @@ export default function SalesManagement() {
               <Button onClick={closeCreateDialog} disabled={isSubmitting} sx={{ fontWeight: 600 }}>
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                form="new-sale-form" 
-                variant="contained" 
+              <Button
+                type="submit"
+                form="new-sale-form"
+                variant="contained"
                 disabled={isSubmitting || Math.round(totalAmount) === 0 || !form.entityId}
                 sx={{ fontWeight: 600, px: 4 }}
               >
