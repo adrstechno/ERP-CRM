@@ -257,13 +257,27 @@ export default function SalesManagement() {
     });
   };
 
-  // Quantity typing: allow free edit (digits only), prevent 0 and negative
+  // Quantity typing: allow free edit (digits only), prevent 0 and negative, limit max quantity
   const handleQuantityChange = (e, index) => {
     const raw = e.target.value;
     const cleaned = raw.replace(/[^\d]/g, ""); // keep digits only
 
     // Don't allow starting with 0
     if (cleaned === "0" || (cleaned.length > 1 && cleaned[0] === "0")) {
+      return;
+    }
+
+    // Limit maximum quantity to prevent backend issues
+    const maxQuantity = 999999; // Set reasonable max limit
+    const numValue = Number(cleaned);
+    
+    if (numValue > maxQuantity) {
+      toast.error(`Maximum quantity allowed is ${maxQuantity.toLocaleString()}`);
+      return;
+    }
+
+    // Limit input length to prevent extremely large numbers
+    if (cleaned.length > 6) {
       return;
     }
 
@@ -278,15 +292,24 @@ export default function SalesManagement() {
     });
   };
 
-  // On blur, ensure minimum 1 if empty
+  // On blur, ensure minimum 1 if empty and validate range
   const handleQuantityBlur = (index) => {
     const updated = form.items.map((it, i) => {
       if (i !== index) return it;
       const qtyNum = Number(it.quantity) || 0;
+      
       // If empty or 0, leave empty (validation will catch it)
       if (!it.quantity || qtyNum < 1) {
         return { ...it, quantity: "" };
       }
+      
+      // Ensure quantity is within valid range
+      const maxQuantity = 999999;
+      if (qtyNum > maxQuantity) {
+        toast.error(`Maximum quantity allowed is ${maxQuantity.toLocaleString()}`);
+        return { ...it, quantity: String(maxQuantity) };
+      }
+      
       return { ...it, quantity: String(qtyNum) };
     });
     setForm((prev) => ({ ...prev, items: updated }));
@@ -337,6 +360,9 @@ export default function SalesManagement() {
         const qty = Number(it.quantity) || 0;
         if (!it.quantity || qty < 1) {
           errors.items[idx].quantity = "Quantity must be at least 1.";
+          ok = false;
+        } else if (qty > 999999) {
+          errors.items[idx].quantity = "Quantity cannot exceed 999,999.";
           ok = false;
         }
 
@@ -1286,7 +1312,9 @@ export default function SalesManagement() {
                                 inputProps={{
                                   inputMode: "numeric",
                                   pattern: "[0-9]*",
-                                  min: 1
+                                  min: 1,
+                                  max: 999999,
+                                  maxLength: 6
                                 }}
                                 value={item.quantity}
                                 onChange={(e) => handleQuantityChange(e, idx)}
