@@ -2,6 +2,7 @@ package com.erp.crm.services;
 
 import com.erp.crm.models.Sale;
 import com.erp.crm.models.Payment;
+import com.erp.crm.models.PaymentStatus;
 import com.erp.crm.models.Customer;
 import com.erp.crm.repositories.SaleRepository;
 import com.erp.crm.repositories.PaymentRepository;
@@ -162,7 +163,7 @@ public class MarketerService {
             if (sale.getSaleItems() != null) {
                 for (var item : sale.getSaleItems()) {
                     if (item.getProduct() != null && item.getProduct().getCategory() != null) {
-                        String category = item.getProduct().getCategory().getCategoryName();
+                        String category = item.getProduct().getCategory();
                         
                         categoryStats.computeIfAbsent(category, k -> {
                             Map<String, Object> stats = new LinkedHashMap<>();
