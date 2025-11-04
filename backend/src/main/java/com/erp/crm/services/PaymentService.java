@@ -14,7 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -176,6 +181,74 @@ public class PaymentService {
 
         }
         return payments.stream().map(this::mapToDto).toList();
+    }
+
+    /**
+     * Get monthly payment collection data for charts
+     */
+    public List<Map<String, Object>> getMonthlyPaymentCollection() {
+        // Get payments from last 12 months that are approved
+        LocalDate startDate = LocalDate.now().minusMonths(11).withDayOfMonth(1);
+        LocalDate endDate = LocalDate.now();
+        
+        List<Payment> approvedPayments = paymentRepo.findByStatusAndPaymentDateBetween(
+            PaymentStatus.APPROVED, startDate, endDate);
+        
+        // Group payments by month and sum amounts
+        Map<String, Double> monthlyData = approvedPayments.stream()
+            .collect(Collectors.groupingBy(
+                payment -> payment.getPaymentDate().format(DateTimeFormatter.ofPattern("yyyy-MM")),
+                LinkedHashMap::new,
+                Collectors.summingDouble(Payment::getAmount)
+            ));
+        
+        // Fill in missing months with zero values
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        for (int i = 11; i >= 0; i--) {
+            YearMonth month = YearMonth.now().minusMonths(i);
+            String monthKey = month.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+            
+            Map<String, Object> monthData = new LinkedHashMap<>();
+            monthData.put("month", monthKey);
+            monthData.put("totalAmount", monthlyData.getOrDefault(monthKey, 0.0));
+            result.add(monthData);
+        }
+        
+        return result;
+    }
+
+    /**
+     * Get payment statistics for dashboard
+     */
+    public Map<String, Object> getPaymentStatistics() {
+        Map<String, Object> stats = new LinkedHashMap<>();
+        
+        // Total payments (approved only)
+        Double totalPayments = paymentRepo.findByStatus(PaymentStatus.APPROVED)
+            .stream()
+            .mapToDouble(Payment::getAmount)
+            .sum();
+        
+        // Outstanding payments (pending + unpaid invoices)
+        Double outstandingPayments = paymentRepo.findByStatus(PaymentStatus.PENDING)
+            .stream()
+            .mapToDouble(Payment::getAmount)
+            .sum();
+        
+        // This month's collection
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate endOfMonth = LocalDate.now();
+        Double thisMonthCollection = paymentRepo.findByStatusAndPaymentDateBetween(
+            PaymentStatus.APPROVED, startOfMonth, endOfMonth)
+            .stream()
+            .mapToDouble(Payment::getAmount)
+            .sum();
+        
+        stats.put("totalPayments", totalPayments);
+        stats.put("outstandingPayments", outstandingPayments);
+        stats.put("thisMonthCollection", thisMonthCollection);
+        
+        return stats;
     }
 
     private PaymentResponseDTO mapToDto(Payment payment) {
