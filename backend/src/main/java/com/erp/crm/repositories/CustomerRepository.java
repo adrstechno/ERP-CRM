@@ -10,6 +10,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface CustomerRepository extends JpaRepository<Customer, Long>{
     List<Customer> findByCustomerName(String customerName);
     
+    // Partial name search (case-insensitive)
+    List<Customer> findByCustomerNameContainingIgnoreCase(String customerName);
+    
     // Method for customer acquisition trends
     List<Customer> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }
