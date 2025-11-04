@@ -39,7 +39,6 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
-  Users,
   ShoppingCart,
   AlertTriangle,
 } from 'lucide-react';
@@ -80,6 +79,8 @@ export default function AdminDashboard() {
   
   // State management
   const [dashboardData, setDashboardData] = useState(null);
+  const [paymentStats, setPaymentStats] = useState(null);
+  const [monthlyPayments, setMonthlyPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -96,16 +97,42 @@ export default function AdminDashboard() {
     setError(null);
     
     try {
-      const response = await fetch(`${VITE_API_BASE_URL}/dashboard`, {
+      // Fetch main dashboard data
+      const dashboardResponse = await fetch(`${VITE_API_BASE_URL}/dashboard`, {
         headers: axiosConfig.headers,
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch dashboard data');
+      if (dashboardResponse.ok) {
+        const dashboardResult = await dashboardResponse.json();
+        setDashboardData(dashboardResult.data);
       }
+
+      // Fetch payment statistics
+      const paymentStatsResponse = await fetch(`${VITE_API_BASE_URL}/payments/statistics`, {
+        headers: axiosConfig.headers,
+      });
       
-      const result = await response.json();
-      setDashboardData(result.data);
+      if (paymentStatsResponse.ok) {
+        const paymentStatsResult = await paymentStatsResponse.json();
+        setPaymentStats(paymentStatsResult.data);
+      }
+
+      // Fetch monthly payment collection
+      const monthlyPaymentsResponse = await fetch(`${VITE_API_BASE_URL}/payments/monthly-collection`, {
+        headers: axiosConfig.headers,
+      });
+      
+      if (monthlyPaymentsResponse.ok) {
+        const monthlyPaymentsResult = await monthlyPaymentsResponse.json();
+        if (monthlyPaymentsResult.success && monthlyPaymentsResult.data) {
+          const processedData = monthlyPaymentsResult.data.map(item => ({
+            month: new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+            amount: item.totalAmount || 0,
+          }));
+          setMonthlyPayments(processedData);
+        }
+      }
+
     } catch (err) {
       console.error('Dashboard fetch error:', err);
       setError(err.message);
@@ -121,26 +148,29 @@ export default function AdminDashboard() {
 
   // Process KPI data
   const kpiData = useMemo(() => {
-    if (!dashboardData) return [];
+    // Combine dashboard data and payment stats for comprehensive KPIs
+    const totalSales = dashboardData?.totalSales || 0;
+    const totalPayments = paymentStats?.totalPayments || dashboardData?.totalPayments || 0;
+    const outstandingPayments = paymentStats?.outstandingPayments || dashboardData?.outstandingPayments || 0;
+    const totalExpenses = dashboardData?.totalExpenses || 0;
+    const thisMonthCollection = paymentStats?.thisMonthCollection || 0;
     
-    const netProfit = (dashboardData.totalPayments || 0) - (dashboardData.totalExpenses || 0);
-    const profitMargin = dashboardData.totalSales 
-      ? ((netProfit / dashboardData.totalSales) * 100).toFixed(1)
-      : 0;
+    const netProfit = totalPayments - totalExpenses;
+    const profitMargin = totalSales ? ((netProfit / totalSales) * 100).toFixed(1) : 0;
     
     return [
       {
         id: '1',
         title: 'Total Sales',
-        value: `₹${(dashboardData.totalSales || 0).toLocaleString('en-IN')}`,
-        change: '+0%', // You can calculate this based on previous period
+        value: `₹${totalSales.toLocaleString('en-IN')}`,
+        change: '+0%',
         trend: 'up',
         icon: <ShoppingCart size={20} />,
       },
       {
         id: '2',
         title: 'Total Payments',
-        value: `₹${(dashboardData.totalPayments || 0).toLocaleString('en-IN')}`,
+        value: `₹${totalPayments.toLocaleString('en-IN')}`,
         change: '+0%',
         trend: 'up',
         icon: <DollarSign size={20} />,
@@ -148,21 +178,21 @@ export default function AdminDashboard() {
       {
         id: '3',
         title: 'Outstanding',
-        value: `₹${(dashboardData.outstandingPayments || 0).toLocaleString('en-IN')}`,
+        value: `₹${outstandingPayments.toLocaleString('en-IN')}`,
         change: '0%',
-        trend: dashboardData.outstandingPayments > 0 ? 'down' : 'up',
+        trend: outstandingPayments > 0 ? 'down' : 'up',
         icon: <AlertTriangle size={20} />,
       },
       {
         id: '4',
-        title: 'Net Profit',
-        value: `₹${netProfit.toLocaleString('en-IN')}`,
+        title: 'This Month',
+        value: `₹${thisMonthCollection.toLocaleString('en-IN')}`,
         change: `${profitMargin}%`,
-        trend: netProfit >= 0 ? 'up' : 'down',
-        icon: netProfit >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />,
+        trend: thisMonthCollection >= 0 ? 'up' : 'down',
+        icon: thisMonthCollection >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />,
       },
     ];
-  }, [dashboardData]);
+  }, [dashboardData, paymentStats]);
 
   if (loading) {
     return (
@@ -205,7 +235,83 @@ export default function AdminDashboard() {
         ))}
       </Grid>
 
-   
+      {/* Charts Row */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        {/* Monthly Payment Trends Chart */}
+        {monthlyPayments.length > 0 && (
+          <Grid item xs={12} lg={8}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  Monthly Payment Collection Trends
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyPayments}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke={theme.palette.text.secondary}
+                        fontSize={12}
+                      />
+                      <YAxis 
+                        stroke={theme.palette.text.secondary}
+                        fontSize={12}
+                        tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="amount"
+                        stroke={theme.palette.primary.main}
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                        name="Payment Collection"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* User Stats Pie Chart */}
+        {dashboardData?.userStats && dashboardData.userStats.length > 0 && (
+          <Grid item xs={12} lg={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  Users by Role
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={dashboardData.userStats}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="totalUsers"
+                        nameKey="role"
+                      >
+                        {dashboardData.userStats.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+      </Grid>
 
       {/* Bottom Row */}
       <Grid container spacing={3}>
