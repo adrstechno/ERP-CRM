@@ -175,7 +175,7 @@ public class SaleService {
     }
 
     public List<SaleResponseDTO> getAllSales() {
-        return saleRepo.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
+        return saleRepo.findAllByOrderBySaleDateDesc().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public List<SaleResponseDTO> getSalesByMarketer(Long userId) {
