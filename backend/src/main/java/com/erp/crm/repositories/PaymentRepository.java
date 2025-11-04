@@ -1,6 +1,7 @@
 package com.erp.crm.repositories;
 
 import com.erp.crm.models.Payment;
+import com.erp.crm.models.PaymentStatus;
 import com.erp.crm.models.User;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +16,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByInvoice_InvoiceId(Long invoiceId);
 
     List<Payment> findByReceivedBy(User receivedBy);
+
+    // Find payments by status
+    List<Payment> findByStatus(PaymentStatus status);
+
+    // Find payments by status and date range
+    List<Payment> findByStatusAndPaymentDateBetween(PaymentStatus status, LocalDate startDate, LocalDate endDate);
 
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.paymentDate BETWEEN :start AND :end")
     Double getTotalPayments(LocalDate start, LocalDate end);
