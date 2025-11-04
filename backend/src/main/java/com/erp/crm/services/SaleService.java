@@ -35,16 +35,18 @@ public class SaleService {
             return;
 
         for (SaleItem item : sale.getSaleItems()) {
-            Product product = item.getProduct();
+            // Always fetch fresh product from DB to ensure managed entity
+            Product product = productRepo.findById(item.getProduct().getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found: " + item.getProduct().getProductId()));
+
             int quantity = item.getQuantity();
 
-            // Check stock availability before updating
             if (product.getStock() < quantity) {
                 throw new RuntimeException("Insufficient stock for product: " + product.getName());
             }
 
             product.setStock(product.getStock() - quantity);
-            productRepo.save(product);
+            productRepo.save(product); // Explicitly save managed entity
         }
     }
 
@@ -137,7 +139,7 @@ public class SaleService {
 
         sale.setTotalAmount(dto.getTotalAmount());
 
-        // ✅ Customer check
+        //  Customer check
         if (dto.getCustomerId() != null) {
             sale.setCustomer(customerRepo.findById(dto.getCustomerId())
                     .orElseThrow(() -> new RuntimeException("Customer not found with id: " + dto.getCustomerId())));
@@ -145,7 +147,7 @@ public class SaleService {
             throw new RuntimeException("customerId must be provided");
         }
 
-        // ✅ Items check
+        //  Items check
         if (dto.getItems() != null && !dto.getItems().isEmpty()) {
             List<SaleItem> items = dto.getItems().stream().map(i -> {
                 SaleItem item = new SaleItem();
