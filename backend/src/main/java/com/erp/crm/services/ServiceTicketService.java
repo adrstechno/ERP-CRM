@@ -114,7 +114,7 @@ public class ServiceTicketService {
 
     /** Get all service tickets (Admin/SubAdmin) */
     public List<ServiceTicketResponseDTO> getAllServiceTicket() {
-        return ticketRepo.findAll()
+        return ticketRepo.findAllByOrderByIdDesc()
                 .stream()
                 .map(ServiceTicketResponseDTO::fromEntity)
                 .collect(Collectors.toList());
