@@ -21,4 +21,6 @@ public interface ServiceTicketRepository extends JpaRepository<ServiceTicket, Lo
     
     // Find tickets by date range for analytics
     List<ServiceTicket> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<ServiceTicket> findAllByOrderByIdDesc();
 }
