@@ -1,6 +1,7 @@
 package com.erp.crm.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.erp.crm.config.ApiResponse;
 import com.erp.crm.dto.CustomerDTO;
 import com.erp.crm.models.Customer;
+import com.erp.crm.repositories.CustomerRepository;
 import com.erp.crm.services.CustomerService;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -23,9 +25,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final CustomerRepository customerRepo;
 
-    public CustomerController(CustomerService customerService){
+    public CustomerController(CustomerService customerService,CustomerRepository customerRepo){
         this.customerService = customerService;
+        this.customerRepo = customerRepo;
     }
 
     @GetMapping
@@ -60,4 +64,10 @@ public class CustomerController {
         ApiResponse<Void> response = new ApiResponse<Void>(true, "Customer deleted successfully", null);
         return ResponseEntity.ok(response);
     } 
+
+    @PostMapping("/check-email/{email}")
+    public ResponseEntity<Boolean> checkEmailExists(@PathVariable String email){
+        Optional<Customer> customer = customerRepo.findByEmail(email);
+        return ResponseEntity.ok(customer == null);
+    }
 }
