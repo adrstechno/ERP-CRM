@@ -1517,4 +1517,4 @@ export default function SalesManagement() {
       </Box>
     </LocalizationProvider>
   );
-}s
+}
