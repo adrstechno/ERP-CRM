@@ -31,7 +31,6 @@ import {
   InputAdornment,
   Paper,
   FormHelperText,
-  Alert,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -81,11 +80,6 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function SalesManagement() {
   const theme = useTheme();
 
-  // Auth
-  const token = localStorage.getItem("authKey");
-  const userRole = (localStorage.getItem("userRole") || "").toUpperCase();
-  const isAdmin = ["ADMIN", "SUBADMIN"].includes(userRole);
-
   // data
   const [salesData, setSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,14 +100,14 @@ export default function SalesManagement() {
   const [form, setForm] = useState({
     entityId: "",
     date: dayjs(),
-    items: [{ productId: "", productName: "", quantity: "", perUnit: 0, stock: 0 }],
+    items: [{ productId: "", productName: "", quantity: "", perUnit: 0 }],
   });
 
   // field-level errors: entityId and items parallel array
   const [formErrors, setFormErrors] = useState({ entityId: "", items: [] });
-  const [stockErrors, setStockErrors] = useState([]);
 
   // axios config
+  const token = localStorage.getItem("authKey");
   const axiosConfig = useMemo(
     () => ({ headers: { Authorization: `Bearer ${token}` } }),
     [token]
@@ -132,15 +126,6 @@ export default function SalesManagement() {
       const unit = Number(item.perUnit) || 0;
       return sum + qty * unit;
     }, 0);
-  }, [form.items]);
-
-  // Stock error flag
-  const hasStockError = useMemo(() => {
-    return form.items.some((item) => {
-      const qty = Number(item.quantity) || 0;
-      const stock = Number(item.stock) || 0;
-      return qty > 0 && qty > stock;
-    });
   }, [form.items]);
 
   /* ---------------- Data fetching ---------------- */
@@ -230,36 +215,14 @@ export default function SalesManagement() {
     setSelectedSaleDetails(null);
   };
 
-  /* ---------------- Auto-Approve Helper ---------------- */
-  const autoApproveSale = async (saleId) => {
-    try {
-      const res = await axios.patch(
-        `${VITE_API_BASE_URL}/sales/${saleId}/status`,
-        { saleStatus: "APPROVED" },
-        axiosConfig
-      );
-      if (res.status === 200) {
-        toast.success(`Sale #${saleId} auto-approved!`);
-        return true;
-      }
-    } catch (err) {
-      const msg = err.response?.data?.message || "Auto-approval failed";
-      toast.error(msg);
-      console.warn("Auto-approve failed:", err);
-      return false;
-    }
-    return false;
-  };
-
   /* ---------------- Create dialog handlers ---------------- */
   const openCreateDialog = () => {
     setForm({
       entityId: "",
       date: dayjs(),
-      items: [{ productId: "", productName: "", quantity: "", perUnit: 0, stock: 0 }],
+      items: [{ productId: "", productName: "", quantity: "", perUnit: 0 }],
     });
     setFormErrors({ entityId: "", items: [] });
-    setStockErrors([]);
     setIsCreateDialogOpen(true);
   };
 
@@ -274,23 +237,14 @@ export default function SalesManagement() {
   const handleProductChange = (e, index) => {
     const newProductId = e.target.value;
     const product = findProduct(newProductId);
-
-    // Prevent duplicate
-    const isDuplicate = form.items.some((it, i) => i !== index && String(it.productId) === String(newProductId));
-    if (isDuplicate) {
-      toast.error("Product already added.");
-      return;
-    }
-
     const updated = form.items.map((it, i) =>
       i === index
         ? {
-            ...it,
-            productId: String(newProductId),
-            productName: product ? product.name : "",
-            perUnit: product ? Number(product.price) : 0,
-            stock: product ? Number(product.quantity) : 0,
-          }
+          ...it,
+          productId: String(newProductId),
+          productName: product ? product.name : "",
+          perUnit: product ? Number(product.price) : 0,
+        }
         : it
     );
     setForm((prev) => ({ ...prev, items: updated }));
@@ -300,11 +254,6 @@ export default function SalesManagement() {
       const items = prev.items ? [...prev.items] : [];
       items[index] = { ...(items[index] || {}), productId: "" };
       return { ...prev, items };
-    });
-    setStockErrors((prev) => {
-      const errs = [...prev];
-      errs[index] = "";
-      return errs;
     });
   };
 
@@ -319,7 +268,7 @@ export default function SalesManagement() {
     }
 
     // Limit maximum quantity to prevent backend issues
-    const maxQuantity = 999999;
+    const maxQuantity = 999999; // Set reasonable max limit
     const numValue = Number(cleaned);
     
     if (numValue > maxQuantity) {
@@ -330,22 +279,6 @@ export default function SalesManagement() {
     // Limit input length to prevent extremely large numbers
     if (cleaned.length > 6) {
       return;
-    }
-
-    // Stock check
-    const stock = Number(form.items[index].stock) || 0;
-    if (numValue > stock) {
-      setStockErrors((prev) => {
-        const errs = [...prev];
-        errs[index] = `Only ${stock} in stock`;
-        return errs;
-      });
-    } else {
-      setStockErrors((prev) => {
-        const errs = [...prev];
-        errs[index] = "";
-        return errs;
-      });
     }
 
     const updated = form.items.map((it, i) => (i === index ? { ...it, quantity: cleaned } : it));
@@ -386,21 +319,20 @@ export default function SalesManagement() {
   const handleAddItem = () =>
     setForm((prev) => ({
       ...prev,
-      items: [...(prev.items || []), { productId: "", productName: "", quantity: "", perUnit: 0, stock: 0 }],
+      items: [...(prev.items || []), { productId: "", productName: "", quantity: "", perUnit: 0 }],
     }));
 
   const handleRemoveItem = (index) => {
     const updated = form.items.filter((_, i) => i !== index);
     setForm((prev) => ({
       ...prev,
-      items: updated.length ? updated : [{ productId: "", productName: "", quantity: "", perUnit: 0, stock: 0 }]
+      items: updated.length ? updated : [{ productId: "", productName: "", quantity: "", perUnit: 0 }]
     }));
     setFormErrors((prev) => {
       const items = prev.items ? [...prev.items] : [];
       items.splice(index, 1);
       return { ...prev, items };
     });
-    setStockErrors((prev) => prev.filter((_, i) => i !== index));
   };
 
   /* ---------------- Validation ---------------- */
@@ -445,11 +377,11 @@ export default function SalesManagement() {
     return ok;
   };
 
-  /* ---------------- Submit handler with Auto-Approve ---------------- */
+  /* ---------------- Submit handler ---------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm() || hasStockError) return;
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
     try {
@@ -467,18 +399,7 @@ export default function SalesManagement() {
       };
 
       const res = await axios.post(`${VITE_API_BASE_URL}/sales/create-sale`, payload, axiosConfig);
-      const newSale = res.data;
-      const saleId = newSale.saleId;
-
-      toast.success(`Sale Created Successfully for ${newSale.customerName || "customer"}`);
-
-      // Auto-approve for admin
-      if (isAdmin) {
-        await autoApproveSale(saleId);
-      } else {
-        toast.info("Sale is pending approval.");
-      }
-
+      toast.success(`Sale Created Successfully for ${res.data.customerName || "customer"}`);
       fetchSales();
       closeCreateDialog();
     } catch (err) {
@@ -613,6 +534,7 @@ export default function SalesManagement() {
               </Box>
             </CardContent>
           </Card>
+
 
           {/* Sales table - Improved responsiveness */}
           <Card>
@@ -812,7 +734,9 @@ export default function SalesManagement() {
           </Card>
         </Stack>
 
-        {/* Sale details dialog - FULL INVOICE UI (YOUR ORIGINAL) */}
+
+        {/* Sale details dialog */}
+        {/* Sale details dialog */}
         <Dialog
           open={isDetailsDialogOpen}
           onClose={closeDetails}
@@ -1191,7 +1115,7 @@ export default function SalesManagement() {
           </DialogActions>
         </Dialog>
 
-        {/* Create New Sale dialog - FULL INVOICE STYLE WITH MINI-CARDS */}
+        {/* Create New Sale dialog - Invoice style with mini-cards */}
         <Dialog
           open={isCreateDialogOpen}
           onClose={closeCreateDialog}
@@ -1290,7 +1214,6 @@ export default function SalesManagement() {
                   <Stack spacing={2}>
                     {(form.items || []).map((item, idx) => {
                       const itemErr = (formErrors.items && formErrors.items[idx]) || {};
-                      const stockErr = stockErrors[idx];
                       return (
                         <Paper
                           key={idx}
@@ -1310,7 +1233,23 @@ export default function SalesManagement() {
                                 <Select
                                   value={item.productId || ""}
                                   label="Product"
-                                  onChange={(e) => handleProductChange(e, idx)}
+                                  onChange={(e) => {
+                                    const selectedProductId = e.target.value;
+
+                                    // Check if product already exists in form items
+                                    const existingItemIndex = form.items.findIndex(
+                                      (it, i) => i !== idx && String(it.productId) === String(selectedProductId)
+                                    );
+
+                                    if (existingItemIndex !== -1) {
+                                      // Product already exists, show alert and don't add
+                                      alert("This product is already added. Please update the quantity of the existing item.");
+                                      return;
+                                    }
+
+                                    // If product doesn't exist, proceed with normal product change
+                                    handleProductChange(e, idx);
+                                  }}
                                   disabled={isSubmitting}
                                   sx={{
                                     minWidth: 200
@@ -1333,6 +1272,7 @@ export default function SalesManagement() {
                                     <em>Select Product</em>
                                   </MenuItem>
                                   {products.map((p) => {
+                                    // Check if this product is already selected in any other row
                                     const isAlreadySelected = form.items.some(
                                       (it, i) => i !== idx && String(it.productId) === String(p.productId)
                                     );
@@ -1380,8 +1320,8 @@ export default function SalesManagement() {
                                 onChange={(e) => handleQuantityChange(e, idx)}
                                 onBlur={() => handleQuantityBlur(idx)}
                                 disabled={!item.productId || isSubmitting}
-                                error={!!itemErr.quantity || !!stockErr}
-                                helperText={stockErr || itemErr.quantity || (!item.quantity && item.productId ? "Required" : "")}
+                                error={!!itemErr.quantity || (!item.quantity && item.productId)}
+                                helperText={itemErr.quantity || (!item.quantity && item.productId ? "Required" : "")}
                                 placeholder="0"
                               />
                             </Grid>
@@ -1435,12 +1375,6 @@ export default function SalesManagement() {
                     </Button>
                   </Box>
                 </Paper>
-
-                {hasStockError && (
-                  <Alert severity="error">
-                    One or more items exceed available stock. Please adjust quantities.
-                  </Alert>
-                )}
 
                 {/* Summary */}
                 <Paper elevation={0} sx={{ p: 3, borderRadius: 2.5, background: miniCardBg }}>
@@ -1506,10 +1440,10 @@ export default function SalesManagement() {
                 type="submit"
                 form="new-sale-form"
                 variant="contained"
-                disabled={isSubmitting || hasStockError || Math.round(totalAmount) === 0 || !form.entityId}
+                disabled={isSubmitting || Math.round(totalAmount) === 0 || !form.entityId}
                 sx={{ fontWeight: 600, px: 4 }}
               >
-                {isSubmitting ? <CircularProgress size={20} color="inherit" /> : isAdmin ? "Create & Auto-Approve" : "Create (Pending)"}
+                {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Submit Sale"}
               </Button>
             </DialogActions>
           </form>
