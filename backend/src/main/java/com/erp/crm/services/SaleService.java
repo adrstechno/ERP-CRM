@@ -54,24 +54,21 @@ public class SaleService {
     public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
         Sale sale = saleRepo.findById(saleId)
                 .orElseThrow(() -> new RuntimeException("Sale not found with id: " + saleId));
-
-        Status oldStatus = sale.getSaleStatus();
-        sale.setSaleStatus(status);
-
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (status == Status.APPROVED && auth != null && auth.getPrincipal() instanceof UserPrincipal principal) {
+            updateProductStock(sale); // Deduct stock
             String email = principal.getUsername();
             User admin = userRepo.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
             sale.setApprovedBy(admin);
         }
-
+        
+        Status oldStatus = sale.getSaleStatus();
+        sale.setSaleStatus(status);
         Sale savedSale = saleRepo.save(sale);
 
         // Generate invoice only when status changes from PENDING to APPROVED
         if (oldStatus == Status.PENDING && status == Status.APPROVED) {
-            updateProductStock(savedSale); // Deduct stock
-
             generateInvoice(savedSale);
             createServiceEntitlements(savedSale);
             // createServiceEntitlements(savedSale); // Create 2 free services
