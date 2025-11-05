@@ -43,33 +43,36 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> {})
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/manager/**").hasRole("MANAGER")
-                .requestMatchers("/api/marketer/**").hasRole("MARKETER")
-                .requestMatchers("/api/subadmin/**").hasRole("SUBADMIN")
-                .requestMatchers("/api/engineer/**").hasRole("ENGINEER")
-                .anyRequest().authenticated()
-            )
-            .exceptionHandling(ex -> ex
-                // Handle missing/invalid token -> 401
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setContentType("application/json");
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("{\"success\":false,\"message\":\"Unauthorized: Token missing or invalid\",\"data\":null}");
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> {
                 })
-                // Handle forbidden -> 403
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.setContentType("application/json");
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.getWriter().write("{\"success\":false,\"message\":\"Forbidden: You don't have permission\",\"data\":null}");
-                })
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/health").permitAll() //  health endpoint
+
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/manager/**").hasRole("MANAGER")
+                        .requestMatchers("/api/marketer/**").hasRole("MARKETER")
+                        .requestMatchers("/api/subadmin/**").hasRole("SUBADMIN")
+                        .requestMatchers("/api/engineer/**").hasRole("ENGINEER")
+                        .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                        // Handle missing/invalid token -> 401
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write(
+                                    "{\"success\":false,\"message\":\"Unauthorized: Token missing or invalid\",\"data\":null}");
+                        })
+                        // Handle forbidden -> 403
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.getWriter().write(
+                                    "{\"success\":false,\"message\":\"Forbidden: You don't have permission\",\"data\":null}");
+                        }))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

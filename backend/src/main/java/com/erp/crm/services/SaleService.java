@@ -30,6 +30,26 @@ public class SaleService {
     private final ServiceEntitlementRepository serviceEntitlementRepo;
     private final SecurityUtils securityUtils;
 
+    private void updateProductStock(Sale sale) {
+        if (sale.getSaleItems() == null || sale.getSaleItems().isEmpty())
+            return;
+
+        for (SaleItem item : sale.getSaleItems()) {
+            // Always fetch fresh product from DB to ensure managed entity
+            Product product = productRepo.findById(item.getProduct().getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found: " + item.getProduct().getProductId()));
+
+            int quantity = item.getQuantity();
+
+            if (product.getStock() < quantity) {
+                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+            }
+
+            product.setStock(product.getStock() - quantity);
+            productRepo.save(product); // Explicitly save managed entity
+        }
+    }
+
     // Update Sale Status
     public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
         Sale sale = saleRepo.findById(saleId)
@@ -50,6 +70,8 @@ public class SaleService {
 
         // Generate invoice only when status changes from PENDING to APPROVED
         if (oldStatus == Status.PENDING && status == Status.APPROVED) {
+            updateProductStock(savedSale); // Deduct stock
+
             generateInvoice(savedSale);
             createServiceEntitlements(savedSale);
             // createServiceEntitlements(savedSale); // Create 2 free services
@@ -96,15 +118,28 @@ public class SaleService {
     public SaleResponseDTO createSale(SaleRequestDTO dto) {
         Sale sale = new Sale();
         sale.setSaleDate(LocalDate.now());
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof UserPrincipal principal) {
             String email = principal.getUsername();
             User user = userRepo.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
             sale.setCreatedBy(user);
+
+            // Auto-approve if created by Admin
+            if (user.getRole().getName().equalsIgnoreCase("ADMIN")) {
+                sale.setSaleStatus(Status.APPROVED);
+            } else {
+                sale.setSaleStatus(Status.PENDING);
+            }
+        } else {
+            throw new RuntimeException("Unauthorized access: user context not found");
         }
+
         sale.setTotalAmount(dto.getTotalAmount());
 
+        //  Customer check
         if (dto.getCustomerId() != null) {
             sale.setCustomer(customerRepo.findById(dto.getCustomerId())
                     .orElseThrow(() -> new RuntimeException("Customer not found with id: " + dto.getCustomerId())));
@@ -112,6 +147,7 @@ public class SaleService {
             throw new RuntimeException("customerId must be provided");
         }
 
+        //  Items check
         if (dto.getItems() != null && !dto.getItems().isEmpty()) {
             List<SaleItem> items = dto.getItems().stream().map(i -> {
                 SaleItem item = new SaleItem();
@@ -120,13 +156,13 @@ public class SaleService {
                 item.setSale(sale);
                 item.setProduct(product);
                 item.setQuantity(i.getQuantity());
-                Double unitPrice = i.getQuantity() * product.getPrice();
+                double unitPrice = i.getQuantity() * product.getPrice();
                 item.setUnitPrice(unitPrice);
                 return item;
             }).toList();
             sale.setSaleItems(items);
         } else {
-            throw new RuntimeException("Sale Items cannot be null , Atleast select 1 product");
+            throw new RuntimeException("Sale Items cannot be null. At least one product must be selected.");
         }
 
         Sale saved = saleRepo.save(sale);
@@ -139,7 +175,7 @@ public class SaleService {
     }
 
     public List<SaleResponseDTO> getAllSales() {
-        return saleRepo.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
+        return saleRepo.findAllByOrderBySaleDateDesc().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public List<SaleResponseDTO> getSalesByMarketer(Long userId) {
@@ -172,7 +208,7 @@ public class SaleService {
                             i.getProduct().getProductId(),
                             i.getProduct().getName(),
                             i.getQuantity(),
-                            i.getUnitPrice()))
+                            i.getProduct().getPrice()))
                     .toList());
         }
         return dto;

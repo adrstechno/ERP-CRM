@@ -9,7 +9,7 @@ dealer -
    "email": "dealer2@example.com",
   "password": "dealerpassword",
 
-
+docker run --env-file .env -p 8080:8080 erp-crm
 
 
 model -> repo -> dto -> service -> 

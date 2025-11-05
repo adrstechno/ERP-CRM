@@ -12,6 +12,4 @@ public class SaleItemResponseDTO {
     private String productName;
     private Integer quantity;
     private Double unitPrice;
-
-   
 }

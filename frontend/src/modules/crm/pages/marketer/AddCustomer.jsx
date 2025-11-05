@@ -20,6 +20,7 @@ import toast from 'react-hot-toast';
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -29,7 +30,7 @@ export default function Customers() {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🔹 Fetch all customers
+  // Fetch all customers
   const fetchCustomers = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -52,53 +53,50 @@ export default function Customers() {
     fetchCustomers();
   }, [fetchCustomers]);
 
-  // 🔹 Get Customer By ID
-  // const getCustomerById = async (id) => {
-  //   try {
-  //     const authKey = localStorage.getItem("authKey");
-  //     const res = await fetch(`${VITE_API_BASE_URL}/customer/${id}`, {
-  //       headers: { Authorization: `Bearer ${authKey}` },
-  //     });
-  //     if (!res.ok) throw new Error(`Failed to fetch customer by ID: ${res.status}`);
-  //     const data = await res.json();
-  //     console.log("Customer by ID:", data);
-  //     return data;
-  //   } catch (err) {
-  //     console.error("getCustomerById error:", err);
-  //   }
-  // };
-
-  // 🔹 Get Customer By Name
+  // Get Customer By Name
   const getCustomerByName = async (name) => {
+    setIsSearching(true);
     try {
       const authKey = localStorage.getItem("authKey");
-      const res = await fetch(`${VITE_API_BASE_URL}/customer/name/${name}`, {
+      const res = await fetch(`${VITE_API_BASE_URL}/customer/name/${encodeURIComponent(name)}`, {
         headers: { Authorization: `Bearer ${authKey}` },
       });
-      if (!res.ok) throw new Error(`Failed to fetch customer by name: ${res.status}`);
+      if (!res.ok) {
+        if (res.status === 404) {
+          // No customers found with this name
+          setCustomers([]);
+          return;
+        }
+        throw new Error(`Failed to fetch customer by name: ${res.status}`);
+      }
       const data = await res.json();
       console.log("Customer by name:", data);
-      toast.success("successsss")
-      setCustomers(Array.isArray(data) ? data : []);
+      // The API returns an array of customers matching the name
+      setCustomers(Array.isArray(data) ? data : (data ? [data] : []));
     } catch (err) {
       console.error("getCustomerByName error:", err);
-      toast.error("Error")
+      // Don't show error toast for search - just show no results
+      setCustomers([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
-  // 🔹 Handle Search (by name)
+  //  Handle Search (by name)
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      if (searchTerm.trim()) {
-        getCustomerByName(searchTerm.trim());
-      } else {
-        fetchCustomers();
+      const trimmedSearch = searchTerm.trim();
+      if (trimmedSearch.length >= 2) { // Only search if at least 2 characters
+        getCustomerByName(trimmedSearch);
+      } else if (trimmedSearch.length === 0) {
+        fetchCustomers(); // Reset to all customers when search is cleared
       }
+      // Don't search for single characters to avoid too many API calls
     }, 500);
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, fetchCustomers]);
 
-  // 🔹 Add Customer
+  //  Add Customer
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -132,7 +130,7 @@ export default function Customers() {
   };
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // 🔹 Edit Customer
+  //  Edit Customer
   const handleOpenEditDialog = (customer) => {
     setEditingCustomer({ ...customer });
     setEditDialogOpen(true);
@@ -171,15 +169,9 @@ export default function Customers() {
   }, [editingCustomer]);
 
  
-  // 🔹 Filtered List
-  const filteredCustomers = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    if (!q) return customers;
-    return customers.filter(c =>
-      (c.customerName || '').toLowerCase().includes(q) ||
-      (c.email || '').toLowerCase().includes(q)
-    );
-  }, [customers, searchTerm]);
+  // Since we're doing server-side search, we don't need client-side filtering
+  // Just return the customers as they are already filtered by the API
+  const filteredCustomers = customers;
 
   return (
     <Box>
@@ -194,11 +186,15 @@ export default function Customers() {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ width: { xs: '100%', md: 'auto' } }}>
               <TextField
                 size="small"
-                placeholder="Search Customers by Name..."
+                placeholder="Search Customers by Name (min 2 chars)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      {isSearching ? <CircularProgress size={20} /> : <SearchIcon />}
+                    </InputAdornment>
+                  ),
                 }}
                 sx={{ width: { xs: '100%', sm: 300 } }}
               />
@@ -221,10 +217,24 @@ export default function Customers() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {isLoading ? (
+              {(isLoading || isSearching) ? (
                 Array.from(new Array(5)).map((_, i) => (
                   <TableRow key={i}><TableCell colSpan={5}><Skeleton /></TableCell></TableRow>
                 ))
+              ) : filteredCustomers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {searchTerm.trim() ? 
+                        (searchTerm.trim().length < 2 ? 
+                          'Type at least 2 characters to search' : 
+                          `No customers found matching "${searchTerm}"`
+                        ) : 
+                        'No customers found. Click "Add Customer" to create one.'
+                      }
+                    </Typography>
+                  </TableCell>
+                </TableRow>
               ) : (
                 filteredCustomers.map((customer) => (
                   <TableRow key={customer.customerId} hover>
@@ -236,12 +246,11 @@ export default function Customers() {
                         <Typography variant="body2" fontWeight="500">{customer.customerName}</Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell>{customer.email}</TableCell>
-                    <TableCell>{customer.phone}</TableCell>
-                    <TableCell>{customer.address}</TableCell>
+                    <TableCell>{customer.email || '-'}</TableCell>
+                    <TableCell>{customer.phone || '-'}</TableCell>
+                    <TableCell>{customer.address || '-'}</TableCell>
                     <TableCell>
                       <IconButton size="small" onClick={() => handleOpenEditDialog(customer)}><EditIcon fontSize="small" /></IconButton>
-                   
                     </TableCell>
                   </TableRow>
                 ))

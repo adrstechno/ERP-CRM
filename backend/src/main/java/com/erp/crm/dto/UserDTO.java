@@ -4,10 +4,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Setter;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class UserDTO {
     @NotBlank(message = "name is required")
     private String name;

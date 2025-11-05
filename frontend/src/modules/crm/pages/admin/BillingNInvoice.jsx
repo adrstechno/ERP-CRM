@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Box,
   Card,
@@ -15,15 +15,13 @@ import {
   Button,
   Stack,
   Divider,
-  ToggleButtonGroup,
-  ToggleButton,
   Skeleton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   CircularProgress,
-  Link, // 👈 Import Link component
+  Link,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import {
@@ -40,11 +38,7 @@ import { VITE_API_BASE_URL } from "../../utils/State";
 import toast from "react-hot-toast";
 import dayjs from "dayjs";
 
-// --- Mock Data (assuming this stays for the chart) ---
-const gstCollectionData = Array.from({ length: 12 }, (_, i) => ({
-  month: dayjs().month(i).format("MMM"),
-  collection: Math.floor(Math.random() * 40000) + 10000,
-}));
+// This will be replaced with actual payment data
 
 // --- Helper Components ---
 const getStatusChip = (status) => {
@@ -87,6 +81,14 @@ export default function BillingAndInvoice() {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [paymentCollectionData, setPaymentCollectionData] = useState([]);
+  const [isChartLoading, setIsChartLoading] = useState(true);
+  const [billingStats, setBillingStats] = useState({
+    totalInvoices: 0,
+    totalAmount: 0,
+    paidAmount: 0,
+    pendingAmount: 0,
+  });
   const token = localStorage.getItem("authKey");
 
   // --- State for Payment Dialog ---
@@ -122,6 +124,19 @@ export default function BillingAndInvoice() {
         status: item.paymentStatus,
       }));
       setInvoices(formattedData);
+      
+      // Calculate billing statistics
+      const stats = {
+        totalInvoices: formattedData.length,
+        totalAmount: formattedData.reduce((sum, inv) => sum + inv.amount, 0),
+        paidAmount: formattedData
+          .filter(inv => inv.status?.toLowerCase() === 'paid' || inv.status?.toLowerCase() === 'approved')
+          .reduce((sum, inv) => sum + inv.amount, 0),
+        pendingAmount: formattedData
+          .filter(inv => inv.status?.toLowerCase() === 'unpaid' || inv.status?.toLowerCase() === 'pending')
+          .reduce((sum, inv) => sum + inv.amount, 0),
+      };
+      setBillingStats(stats);
     } catch (error) {
       toast.error(error.message);
       setInvoices([]);
@@ -130,9 +145,56 @@ export default function BillingAndInvoice() {
     }
   }, [axiosConfig]);
 
+  // --- Fetch Payment Collection Data for Chart ---
+  const fetchPaymentCollectionData = useCallback(async () => {
+    setIsChartLoading(true);
+    try {
+      // Use the new monthly payment collection API
+      const response = await fetch(
+        `${VITE_API_BASE_URL}/payments/monthly-collection`,
+        { headers: axiosConfig.headers }
+      );
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch payment collection data");
+      }
+      
+      const result = await response.json();
+      
+      if (!result.success || !result.data || result.data.length === 0) {
+        // Generate empty data for last 12 months if no payments exist
+        const emptyData = Array.from({ length: 12 }, (_, i) => ({
+          month: dayjs().subtract(11 - i, 'month').format("MMM YYYY"),
+          collection: 0,
+        }));
+        setPaymentCollectionData(emptyData);
+        toast.info("No payment collection data available yet");
+      } else {
+        // Process the actual payment data from the new API
+        const processedData = result.data.map(item => ({
+          month: dayjs(item.month, 'YYYY-MM').format("MMM YYYY"),
+          collection: item.totalAmount || 0,
+        }));
+        setPaymentCollectionData(processedData);
+      }
+    } catch (error) {
+      console.error("Payment collection fetch error:", error);
+      // Generate empty data as fallback
+      const emptyData = Array.from({ length: 12 }, (_, i) => ({
+        month: dayjs().subtract(11 - i, 'month').format("MMM YYYY"),
+        collection: 0,
+      }));
+      setPaymentCollectionData(emptyData);
+      toast.error("Failed to load payment collection data");
+    } finally {
+      setIsChartLoading(false);
+    }
+  }, [axiosConfig]);
+
   useEffect(() => {
     fetchInvoices();
-  }, [fetchInvoices]);
+    fetchPaymentCollectionData();
+  }, [fetchInvoices, fetchPaymentCollectionData]);
 
   // --- Dialog Handlers ---
   const handleOpenPaymentsDialog = async (invoice) => {
@@ -142,11 +204,17 @@ export default function BillingAndInvoice() {
     try {
       const response = await fetch(
         `${VITE_API_BASE_URL}/payments/${invoice.id}`,
-        { headers: axiosConfig.headers } // Pass headers correctly
+        { headers: axiosConfig.headers }
       );
       if (!response.ok) throw new Error("Failed to fetch payment details.");
       const data = await response.json();
-      setPayments(Array.isArray(data) ? data : []);
+      
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        setPayments([]);
+        toast.info(`No payments found for Invoice #${invoice.invoiceNo}`);
+      } else {
+        setPayments(Array.isArray(data) ? data : []);
+      }
     } catch (error) {
       toast.error(error.message);
       setPayments([]);
@@ -177,6 +245,29 @@ export default function BillingAndInvoice() {
       toast.success(result.message || "Payment approved successfully!");
       handleClosePaymentsDialog();
       fetchInvoices(); // Refresh the main invoice table
+      fetchPaymentCollectionData(); // Refresh the chart data
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  // --- Reject Payment Handler ---
+  const handleRejectPayment = async (paymentId) => {
+    try {
+      const response = await fetch(
+        `${VITE_API_BASE_URL}/payments/${paymentId}/status?status=REJECTED`,
+        {
+          method: "PATCH",
+          headers: axiosConfig.headers,
+        }
+      );
+      if (!response.ok) throw new Error("Failed to reject payment.");
+      
+      const result = await response.json();
+      toast.success(result.message || "Payment rejected successfully!");
+      handleClosePaymentsDialog();
+      fetchInvoices(); // Refresh the main invoice table
+      fetchPaymentCollectionData(); // Refresh the chart data
     } catch (error) {
       toast.error(error.message);
     }
@@ -187,23 +278,109 @@ export default function BillingAndInvoice() {
   };
 
   return (
-    <Box>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Stack spacing={3}>
-        {/* Payment Collection Chart Card - This part remains unchanged */}
+        {/* Billing Statistics KPI Cards */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: '1fr 1fr 1fr 1fr' }, gap: 2 }}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 2 }}>
+              <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                {billingStats.totalInvoices}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Total Invoices
+              </Typography>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'info.main' }}>
+                ₹{billingStats.totalAmount.toLocaleString('en-IN')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Total Amount
+              </Typography>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                ₹{billingStats.paidAmount.toLocaleString('en-IN')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Paid Amount
+              </Typography>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+                ₹{billingStats.pendingAmount.toLocaleString('en-IN')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Pending Amount
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* Payment Collection Chart Card */}
         <Card>
           <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: "bold" }}>GST Payment Collection</Typography>
+            <Typography variant="h6" sx={{ fontWeight: "bold" }}>Monthly Payment Collection</Typography>
             <Divider sx={{ my: 2 }} />
-            <Box sx={{ height: 250 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={gstCollectionData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                  <XAxis dataKey="month" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
-                  <YAxis stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(128, 128, 128, 0.1)' }} />
-                  <Bar dataKey="collection" fill={theme.palette.primary.main} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <Box sx={{ height: 300 }}>
+              {isChartLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <CircularProgress />
+                  <Typography sx={{ ml: 2 }}>Loading payment data...</Typography>
+                </Box>
+              ) : paymentCollectionData.length > 0 && paymentCollectionData.some(item => item.collection > 0) ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={paymentCollectionData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                    <XAxis 
+                      dataKey="month" 
+                      stroke={theme.palette.text.secondary} 
+                      tick={{ fontSize: 11 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis 
+                      stroke={theme.palette.text.secondary} 
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(128, 128, 128, 0.1)' }} />
+                    <Bar 
+                      dataKey="collection" 
+                      fill={theme.palette.primary.main} 
+                      radius={[4, 4, 0, 0]}
+                      name="Payment Collection"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  height: '100%',
+                  color: 'text.secondary'
+                }}>
+                  <Typography variant="h6" sx={{ mb: 1 }}>
+                    No Payment Data Available
+                  </Typography>
+                  <Typography variant="body2" sx={{ textAlign: 'center' }}>
+                    Payment collection chart will appear here once payments are received and approved.
+                  </Typography>
+                </Box>
+              )}
             </Box>
           </CardContent>
         </Card>
@@ -296,14 +473,26 @@ export default function BillingAndInvoice() {
                       <TableCell>{getStatusChip(p.status)}</TableCell>
                       <TableCell>
                         {p.status.toLowerCase() === 'pending' && (
-                          <Button
-                            variant="contained"
-                            color="success"
-                            size="small"
-                            onClick={() => handleApprovePayment(p.paymentId)}
-                          >
-                            Approve
-                          </Button>
+                          <Stack direction="row" spacing={1}>
+                            <Button
+                              variant="contained"
+                              color="success"
+                              size="small"
+                              onClick={() => handleApprovePayment(p.paymentId)}
+                              sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              variant="contained"
+                              color="error"
+                              size="small"
+                              onClick={() => handleRejectPayment(p.paymentId)}
+                              sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                            >
+                              Reject
+                            </Button>
+                          </Stack>
                         )}
                       </TableCell>
                     </TableRow>
@@ -312,7 +501,14 @@ export default function BillingAndInvoice() {
               </Table>
             </TableContainer>
           ) : (
-            <Typography sx={{ my: 4, textAlign: 'center' }}>No payment records found for this invoice.</Typography>
+            <Box sx={{ my: 4, textAlign: 'center' }}>
+              <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+                No Payment Records Found
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                No payments have been made for Invoice #{selectedInvoice?.invoiceNo} yet.
+              </Typography>
+            </Box>
           )}
         </DialogContent>
         <DialogActions>

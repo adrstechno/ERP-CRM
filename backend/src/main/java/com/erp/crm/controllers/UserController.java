@@ -1,6 +1,7 @@
 package com.erp.crm.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.erp.crm.config.ApiResponse;
 import com.erp.crm.dto.UserDTO;
+import com.erp.crm.dto.UserResponseDTO;
 import com.erp.crm.models.User;
 import com.erp.crm.services.UserService;
 
@@ -27,9 +29,9 @@ public class UserController {
     }
 
     // ✅ Update User
-    @PutMapping("/update/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody UserDTO dto) {
-        return ResponseEntity.ok(userService.updateUser(userId, dto));
+    @PutMapping("/update")
+    public ResponseEntity<User> updateUser(@RequestBody UserDTO dto) {
+        return ResponseEntity.ok(userService.updateUser(dto));
     }
 
     // ✅ Delete User
@@ -40,6 +42,7 @@ public class UserController {
         ApiResponse<Void> response = new ApiResponse<>(true, "User deactivated successfully", null);
         return ResponseEntity.ok(response);
     }
+
     @GetMapping("/dealers")
     public ResponseEntity<List<User>> getAllDealer() {
         String role = "DEALER";
@@ -59,4 +62,10 @@ public class UserController {
     public ResponseEntity<List<User>> getUser(@PathVariable String name) {
         return ResponseEntity.ok(userService.getUserByName(name));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> getMyUserData() {
+        return ResponseEntity.ok(userService.getMyUserData());
+    }
+
 }

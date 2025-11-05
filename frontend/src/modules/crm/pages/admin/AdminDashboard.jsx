@@ -1,328 +1,4 @@
-
-// // import React from "react";
-// // import {
-// //   Box,
-// //   Grid,
-// //   Card,
-// //   CardContent,
-// //   Typography,
-// //   Divider,
-// //   useTheme,
-// //   List,
-// //   ListItem,
-// //   ListItemText,
-// //   Avatar,
-// // } from "@mui/material";
-// // import {
-// //   LineChart,
-// //   Line,
-// //   XAxis,
-// //   YAxis,
-// //   Tooltip,
-// //   ResponsiveContainer,
-// //   CartesianGrid,
-// //   Legend,
-// // } from "recharts";
-// // import KPI from "../../components/KPIs";
-// // import AddBusinessIcon from "@mui/icons-material/AddBusiness";
-// // import InventoryIcon from "@mui/icons-material/Inventory";
-// // import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-// // import { VITE_API_BASE_URL } from "../../utils/State";
-
-// // // Static data remains the same
-// // const chartData = [
-// //   { month: "Jan", sales: 4000, target: 3800 },
-// //   { month: "Feb", sales: 3000, target: 3500 },
-// //   { month: "Mar", sales: 5000, target: 4200 },
-// //   { month: "Apr", sales: 4780, target: 4000 },
-// //   { month: "May", sales: 5890, target: 4600 },
-// //   { month: "Jun", sales: 4390, target: 4800 },
-// //   { month: "Jul", sales: 4490, target: 5000 },
-// // ];
-
-// // const kpiData = [
-// //   { title: "Sales", value: "70Cr", change: "+11.01%", trend: "up" },
-// //   { title: "Target vs Achievement", value: "80%", change: "-0.03%", trend: "down" },
-// //   { title: "Pending Service", value: "72", change: "+11.01%", trend: "up" },
-// //   { title: "Stock Alert", value: "36", change: "-0.03%", trend: "down" },
-// // ];
-
-
-// // export default function AdminDashboard() {
-// //   const theme = useTheme(); // To access theme colors for the chart
-
-// //   return (
-// //     <Box>
-// //       {/* KPI Cards */}
-// //       <Grid container spacing={3} mb={3}>
-// //         {kpiData.map((item, idx) => (
-// //           <Grid item xs={12} sm={6} md={3} key={idx}>
-// //             <KPI
-// //               {...item}
-// //               // Alternate between 'blue' and another variant for visual distinction
-// //               variant={idx % 2 === 0 ? "blue" : (theme.palette.mode === 'dark' ? "dark" : "light")}
-// //             />
-// //           </Grid>
-// //         ))}
-// //       </Grid>
-
-// //       {/* Line Chart */}
-// //       <Card sx={{ mb: 3 }}>
-// //         <CardContent>
-// //           <Typography variant="h6" mb={2}>
-// //             Total Sales Trend
-// //           </Typography>
-// //           <Divider sx={{ mb: 2 }} />
-// //           <Box sx={{ width: "100%", height: 350 }}>
-// //             <ResponsiveContainer>
-// //               <LineChart data={chartData}>
-// //                 <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-// //                 <XAxis dataKey="month" stroke={theme.palette.text.secondary} />
-// //                 <YAxis stroke={theme.palette.text.secondary} />
-// //                 <Tooltip
-// //                   contentStyle={{
-// //                     backgroundColor: theme.palette.background.paper,
-// //                     border: `1px solid ${theme.palette.divider}`,
-// //                     borderRadius: 8,
-// //                     color: theme.palette.text.primary,
-// //                   }}
-// //                   labelStyle={{ color: theme.palette.text.primary }}
-// //                 />
-// //                 <Legend wrapperStyle={{ color: theme.palette.text.primary }} />
-// //                 <Line type="monotone" dataKey="sales" stroke={theme.palette.primary.main} strokeWidth={3} dot={{ r: 5 }} />
-// //                 <Line type="monotone" dataKey="target" stroke="#FF9800" strokeWidth={3} dot={{ r: 5 }} />
-// //               </LineChart>
-// //             </ResponsiveContainer>
-// //           </Box>
-// //         </CardContent>
-// //       </Card>
-// //     </Box>
-// //   );
-// // }
-
-
-// import React from 'react';
-// import {
-//   Box,
-//   Grid,
-//   Card,
-//   CardContent,
-//   Typography,
-//   Divider,
-//   useTheme,
-// } from '@mui/material';
-// import {
-//   LineChart,
-//   Line,
-//   XAxis,
-//   YAxis,
-//   Tooltip,
-//   ResponsiveContainer,
-//   CartesianGrid,
-//   Legend,
-// } from 'recharts';
-
-// // KPI Component (from your previous message, included for completeness)
-// const ArrowUp = () => (
-//   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-//     <path d="M12 4L3 15H9V20H15V15H21L12 4Z" />
-//   </svg>
-// );
-
-// const ArrowDown = () => (
-//   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-//     <path d="M12 20L21 9H15V4H9V9H3L12 20Z" />
-//   </svg>
-// );
-
-// function KPI({ title, value, change, trend, variant = 'blue' }) {
-//   const theme = useTheme();
-
-//   const gradients = {
-//     blue: 'linear-gradient(135deg, #0f356d 0%, #1d51a5 100%)',
-//     dark: 'linear-gradient(135deg, #292a2c 0%, #c3cfdc 100%)',
-//     light: 'linear-gradient(135deg, #f5f7fa 0%, #d3dce6 100%)',
-//   };
-
-//   const backgroundGradient = gradients[variant] || gradients.blue;
-//   const textColor = variant === 'light' ? theme.palette.text.primary : 'white';
-//   const changeBgColor = variant === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.2)';
-
-//   return (
-//     <Card
-//       sx={{
-//         borderRadius: 3,
-//         background: backgroundGradient,
-//         boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.2)',
-//         minHeight: 120,
-//         display: 'flex',
-//         flexDirection: 'column',
-//         justifyContent: 'center',
-//         flex: 1,
-//         height: '100%',
-//         color: textColor,
-//       }}
-//     >
-//       <CardContent sx={{ p: 2, flexGrow: 1 }}>
-//         <Typography
-//           variant="subtitle1"
-//           sx={{
-//             opacity: 0.9,
-//             fontWeight: 500,
-//             lineHeight: 1.2,
-//             fontFamily: 'Inter, sans-serif',
-//           }}
-//         >
-//           {title || 'N/A'}
-//         </Typography>
-//         <Box sx={{ display: 'flex', alignItems: 'baseline', mt: 1.5 }}>
-//           <Typography
-//             variant="h4"
-//             fontWeight={700}
-//             sx={{ fontFamily: 'Inter, sans-serif' }}
-//           >
-//             {value || 'N/A'}
-//           </Typography>
-//           {change && (
-//             <Box
-//               sx={{
-//                 display: 'flex',
-//                 alignItems: 'center',
-//                 backgroundColor: changeBgColor,
-//                 borderRadius: '12px',
-//                 padding: '2px 8px',
-//                 ml: 1.5,
-//               }}
-//             >
-//               {trend === 'up' ? <ArrowUp /> : <ArrowDown />}
-//               <Typography
-//                 variant="body2"
-//                 sx={{
-//                   fontWeight: 600,
-//                   color: textColor,
-//                   ml: 0.5,
-//                   fontFamily: 'Inter, sans-serif',
-//                 }}
-//               >
-//                 {change}
-//               </Typography>
-//             </Box>
-//           )}
-//         </Box>
-//       </CardContent>
-//     </Card>
-//   );
-// }
-
-// // Static data
-// const chartData = [
-//   { month: 'Jan', sales: 4000, target: 3800 },
-//   { month: 'Feb', sales: 3000, target: 3500 },
-//   { month: 'Mar', sales: 5000, target: 4200 },
-//   { month: 'Apr', sales: 4780, target: 4000 },
-//   { month: 'May', sales: 5890, target: 4600 },
-//   { month: 'Jun', sales: 4390, target: 4800 },
-//   { month: 'Jul', sales: 4490, target: 5000 },
-// ];
-
-// const kpiData = [
-//   { id: '1', title: 'Sales', value: '70Cr', change: '+11.01%', trend: 'up' },
-//   { id: '2', title: 'Target vs Achievement', value: '80%', change: '-0.03%', trend: 'down' },
-//   { id: '3', title: 'Pending Service', value: '72', change: '+11.01%', trend: 'up' },
-//   { id: '4', title: 'Stock Alert', value: '36', change: '-0.03%', trend: 'down' },
-// ];
-
-// // AdminDashboard Component
-// export default function AdminDashboard() {
-//   const theme = useTheme();
-
-//   return (
-//     <Box sx={{ p: 3, width: '100%' }}>
-//       {/* KPI Cards */}
-//       <Grid
-//         container
-//         spacing={2}
-//         sx={{
-//           mb: 3,
-//           justifyContent: kpiData.length === 1 ? 'center' : 'space-between',
-//           alignItems: 'stretch',
-//         }}
-//       >
-//         {kpiData.length > 0 ? (
-//           kpiData.map((item, idx) => (
-//             <Grid
-//               item
-//               xs={12}
-//               sm={6}
-//               md={12 / Math.min(kpiData.length, 4)} // Dynamic width, max 4 per row
-//               key={item.id || idx} // Prefer id for stable keys
-//               sx={{
-//                 display: 'flex',
-//                 minWidth: { md: 200 }, // Prevent cards from being too narrow
-//               }}
-//             >
-//               <KPI
-//                 {...item}
-//                 variant={idx % 2 === 0 ? 'blue' : theme.palette.mode === 'dark' ? 'dark' : 'light'}
-//               />
-//             </Grid>
-//           ))
-//         ) : (
-//           <Grid item xs={12}>
-//             <Typography variant="body1" color="text.secondary" align="center">
-//               No KPI data available
-//             </Typography>
-//           </Grid>
-//         )}
-//       </Grid>
-
-//       {/* Line Chart */}
-//       <Card sx={{ mb: 3 }}>
-//         <CardContent>
-//           <Typography variant="h6" mb={2} fontWeight="bold">
-//             Total Sales Trend
-//           </Typography>
-//           <Divider sx={{ mb: 2 }} />
-//           <Box sx={{ width: '100%', height: { xs: 250, sm: 300, md: 350 } }}>
-//             <ResponsiveContainer>
-//               <LineChart data={chartData}>
-//                 <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-//                 <XAxis dataKey="month" stroke={theme.palette.text.secondary} />
-//                 <YAxis stroke={theme.palette.text.secondary} />
-//                 <Tooltip
-//                   contentStyle={{
-//                     backgroundColor: theme.palette.background.paper,
-//                     border: `1px solid ${theme.palette.divider}`,
-//                     borderRadius: 8,
-//                     color: theme.palette.text.primary,
-//                   }}
-//                   labelStyle={{ color: theme.palette.text.primary }}
-//                 />
-//                 <Legend wrapperStyle={{ color: theme.palette.text.primary }} />
-//                 <Line
-//                   type="monotone"
-//                   dataKey="sales"
-//                   stroke={theme.palette.primary.main}
-//                   strokeWidth={3}
-//                   dot={{ r: 5 }}
-//                 />
-//                 <Line
-//                   type="monotone"
-//                   dataKey="target"
-//                   stroke="#FF9800"
-//                   strokeWidth={3}
-//                   dot={{ r: 5 }}
-//                 />
-//               </LineChart>
-//             </ResponsiveContainer>
-//           </Box>
-//         </CardContent>
-//       </Card>
-//     </Box>
-//   );
-// }
-// AdminDashboard.jsx
-import React from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Grid,
@@ -331,6 +7,18 @@ import {
   Typography,
   Divider,
   useTheme,
+  CircularProgress,
+  Alert,
+  Skeleton,
+  Stack,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from '@mui/material';
 import {
   LineChart,
@@ -341,134 +29,545 @@ import {
   ResponsiveContainer,
   CartesianGrid,
   Legend,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
-import KPI from '../../components/KPIs'; 
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  ShoppingCart,
+  AlertTriangle,
+} from 'lucide-react';
+import KPI from '../../components/KPIs';
+import { VITE_API_BASE_URL } from '../../utils/State';
+import toast from 'react-hot-toast';
 
-// Static data
-const chartData = [
-  { month: 'Jan', sales: 4000, target: 3800 },
-  { month: 'Feb', sales: 3000, target: 3500 },
-  { month: 'Mar', sales: 5000, target: 4200 },
-  { month: 'Apr', sales: 4780, target: 4000 },
-  { month: 'May', sales: 5890, target: 4600 },
-  { month: 'Jun', sales: 4390, target: 4800 },
-  { month: 'Jul', sales: 4490, target: 5000 },
-];
+// Custom Tooltip Component
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <Card sx={{ p: 1.5, minWidth: 150 }}>
+        <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+          {label}
+        </Typography>
+        {payload.map((entry, index) => (
+          <Typography
+            key={`item-${index}`}
+            variant="body2"
+            sx={{ color: entry.color }}
+          >
+            {`${entry.name}: ${typeof entry.value === 'number' 
+              ? entry.value.toLocaleString('en-IN') 
+              : entry.value}`}
+          </Typography>
+        ))}
+      </Card>
+    );
+  }
+  return null;
+};
 
-const kpiData = [
-  { id: '1', title: 'Sales', value: '70Cr', change: '+11.01%', trend: 'up' },
-  { id: '2', title: 'Target vs Achievement', value: '80%', change: '-0.03%', trend: 'down' },
-  { id: '3', title: 'Pending Service', value: '72', change: '+11.01%', trend: 'up' },
-  { id: '4', title: 'Stock Alert', value: '36', change: '-0.03%', trend: 'down' },
-];
+// Colors for charts
+const CHART_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00', '#ff00ff'];
 
 export default function AdminDashboard() {
   const theme = useTheme();
+  
+  // State management
+  const [dashboardData, setDashboardData] = useState(null);
+  const [paymentStats, setPaymentStats] = useState(null);
+  const [monthlyPayments, setMonthlyPayments] = useState([]);
+  const [ticketStats, setTicketStats] = useState(null);
+  const [monthlyTickets, setMonthlyTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // API configuration
+  const token = localStorage.getItem('authKey');
+  const axiosConfig = useMemo(
+    () => ({ headers: { Authorization: `Bearer ${token}` } }),
+    [token]
+  );
+
+  // Fetch dashboard data
+  const fetchDashboardData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Fetch main dashboard data
+      const dashboardResponse = await fetch(`${VITE_API_BASE_URL}/dashboard`, {
+        headers: axiosConfig.headers,
+      });
+      
+      if (dashboardResponse.ok) {
+        const dashboardResult = await dashboardResponse.json();
+        setDashboardData(dashboardResult.data);
+      }
+
+      // Fetch payment statistics
+      const paymentStatsResponse = await fetch(`${VITE_API_BASE_URL}/payments/statistics`, {
+        headers: axiosConfig.headers,
+      });
+      
+      if (paymentStatsResponse.ok) {
+        const paymentStatsResult = await paymentStatsResponse.json();
+        setPaymentStats(paymentStatsResult.data);
+      }
+
+      // Fetch monthly payment collection
+      const monthlyPaymentsResponse = await fetch(`${VITE_API_BASE_URL}/payments/monthly-collection`, {
+        headers: axiosConfig.headers,
+      });
+      
+      if (monthlyPaymentsResponse.ok) {
+        const monthlyPaymentsResult = await monthlyPaymentsResponse.json();
+        if (monthlyPaymentsResult.success && monthlyPaymentsResult.data) {
+          const processedData = monthlyPaymentsResult.data.map(item => ({
+            month: new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+            amount: item.totalAmount || 0,
+          }));
+          setMonthlyPayments(processedData);
+        }
+      }
+
+      // Fetch service ticket statistics
+      const ticketStatsResponse = await fetch(`${VITE_API_BASE_URL}/tickets/statistics`, {
+        headers: axiosConfig.headers,
+      });
+      
+      if (ticketStatsResponse.ok) {
+        const ticketStatsResult = await ticketStatsResponse.json();
+        setTicketStats(ticketStatsResult);
+      }
+
+      // Fetch monthly ticket statistics
+      const monthlyTicketsResponse = await fetch(`${VITE_API_BASE_URL}/tickets/statistics/monthly`, {
+        headers: axiosConfig.headers,
+      });
+      
+      if (monthlyTicketsResponse.ok) {
+        const monthlyTicketsResult = await monthlyTicketsResponse.json();
+        const processedTicketData = monthlyTicketsResult.map(item => ({
+          month: new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+          totalTickets: item.totalTickets || 0,
+          openTickets: item.openTickets || 0,
+          completedTickets: item.completedTickets || 0,
+          closedTickets: item.closedTickets || 0,
+        }));
+        setMonthlyTickets(processedTicketData);
+      }
+
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+      setError(err.message);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  }, [axiosConfig]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  // Process KPI data
+  const kpiData = useMemo(() => {
+    // Combine dashboard data, payment stats, and ticket stats for comprehensive KPIs
+    const totalSales = dashboardData?.totalSales || 0;
+    const totalPayments = paymentStats?.totalPayments || dashboardData?.totalPayments || 0;
+    const outstandingPayments = paymentStats?.outstandingPayments || dashboardData?.outstandingPayments || 0;
+    const totalExpenses = dashboardData?.totalExpenses || 0;
+    const thisMonthCollection = paymentStats?.thisMonthCollection || 0;
+    
+    const netProfit = totalPayments - totalExpenses;
+    const profitMargin = totalSales ? ((netProfit / totalSales) * 100).toFixed(1) : 0;
+    
+    return [
+      {
+        id: '1',
+        title: 'Total Sales',
+        value: `₹${totalSales.toLocaleString('en-IN')}`,
+        change: '+0%',
+        trend: 'up',
+        icon: <ShoppingCart size={20} />,
+      },
+      {
+        id: '2',
+        title: 'Total Payments',
+        value: `₹${totalPayments.toLocaleString('en-IN')}`,
+        change: '+0%',
+        trend: 'up',
+        icon: <DollarSign size={20} />,
+      },
+      {
+        id: '3',
+        title: 'Outstanding',
+        value: `₹${outstandingPayments.toLocaleString('en-IN')}`,
+        change: '0%',
+        trend: outstandingPayments > 0 ? 'down' : 'up',
+        icon: <AlertTriangle size={20} />,
+      },
+      {
+        id: '4',
+        title: 'This Month',
+        value: `₹${thisMonthCollection.toLocaleString('en-IN')}`,
+        change: `${profitMargin}%`,
+        trend: thisMonthCollection >= 0 ? 'up' : 'down',
+        icon: thisMonthCollection >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />,
+      },
+    ];
+  }, [dashboardData, paymentStats]);
+
+  // Service ticket KPI data
+  const ticketKpiData = useMemo(() => {
+    if (!ticketStats) return [];
+    
+    return [
+      {
+        id: 'ticket-1',
+        title: 'Total Tickets',
+        value: ticketStats.totalTickets || 0,
+        change: '+0%',
+        trend: 'up',
+        icon: <ShoppingCart size={20} />,
+      },
+      {
+        id: 'ticket-2',
+        title: 'Open Tickets',
+        value: ticketStats.openTickets || 0,
+        change: '0%',
+        trend: 'neutral',
+        icon: <AlertTriangle size={20} />,
+      },
+      {
+        id: 'ticket-3',
+        title: 'Completed',
+        value: ticketStats.completedTickets || 0,
+        change: '+0%',
+        trend: 'up',
+        icon: <TrendingUp size={20} />,
+      },
+      {
+        id: 'ticket-4',
+        title: 'This Month',
+        value: ticketStats.thisMonthTickets || 0,
+        change: '+0%',
+        trend: 'up',
+        icon: <TrendingUp size={20} />,
+      },
+    ];
+  }, [ticketStats]);
+
+  if (loading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          {[1, 2, 3, 4].map((i) => (
+            <Grid item xs={12} sm={6} md={3} key={i}>
+              <Skeleton variant="rectangular" height={120} />
+            </Grid>
+          ))}
+          <Grid item xs={12}>
+            <Skeleton variant="rectangular" height={400} />
+          </Grid>
+        </Grid>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ p: 3, width: '100%', maxWidth: '100%' }}>
+    <Box sx={{ p: { xs: 2, sm: 3 }, width: '100%', maxWidth: '100%' }}>
       {/* KPI Cards */}
-      <Grid
-        container
-        spacing={1} // Reduced spacing for tighter layout
-        sx={{
-          mb: 3,
-          justifyContent: kpiData.length === 1 ? 'center' : 'space-between',
-          alignItems: 'stretch',
-        }}
-      >
-        {kpiData.length > 0 ? (
-          kpiData.map((item, idx) => (
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              md={12 / Math.min(kpiData.length, 4)} // Dynamic width, max 4 per row
-              key={item.id || idx}
-              sx={{
-                display: 'flex',
-                minWidth: { md: 200 }, // Prevent cards from being too narrow
-                maxWidth: { md: 300 }, // Cap card width for balance
-              }}
-            >
-              <KPI
-                {...item}
-                variant={idx % 2 === 0 ? 'blue' : theme.palette.mode === 'dark' ? 'dark' : 'light'}
-              />
-            </Grid>
-          ))
-        ) : (
-          <Grid item xs={12}>
-            <Typography variant="body1" color="text.secondary" align="center">
-              No KPI data available
-            </Typography>
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        {kpiData.map((item, idx) => (
+          <Grid item xs={12} sm={6} md={3} key={item.id}>
+            <KPI
+              {...item}
+              variant={idx % 2 === 0 ? 'blue' : theme.palette.mode === 'dark' ? 'dark' : 'light'}
+            />
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Service Ticket KPI Cards */}
+      {ticketStats && (
+        <>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2, mt: 2 }}>
+            Service Ticket Analytics
+          </Typography>
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            {ticketKpiData.map((item, idx) => (
+              <Grid item xs={12} sm={6} md={3} key={item.id}>
+                <KPI
+                  {...item}
+                  variant={idx % 2 === 0 ? 'green' : 'orange'}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      )}
+
+      {/* Charts Row */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        {/* Monthly Payment Trends Chart */}
+        {monthlyPayments.length > 0 && (
+          <Grid item xs={12} lg={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  Monthly Payment Collection Trends
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyPayments}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke={theme.palette.text.secondary}
+                        fontSize={12}
+                      />
+                      <YAxis 
+                        stroke={theme.palette.text.secondary}
+                        fontSize={12}
+                        tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="amount"
+                        stroke={theme.palette.primary.main}
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                        name="Payment Collection"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* Monthly Service Ticket Trends Chart */}
+        {monthlyTickets.length > 0 && (
+          <Grid item xs={12} lg={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  Monthly Service Ticket Trends
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyTickets}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke={theme.palette.text.secondary}
+                        fontSize={12}
+                      />
+                      <YAxis 
+                        stroke={theme.palette.text.secondary}
+                        fontSize={12}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="totalTickets"
+                        stroke={theme.palette.primary.main}
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                        name="Total Tickets"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="openTickets"
+                        stroke={theme.palette.warning.main}
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        name="Open Tickets"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="completedTickets"
+                        stroke={theme.palette.success.main}
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        name="Completed"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+      </Grid>
+
+      {/* User Stats Row */}
+      {dashboardData?.userStats && dashboardData.userStats.length > 0 && (
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12} md={6} lg={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  Users by Role
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={dashboardData.userStats}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="totalUsers"
+                        nameKey="role"
+                      >
+                        {dashboardData.userStats.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* Bottom Row */}
+      <Grid container spacing={3}>
+        {/* Top Products Table */}
+        {dashboardData?.topProducts && dashboardData.topProducts.length > 0 && (
+          <Grid item xs={16} lg={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  Top Selling Products
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <TableContainer component={Paper} elevation={0}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>Quantity Sold</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>Revenue</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {dashboardData.topProducts.map((product, index) => (
+                        <TableRow key={product.productId} hover>
+                          <TableCell>
+                            <Stack direction="row" alignItems="center" spacing={1}>
+                              <Chip 
+                                label={index + 1} 
+                                size="small" 
+                                color={index < 3 ? 'primary' : 'default'}
+                              />
+                              <Typography variant="body2">
+                                {product.productName}
+                              </Typography>
+                            </Stack>
+                          </TableCell>
+                          <TableCell align="right">
+                            {product.quantitySold.toLocaleString('en-IN')}
+                          </TableCell>
+                          <TableCell align="right">
+                            ₹{product.revenue.toLocaleString('en-IN')}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* Sales by Category */}
+        {dashboardData?.salesByCategory && dashboardData.salesByCategory.length > 0 && (
+          <Grid item xs={12} lg={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  Sales by Category
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dashboardData.salesByCategory} layout="horizontal">
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                      <XAxis 
+                        type="number"
+                        stroke={theme.palette.text.secondary}
+                        fontSize={12}
+                        tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
+                      />
+                      <YAxis 
+                        type="category"
+                        dataKey="category"
+                        stroke={theme.palette.text.secondary}
+                        fontSize={12}
+                        width={80}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar 
+                        dataKey="totalRevenue" 
+                        fill={theme.palette.secondary.main}
+                        radius={[0, 4, 4, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
           </Grid>
         )}
       </Grid>
 
-      {/* Line Chart */}
-      <Card sx={{ mb: 3, overflow: 'hidden' }}>
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" mb={2} fontWeight="bold">
-            Total Sales Trend
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          <Box sx={{ width: '100%', height: { xs: 200, sm: 250, md: 300, lg: 350 } }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={chartData}
-                margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                <XAxis
-                  dataKey="month"
-                  stroke={theme.palette.text.secondary}
-                  fontSize={12}
-                  tickMargin={5}
-                />
-                <YAxis
-                  stroke={theme.palette.text.secondary}
-                  fontSize={12}
-                  tickMargin={5}
-                  tickFormatter={(value) => `${value / 1000}k`} // Simplify Y-axis labels
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: theme.palette.background.paper,
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: 8,
-                    color: theme.palette.text.primary,
-                    fontSize: 12,
-                  }}
-                  labelStyle={{ color: theme.palette.text.primary }}
-                  formatter={(value) => `${value}`}
-                />
-                <Legend
-                  wrapperStyle={{
-                    color: theme.palette.text.primary,
-                    fontSize: 12,
-                    paddingTop: 10,
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="sales"
-                  stroke={theme.palette.primary.main}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="target"
-                  stroke="#FF9800"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </Box>
-        </CardContent>
-      </Card>
+      {/* No Data Message */}
+      {!dashboardData?.topProducts?.length && 
+       !dashboardData?.salesByCategory?.length && 
+       !dashboardData?.revenueTrends?.length && 
+       !dashboardData?.userStats?.length && (
+        <Card sx={{ mt: 3 }}>
+          <CardContent sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+              No Additional Data Available
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Charts and tables will appear here once you have sales, products, and user data.
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
     </Box>
   );
 }

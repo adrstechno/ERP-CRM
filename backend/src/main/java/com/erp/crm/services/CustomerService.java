@@ -51,7 +51,8 @@ public class CustomerService {
     }
 
     public List<Customer> getCustomerByName(String customerName){
-        return customerRepo.findByCustomerName(customerName);
+        // Use partial search for better user experience
+        return customerRepo.findByCustomerNameContainingIgnoreCase(customerName);
     }
 
     

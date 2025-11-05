@@ -14,7 +14,6 @@ import InventoryManagement from "./pages/admin/InventoryManagement"
 import Sales from "./pages/admin/Sales"
 import Service from "./pages/admin/Service"
 import BillingNInvoice from "./pages/admin/BillingNInvoice"
-import Setting from "./pages/admin/settings"
 
 
 
@@ -51,6 +50,7 @@ import PayStatus from "./pages/marketer/PayStatus";
 import AddCustomer from "./pages/marketer/AddCustomer";
 import InvoicePage from "./components/InvoicePage";
 import GetExpenses from "./pages/marketer/GetExpenses";
+import Profile from "./components/Profile";
 
 
 
@@ -65,7 +65,7 @@ export default function CRMModule() {
      
     
       
-            
+              <Route path="profile" element={<Profile />} />
 
         {crmUser?.role === "admin" && (
           <>
@@ -78,7 +78,6 @@ export default function CRMModule() {
             <Route path="service" element={<Service />} />
             <Route path="invoices" element={<BillingNInvoice />} />
             <Route path="expenses/approve" element={<ApproveExpenses />} />
-            <Route path="settings" element={<Setting />} />
 
           </>
 
