@@ -115,7 +115,7 @@ export const crmMenuConfig = {
       icon: <WorkIcon />,
     },
     {
-      label: "Rimbursement",
+      label: "Reimbursement",
       path: "/crm/service/rimbursement",
       icon: <ReceiptIcon />,
     },
