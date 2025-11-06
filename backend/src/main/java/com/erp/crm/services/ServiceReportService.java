@@ -88,7 +88,7 @@ public class ServiceReportService {
     // ✅ Admin: Get all reports
     @Transactional(readOnly = true)
     public List<ServiceReportResponseDTO> getAllReports() {
-        return reportRepo.findAll().stream()
+        return reportRepo.findAllByOrderByReportId().stream()
                 .map(ServiceReportResponseDTO::fromEntity)
                 .toList();
     }
