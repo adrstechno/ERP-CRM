@@ -1,4 +1,6 @@
 package com.erp.crm.dto;
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +17,6 @@ public class UserResponseDTO {
     private String role;
     private String password;
     private String phone;
+    private LocalDateTime createdAt;
     private Boolean isActive;
-
 }
