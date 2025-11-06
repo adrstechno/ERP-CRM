@@ -149,6 +149,7 @@ public class UserService {
                 user.getRole().getName(),
                 user.getPassword(),
                 user.getPhone(),
+                user.getCreatedAt(),
                 user.getIsActive());
     }
 
