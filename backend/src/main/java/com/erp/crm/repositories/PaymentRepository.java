@@ -28,6 +28,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     @Query("SELECT SUM(i.totalAmount) - SUM(COALESCE(p.amount,0)) FROM Invoice i LEFT JOIN i.payments p WHERE i.invoiceDate BETWEEN :start AND :end")
     Double getOutstandingPayments(LocalDate start, LocalDate end);
+
+    boolean existsByInvoice_InvoiceIdAndStatus(Long invoiceId, PaymentStatus status);
+
     
     // Additional method for marketer analytics
     List<Payment> findByPaymentDateBetween(LocalDate startDate, LocalDate endDate);
