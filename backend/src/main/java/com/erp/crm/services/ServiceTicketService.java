@@ -76,6 +76,7 @@ public class ServiceTicketService {
         ticket.setServiceStatus(ServiceStatus.OPEN);
         ticket.setPriority(dto.getPriority());
         ticket.setDueDate(dto.getDueDate());
+        ticket.setCreatedAt(LocalDate.now());
         ticketRepo.save(ticket);
 
         return ServiceTicketResponseDTO.fromEntity(ticket);
@@ -132,82 +133,82 @@ public class ServiceTicketService {
     // --------------------------- Analytics Operations --------------------------- //
 
     /** Get monthly ticket statistics for charts */
-    public List<Map<String, Object>> getMonthlyTicketStatistics() {
-        // Get tickets from last 12 months
-        LocalDate startDate = LocalDate.now().minusMonths(11).withDayOfMonth(1);
-        LocalDate endDate = LocalDate.now();
+    // public List<Map<String, Object>> getMonthlyTicketStatistics() {
+    //     // Get tickets from last 12 months
+    //     LocalDate startDate = LocalDate.now().minusMonths(11).withDayOfMonth(1);
+    //     LocalDate endDate = LocalDate.now();
         
-        List<ServiceTicket> tickets = ticketRepo.findByCreatedAtBetween(startDate.atStartOfDay(), endDate.atTime(23, 59, 59));
+    //     List<ServiceTicket> tickets = ticketRepo.findByCreatedAtBetween(startDate.atStartOfDay(), endDate.atTime(23, 59, 59));
         
-        // Group tickets by month and count by status
-        Map<String, Map<String, Long>> monthlyData = tickets.stream()
-            .collect(Collectors.groupingBy(
-                ticket -> ticket.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM")),
-                LinkedHashMap::new,
-                Collectors.groupingBy(
-                    ticket -> ticket.getServiceStatus().name(),
-                    Collectors.counting()
-                )
-            ));
+    //     // Group tickets by month and count by status
+    //     Map<String, Map<String, Long>> monthlyData = tickets.stream()
+    //         .collect(Collectors.groupingBy(
+    //             ticket -> ticket.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM")),
+    //             LinkedHashMap::new,
+    //             Collectors.groupingBy(
+    //                 ticket -> ticket.getServiceStatus().name(),
+    //                 Collectors.counting()
+    //             )
+    //         ));
         
-        // Fill in missing months with zero values and format for frontend
-        List<Map<String, Object>> result = new java.util.ArrayList<>();
-        for (int i = 11; i >= 0; i--) {
-            YearMonth month = YearMonth.now().minusMonths(i);
-            String monthKey = month.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+    //     // Fill in missing months with zero values and format for frontend
+    //     List<Map<String, Object>> result = new java.util.ArrayList<>();
+    //     for (int i = 11; i >= 0; i--) {
+    //         YearMonth month = YearMonth.now().minusMonths(i);
+    //         String monthKey = month.format(DateTimeFormatter.ofPattern("yyyy-MM"));
             
-            Map<String, Long> statusCounts = monthlyData.getOrDefault(monthKey, new LinkedHashMap<>());
+    //         Map<String, Long> statusCounts = monthlyData.getOrDefault(monthKey, new LinkedHashMap<>());
             
-            Map<String, Object> monthData = new LinkedHashMap<>();
-            monthData.put("month", monthKey);
-            monthData.put("totalTickets", statusCounts.values().stream().mapToLong(Long::longValue).sum());
-            monthData.put("openTickets", statusCounts.getOrDefault("OPEN", 0L));
-            monthData.put("completedTickets", statusCounts.getOrDefault("COMPLETED", 0L));
-            monthData.put("closedTickets", statusCounts.getOrDefault("CLOSED", 0L));
-            monthData.put("cancelledTickets", statusCounts.getOrDefault("CANCELLED", 0L));
+    //         Map<String, Object> monthData = new LinkedHashMap<>();
+    //         monthData.put("month", monthKey);
+    //         monthData.put("totalTickets", statusCounts.values().stream().mapToLong(Long::longValue).sum());
+    //         monthData.put("openTickets", statusCounts.getOrDefault("OPEN", 0L));
+    //         monthData.put("completedTickets", statusCounts.getOrDefault("COMPLETED", 0L));
+    //         monthData.put("closedTickets", statusCounts.getOrDefault("CLOSED", 0L));
+    //         monthData.put("cancelledTickets", statusCounts.getOrDefault("CANCELLED", 0L));
             
-            result.add(monthData);
-        }
+    //         result.add(monthData);
+    //     }
         
-        return result;
-    }
+    //     return result;
+    // }
 
-    /** Get ticket statistics for dashboard */
-    public Map<String, Object> getTicketStatistics() {
-        Map<String, Object> stats = new LinkedHashMap<>();
+    // /** Get ticket statistics for dashboard */
+    // public Map<String, Object> getTicketStatistics() {
+    //     Map<String, Object> stats = new LinkedHashMap<>();
         
-        // Total tickets by status
-        List<ServiceTicket> allTickets = ticketRepo.findAll();
+    //     // Total tickets by status
+    //     List<ServiceTicket> allTickets = ticketRepo.findAll();
         
-        long totalTickets = allTickets.size();
-        long openTickets = allTickets.stream().mapToLong(t -> 
-            List.of(ServiceStatus.OPEN, ServiceStatus.ASSIGNED, ServiceStatus.EN_ROUTE, ServiceStatus.ON_SITE, ServiceStatus.IN_PROGRESS)
-                .contains(t.getServiceStatus()) ? 1 : 0).sum();
-        long completedTickets = allTickets.stream().mapToLong(t -> t.getServiceStatus() == ServiceStatus.COMPLETED ? 1 : 0).sum();
-        long closedTickets = allTickets.stream().mapToLong(t -> t.getServiceStatus() == ServiceStatus.CLOSED ? 1 : 0).sum();
+    //     long totalTickets = allTickets.size();
+    //     long openTickets = allTickets.stream().mapToLong(t -> 
+    //         List.of(ServiceStatus.OPEN, ServiceStatus.ASSIGNED, ServiceStatus.EN_ROUTE, ServiceStatus.ON_SITE, ServiceStatus.IN_PROGRESS)
+    //             .contains(t.getServiceStatus()) ? 1 : 0).sum();
+    //     long completedTickets = allTickets.stream().mapToLong(t -> t.getServiceStatus() == ServiceStatus.COMPLETED ? 1 : 0).sum();
+    //     long closedTickets = allTickets.stream().mapToLong(t -> t.getServiceStatus() == ServiceStatus.CLOSED ? 1 : 0).sum();
         
-        // This month's tickets
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
-        LocalDate endOfMonth = LocalDate.now();
-        long thisMonthTickets = ticketRepo.findByCreatedAtBetween(
-            startOfMonth.atStartOfDay(), endOfMonth.atTime(23, 59, 59)).size();
+    //     // This month's tickets
+    //     LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+    //     LocalDate endOfMonth = LocalDate.now();
+    //     long thisMonthTickets = ticketRepo.findByCreatedAtBetween(
+    //         startOfMonth.atStartOfDay(), endOfMonth.atTime(23, 59, 59)).size();
         
-        // Priority distribution
-        long highPriorityTickets = allTickets.stream().mapToLong(t -> t.getPriority() == Priority.HIGH ? 1 : 0).sum();
-        long mediumPriorityTickets = allTickets.stream().mapToLong(t -> t.getPriority() == Priority.MEDIUM ? 1 : 0).sum();
-        long lowPriorityTickets = allTickets.stream().mapToLong(t -> t.getPriority() == Priority.LOW ? 1 : 0).sum();
+    //     // Priority distribution
+    //     long highPriorityTickets = allTickets.stream().mapToLong(t -> t.getPriority() == Priority.HIGH ? 1 : 0).sum();
+    //     long mediumPriorityTickets = allTickets.stream().mapToLong(t -> t.getPriority() == Priority.MEDIUM ? 1 : 0).sum();
+    //     long lowPriorityTickets = allTickets.stream().mapToLong(t -> t.getPriority() == Priority.LOW ? 1 : 0).sum();
         
-        stats.put("totalTickets", totalTickets);
-        stats.put("openTickets", openTickets);
-        stats.put("completedTickets", completedTickets);
-        stats.put("closedTickets", closedTickets);
-        stats.put("thisMonthTickets", thisMonthTickets);
-        stats.put("highPriorityTickets", highPriorityTickets);
-        stats.put("mediumPriorityTickets", mediumPriorityTickets);
-        stats.put("lowPriorityTickets", lowPriorityTickets);
+    //     stats.put("totalTickets", totalTickets);
+    //     stats.put("openTickets", openTickets);
+    //     stats.put("completedTickets", completedTickets);
+    //     stats.put("closedTickets", closedTickets);
+    //     stats.put("thisMonthTickets", thisMonthTickets);
+    //     stats.put("highPriorityTickets", highPriorityTickets);
+    //     stats.put("mediumPriorityTickets", mediumPriorityTickets);
+    //     stats.put("lowPriorityTickets", lowPriorityTickets);
         
-        return stats;
-    }
+    //     return stats;
+    // }
 
     // // --------------------------- Workflow Implementations --------------------------- //
 
