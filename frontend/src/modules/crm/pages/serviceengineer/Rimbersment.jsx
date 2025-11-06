@@ -12,16 +12,16 @@ import {
   FormControl,
   useTheme,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 import CloudUploadOutlined from "@mui/icons-material/CloudUploadOutlined";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
-import { VITE_API_BASE_URL } from "../../utils/State"; 
+import { VITE_API_BASE_URL } from "../../utils/State";
 import toast from "react-hot-toast";
 
-// Categories updated to match typical API conventions (uppercase)
 const engineerCategories = [
   { value: "TRAVEL", label: "Travel" },
   { value: "SUPPLIES", label: "Supplies" },
@@ -31,55 +31,95 @@ const engineerCategories = [
   { value: "OTHER", label: "Other" },
 ];
 
+const MAX_AMOUNT = 999999999999; // 12-digit limit
+
 export default function EngineerReimbursement() {
   const theme = useTheme();
   const fileInputRef = useRef(null);
 
-  // State updated to match API fields
   const [formData, setFormData] = useState({
-    category: "FOOD",
+    category: "TRAVEL",
     amount: "",
     remarks: "",
   });
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [receipt, setReceipt] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "amount") {
+      // Allow only positive numbers, block -, e, E, +, .
+      const cleanValue = value.replace(/[^0-9]/g, "");
+      const numValue = cleanValue === "" ? "" : Number(cleanValue);
+
+      if (cleanValue === "" || (numValue > 0 && numValue <= MAX_AMOUNT)) {
+        setFormData((prev) => ({ ...prev, amount: cleanValue }));
+        setError("");
+      } else if (numValue > MAX_AMOUNT) {
+        setError(`Amount cannot exceed ₹${MAX_AMOUNT.toLocaleString("en-IN")}`);
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
-  
+
   const handleUploadClick = () => fileInputRef.current.click();
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      setReceipt(file);
+    if (!file) return;
+
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!validTypes.includes(file.type)) {
+      setError("Only image files are allowed (JPG, PNG, WebP)");
+      return;
     }
+
+    if (file.size > maxSize) {
+      setError("Image size must be under 5MB");
+      return;
+    }
+
+    setReceipt(file);
+    setError("");
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsSubmitting(true);
-    
-    const token = localStorage.getItem("authKey"); // Get auth token
+    setError("");
 
-    // FormData is required for sending files
+    // Final validation
+    if (!formData.amount || Number(formData.amount) <= 0) {
+      setError("Please enter a valid positive amount");
+      return;
+    }
+    if (Number(formData.amount) > MAX_AMOUNT) {
+      setError(`Amount cannot exceed ₹${MAX_AMOUNT.toLocaleString("en-IN")}`);
+      return;
+    }
+    if (!receipt) {
+      setError("Please upload a receipt image");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const token = localStorage.getItem("authKey");
     const apiFormData = new FormData();
     apiFormData.append("date", selectedDate.format("YYYY-MM-DD"));
     apiFormData.append("category", formData.category);
     apiFormData.append("amount", formData.amount);
     apiFormData.append("remarks", formData.remarks);
-    if (receipt) {
-      apiFormData.append("receipt", receipt);
-    }
+    apiFormData.append("receipt", receipt);
 
     try {
       const response = await fetch(`${VITE_API_BASE_URL}/expense/add-expense`, {
         method: "POST",
         headers: {
-          // Do NOT set 'Content-Type': The browser sets it automatically for FormData
           Authorization: `Bearer ${token}`,
         },
         body: apiFormData,
@@ -88,20 +128,18 @@ export default function EngineerReimbursement() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to submit expense.");
+        throw new Error(result.message || "Failed to submit expense");
       }
 
-      console.log("Expense submitted successfully:", result);
-      // Optionally, show a success message to the user (e.g., using a snackbar)
       toast.success("Reimbursement submitted successfully!");
-      // Reset form after successful submission
-      setFormData({ category: "FOOD", amount: "", remarks: "" });
+      setFormData({ category: "TRAVEL", amount: "", remarks: "" });
       setSelectedDate(dayjs());
       setReceipt(null);
-      
-    } catch (error) {
-      console.error("Submission Error:", error);
-      alert(`Error: ${error.message}`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      setError("");
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+      console.error("Submission error:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -119,30 +157,21 @@ export default function EngineerReimbursement() {
   };
 
   const uploadBoxStyle = {
-    border: `2px dashed ${theme.palette.mode === "dark" ? "#475569" : "#CBD5E1"}`,
+    border: `2px dashed ${receipt ? theme.palette.success.main : theme.palette.mode === "dark" ? "#475569" : "#CBD5E1"}`,
     borderRadius: "12px",
     padding: theme.spacing(5),
     textAlign: "center",
     cursor: "pointer",
-    color: theme.palette.text.secondary,
+    backgroundColor: receipt ? "rgba(76, 175, 80, 0.05)" : "transparent",
     transition: "all 0.3s ease",
     "&:hover": {
-      backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.03)",
+      backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)",
       borderColor: theme.palette.primary.main,
     },
   };
 
-  const fieldRow = {
-    display: "flex",
-    gap: "20px",
-    flexWrap: "wrap",
-    marginBottom: "20px",
-  };
-
-  const fieldItem = {
-    flex: "1 1 45%",
-    minWidth: "200px",
-  };
+  const fieldRow = { display: "flex", gap: "20px", flexWrap: "wrap", mb: 3 };
+  const fieldItem = { flex: "1 1 45%", minWidth: "280px" };
 
   return (
     <Box
@@ -165,17 +194,23 @@ export default function EngineerReimbursement() {
             Fill the details below to claim your expenses.
           </Typography>
 
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError("")}>
+              {error}
+            </Alert>
+          )}
+
           <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
-            {/* Date + Category */}
             <Box sx={fieldRow}>
               <Box sx={fieldItem}>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
-                    label="Date"
+                    label="Expense Date *"
                     value={selectedDate}
                     onChange={(newValue) => setSelectedDate(newValue)}
+                    maxDate={dayjs()}
                     slotProps={{
-                      textField: { fullWidth: true, name: "date" },
+                      textField: { fullWidth: true },
                     }}
                   />
                 </LocalizationProvider>
@@ -183,12 +218,12 @@ export default function EngineerReimbursement() {
 
               <Box sx={fieldItem}>
                 <FormControl fullWidth>
-                  <InputLabel>Category</InputLabel>
+                  <InputLabel>Category *</InputLabel>
                   <Select
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    label="Category"
+                    label="Category *"
                   >
                     {engineerCategories.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
@@ -200,73 +235,89 @@ export default function EngineerReimbursement() {
               </Box>
             </Box>
 
-            {/* Amount + Remarks */}
             <Box sx={fieldRow}>
               <Box sx={fieldItem}>
                 <TextField
                   fullWidth
+                  required
                   name="amount"
-                  label="Amount"
-                  type="number"
+                  label="Amount (₹)"
                   value={formData.amount}
                   onChange={handleChange}
-                  placeholder="Enter amount"
+                  onKeyDown={(e) => ["e", "E", "+", "-", "."].includes(e.key) && e.preventDefault()}
+                  inputProps={{
+                    inputMode: "numeric",
+                    pattern: "[0-9]*",
+                    min: 1,
+                    max: MAX_AMOUNT,
+                  }}
+                  placeholder="e.g. 1299"
+                  error={!!error && error.includes("Amount")}
+                  helperText={
+                    error && error.includes("Amount")
+                      ? error
+                      : `Max: ₹${MAX_AMOUNT.toLocaleString("en-IN")}`
+                  }
                 />
               </Box>
+
               <Box sx={fieldItem}>
                 <TextField
                   fullWidth
                   name="remarks"
-                  label="Remarks"
+                  label="Remarks (Optional)"
                   value={formData.remarks}
                   onChange={handleChange}
                   multiline
                   rows={3}
-                  placeholder="Add additional remarks..."
+                  placeholder="e.g. Lunch with client at XYZ Restaurant"
                 />
               </Box>
             </Box>
 
-            {/* Upload Receipt */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 4 }}>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Upload Receipt
+                Upload Receipt Image * (JPG, PNG, WebP only)
               </Typography>
               <Box sx={uploadBoxStyle} onClick={handleUploadClick}>
-                <CloudUploadOutlined sx={{ fontSize: "2.5rem", mb: 1 }} />
-                <Typography variant="body2" fontWeight="600">
-                  {receipt ? receipt.name : "Upload Receipt"}
+                <CloudUploadOutlined sx={{ fontSize: "2.8rem", mb: 1, color: receipt ? "success.main" : "inherit" }} />
+                <Typography variant="body2" fontWeight="600" color={receipt ? "success.main" : "inherit"}>
+                  {receipt ? `✓ ${receipt.name}` : "Click to upload receipt image"}
                 </Typography>
-                <Typography variant="caption">
-                  {receipt ? "Click to change" : "Drag & drop or click to upload"}
+                <Typography variant="caption" color="text.secondary">
+                  {receipt ? "Click to change • Max 5MB" : "Supports: JPG, PNG, WebP • Max 5MB"}
                 </Typography>
                 <input
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   style={{ display: "none" }}
-                  accept="image/*,.pdf"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
                 />
               </Box>
             </Box>
 
-            {/* Submit Button */}
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
               <Button
                 type="submit"
                 variant="contained"
-                color="primary"
                 size="large"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !formData.amount || !receipt}
                 sx={{
-                  px: 10,
-                  py: 1.5,
+                  px: 12,
+                  py: 1.8,
                   borderRadius: "12px",
-                  textTransform: "none",
                   fontWeight: "bold",
+                  fontSize: "1.1rem",
+                  textTransform: "none",
+                  boxShadow: "0 4px 12px rgba(25, 118, 210, 0.3)",
                 }}
               >
-                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Submit"}
+                {isSubmitting ? (
+                  <CircularProgress size={28} color="inherit" />
+                ) : (
+                  "Submit Reimbursement"
+                )}
               </Button>
             </Box>
           </Box>
