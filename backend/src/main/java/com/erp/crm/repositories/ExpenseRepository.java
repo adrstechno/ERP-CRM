@@ -11,6 +11,7 @@ import com.erp.crm.models.Expense;
 
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findAllByUser_userId(Long userId);
+    List<Expense> findAllByOrderByExpenseIdDesc();
 
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.expenseDate BETWEEN :start AND :end")
     Double getTotalExpenses(LocalDate start, LocalDate end);
