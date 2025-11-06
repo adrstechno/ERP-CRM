@@ -49,14 +49,17 @@ public class PaymentService {
             throw new RuntimeException("Payment amount exceeds remaining balance");
         }
 
+        // 🚨 Block new payments if one is already pending
+        boolean hasPendingPayment = paymentRepo.existsByInvoice_InvoiceIdAndStatus(invoice.getInvoiceId(),
+                PaymentStatus.PENDING);
+        if (hasPendingPayment && invoice.getOutstandingAmount() > 0) {
+            throw new RuntimeException("You already have a pending payment awaiting approval.");
+        }
+
         double remaining = invoice.getOutstandingAmount() - dto.getAmount();
 
-        // invoice.setOutstandingAmount(remaining); // invoice ke current remaining ko
-        // update karo
-
-        // ✅ Create payment entry
         Payment payment = new Payment();
-        payment.setRemainingAmount(remaining); // only for THIS payment
+        payment.setRemainingAmount(remaining);
         payment.setInvoice(invoice);
         payment.setPaymentDate(dto.getPaymentDate() != null ? dto.getPaymentDate() : LocalDate.now());
         payment.setAmount(dto.getAmount());
@@ -64,10 +67,8 @@ public class PaymentService {
         payment.setReferenceNo(dto.getReferenceNo());
         payment.setStatus(PaymentStatus.PENDING);
         payment.setNotes(dto.getNotes());
-        payment.setRemainingAmount(remaining);
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
         if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
             throw new RuntimeException("User not authenticated");
         }
@@ -76,23 +77,15 @@ public class PaymentService {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-
         if (proofFile != null && !proofFile.isEmpty()) {
             String uploadedUrl = fileUploadService.uploadReceipt(proofFile, payment.getInvoice().getInvoiceId());
-            System.out.println("Uploaded proof URL: " + uploadedUrl);
             payment.setProofUrl(uploadedUrl);
         }
 
-        if (user != null) {
-
-            payment.setReceivedBy(user);
-        }
-
+        payment.setReceivedBy(user);
         Payment savedPayment = paymentRepo.save(payment);
 
-        // ✅ Update invoice payment status
         updateInvoicePaymentStatus(invoice);
-
         return mapToDto(savedPayment);
     }
 
@@ -190,30 +183,29 @@ public class PaymentService {
         // Get payments from last 12 months that are approved
         LocalDate startDate = LocalDate.now().minusMonths(11).withDayOfMonth(1);
         LocalDate endDate = LocalDate.now();
-        
+
         List<Payment> approvedPayments = paymentRepo.findByStatusAndPaymentDateBetween(
-            PaymentStatus.APPROVED, startDate, endDate);
-        
+                PaymentStatus.APPROVED, startDate, endDate);
+
         // Group payments by month and sum amounts
         Map<String, Double> monthlyData = approvedPayments.stream()
-            .collect(Collectors.groupingBy(
-                payment -> payment.getPaymentDate().format(DateTimeFormatter.ofPattern("yyyy-MM")),
-                LinkedHashMap::new,
-                Collectors.summingDouble(Payment::getAmount)
-            ));
-        
+                .collect(Collectors.groupingBy(
+                        payment -> payment.getPaymentDate().format(DateTimeFormatter.ofPattern("yyyy-MM")),
+                        LinkedHashMap::new,
+                        Collectors.summingDouble(Payment::getAmount)));
+
         // Fill in missing months with zero values
         List<Map<String, Object>> result = new java.util.ArrayList<>();
         for (int i = 11; i >= 0; i--) {
             YearMonth month = YearMonth.now().minusMonths(i);
             String monthKey = month.format(DateTimeFormatter.ofPattern("yyyy-MM"));
-            
+
             Map<String, Object> monthData = new LinkedHashMap<>();
             monthData.put("month", monthKey);
             monthData.put("totalAmount", monthlyData.getOrDefault(monthKey, 0.0));
             result.add(monthData);
         }
-        
+
         return result;
     }
 
@@ -222,32 +214,32 @@ public class PaymentService {
      */
     public Map<String, Object> getPaymentStatistics() {
         Map<String, Object> stats = new LinkedHashMap<>();
-        
+
         // Total payments (approved only)
         Double totalPayments = paymentRepo.findByStatus(PaymentStatus.APPROVED)
-            .stream()
-            .mapToDouble(Payment::getAmount)
-            .sum();
-        
+                .stream()
+                .mapToDouble(Payment::getAmount)
+                .sum();
+
         // Outstanding payments (pending + unpaid invoices)
         Double outstandingPayments = paymentRepo.findByStatus(PaymentStatus.PENDING)
-            .stream()
-            .mapToDouble(Payment::getAmount)
-            .sum();
-        
+                .stream()
+                .mapToDouble(Payment::getAmount)
+                .sum();
+
         // This month's collection
         LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
         LocalDate endOfMonth = LocalDate.now();
         Double thisMonthCollection = paymentRepo.findByStatusAndPaymentDateBetween(
-            PaymentStatus.APPROVED, startOfMonth, endOfMonth)
-            .stream()
-            .mapToDouble(Payment::getAmount)
-            .sum();
-        
+                PaymentStatus.APPROVED, startOfMonth, endOfMonth)
+                .stream()
+                .mapToDouble(Payment::getAmount)
+                .sum();
+
         stats.put("totalPayments", totalPayments);
         stats.put("outstandingPayments", outstandingPayments);
         stats.put("thisMonthCollection", thisMonthCollection);
-        
+
         return stats;
     }
 
