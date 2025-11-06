@@ -17,7 +17,7 @@ public interface ServiceTicketRepository extends JpaRepository<ServiceTicket, Lo
     boolean existsBySale_SaleIdAndProduct_ProductIdAndServiceStatusIn(Long saleId, Long productId,
             List<ServiceStatus> statuses);
 
-    List<ServiceTicket> findByAssignedEngineer(User assignedEngineer);
+    List<ServiceTicket> findByAssignedEngineerOrderByIdDesc(User assignedEngineer);
     
     // Find tickets by date range for analytics
     List<ServiceTicket> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
