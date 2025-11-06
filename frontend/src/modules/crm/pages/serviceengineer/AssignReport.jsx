@@ -1,34 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box, Card, CardContent, Typography,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Stack, Chip, IconButton, Skeleton, Button, CircularProgress
+  Stack, Chip, Skeleton, TextField, MenuItem, Select, FormControl, InputLabel
 } from '@mui/material';
-import { MailOutline } from '@mui/icons-material';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
+import { Assignment as AssignmentIcon } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 import { VITE_API_BASE_URL } from '../../utils/State';
+import dayjs from 'dayjs';
 
 const PriorityChip = React.memo(({ priority }) => {
-  let color;
-  if (priority === 'high') color = 'error';
-  else if (priority === 'medium') color = 'warning';
-  else if (priority === 'low') color = 'success';
-  else color = 'default';
+  const color = priority === 'high' ? 'error' : priority === 'medium' ? 'warning' : 'success';
   return <Chip label={priority} color={color} size="small" sx={{ textTransform: 'capitalize' }} />;
 });
 
 const StatusChip = React.memo(({ status }) => {
-  const upperStatus = status?.toUpperCase() || '';
-  let color;
-  if (upperStatus === 'COMPLETED') color = 'success';
-  else if (upperStatus === 'IN_PROGRESS' || upperStatus === 'EN_ROUTE') color = 'info';
-  else if (['OPEN', 'ASSIGNED', 'APPROVED', 'ON_SITE'].includes(upperStatus)) color = 'warning';
-  else color = 'default';
+  const upper = status?.toUpperCase() || '';
+  const color = upper === 'COMPLETED' ? 'success' :
+                ['IN_PROGRESS', 'EN_ROUTE', 'ON_SITE'].includes(upper) ? 'info' :
+                ['ASSIGNED', 'APPROVED'].includes(upper) ? 'warning' : 'default';
 
   return (
     <Chip
@@ -42,102 +32,160 @@ const StatusChip = React.memo(({ status }) => {
 });
 
 export default function AssignedTasks() {
-  const [selectedDate, setSelectedDate] = useState(dayjs());
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [updatingTaskId, setUpdatingTaskId] = useState(null);
+
+  // Filter states
+  const [customerFilter, setCustomerFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
 
   const fetchTasks = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
     try {
       const token = localStorage.getItem("authKey");
-      if (!token) throw new Error("Authentication token not found.");
+      if (!token) throw new Error("Please log in again.");
 
       const response = await fetch(`${VITE_API_BASE_URL}/tickets/get-by-user`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      if (!response.ok) throw new Error(`Failed to fetch tasks. Status: ${response.status}`);
+
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
 
       const data = await response.json();
-      const formattedTasks = data.map(task => ({
-        ticketId: task.ticketId,
-        id: `#${task.ticketId}`,
-        customer: task.customerName,
-        dueDate: task.dueDate,
-        priority: task.priority?.toLowerCase(),
-        product: task.productName,
-        status: task.status,
-      }));
 
-      setTasks(formattedTasks);
+      const formatted = data
+        .filter(task => task.status && !['OPEN'].includes(task.status.toUpperCase()))
+        .map(task => ({
+          ticketId: task.ticketId,
+          customerName: task.customerName || 'Unknown',
+          createdAt: task.createdAt || task.createdDate,
+          dueDate: task.dueDate,
+          priority: (task.priority || 'low').toLowerCase(),
+          productName: task.productName || '-',
+          status: task.status,
+        }))
+        .sort((a, b) => dayjs(b.createdAt).unix() - dayjs(a.createdAt).unix());
+
+      setTasks(formatted);
     } catch (err) {
-      console.error("Error fetching tasks:", err);
-      setError(err.message);
-      toast.error("Failed to load assigned tasks.");
+      console.error("Fetch error:", err);
+      toast.error(err.message || "Failed to load tasks");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchTasks(); }, [fetchTasks]);
-  return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box>
-        <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
-          <CardContent>
-            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2} mb={2}>
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <AssignmentIcon color="primary" />
-                <Typography variant="h6" fontWeight="bold">Assigned Tasks</Typography>
-              </Stack>
-              <DatePicker
-                value={selectedDate}
-                onChange={(newValue) => setSelectedDate(newValue)}
-                slotProps={{ textField: { size: 'small' } }}
-              />
-            </Stack>
-          </CardContent>
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
-          <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
-            <Table stickyHeader size="medium">
-              <TableHead>
+  // Unique customers & priorities for dropdown
+  const customers = useMemo(() => 
+    [...new Set(tasks.map(t => t.customerName))].sort(), [tasks]
+  );
+
+  const priorities = ['high', 'medium', 'low'];
+
+  // Filtered tasks
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      const matchCustomer = !customerFilter || task.customerName === customerFilter;
+      const matchPriority = !priorityFilter || task.priority === priorityFilter;
+      return matchCustomer && matchPriority;
+    });
+  }, [tasks, customerFilter, priorityFilter]);
+
+  return (
+    <Box>
+      <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+        <CardContent>
+          <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
+            <AssignmentIcon color="primary" />
+            <Typography variant="h6" fontWeight="bold">Assigned Tasks</Typography>
+          </Stack>
+
+          {/* Filters */}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={2}>
+            <TextField
+              label="Search Customer"
+              variant="outlined"
+              size="small"
+              value={customerFilter}
+              onChange={(e) => setCustomerFilter(e.target.value)}
+              sx={{ minWidth: 220 }}
+              placeholder="Type or select..."
+              select
+              SelectProps={{ native: false }}
+            >
+              <MenuItem value="">All Customers</MenuItem>
+              {customers.map(name => (
+                <MenuItem key={name} value={name}>{name}</MenuItem>
+              ))}
+            </TextField>
+
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={priorityFilter}
+                label="Priority"
+                onChange={(e) => setPriorityFilter(e.target.value)}
+              >
+                <MenuItem value="">All Priorities</MenuItem>
+                {priorities.map(p => (
+                  <MenuItem key={p} value={p}>
+                    <Chip label={p} color={p === 'high' ? 'error' : p === 'medium' ? 'warning' : 'success'} size="small" />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        </CardContent>
+
+        <TableContainer sx={{ flexGrow: 1, overflow: 'auto' }}>
+          <Table stickyHeader size="medium">
+            <TableHead>
+              <TableRow>
+                <TableCell>Ticket ID</TableCell>
+                <TableCell>Customer</TableCell>
+                <TableCell>Created On</TableCell>
+                <TableCell>Due Date</TableCell>
+                <TableCell>Priority</TableCell>
+                <TableCell>Product</TableCell>
+                <TableCell>Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell colSpan={7}><Skeleton animation="wave" /></TableCell>
+                  </TableRow>
+                ))
+              ) : filteredTasks.length === 0 ? (
                 <TableRow>
-                  {['Ticket ID', 'Customer', 'Due Date', 'Priority', 'Product', 'Status', 'Details'].map(head => (
-                    <TableCell key={head}>{head}</TableCell>
-                  ))}
+                  <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                    {customerFilter || priorityFilter
+                      ? 'No tickets match your filters'
+                      : 'No assigned & approved tickets found'}
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {isLoading ? (
-                  Array.from(new Array(6)).map((_, i) => (
-                    <TableRow key={i}><TableCell colSpan={7}><Skeleton animation="wave" /></TableCell></TableRow>
-                  ))
-                ) : error ? (
-                  <TableRow><TableCell colSpan={7} align="center" sx={{ color: 'error.main' }}>Error: {error}</TableCell></TableRow>
-                ) : (
-                  tasks.map(task => (
-                    <TableRow key={task.id} hover>
-                      <TableCell sx={{ fontWeight: 'bold' }}>{task.id}</TableCell>
-                      <TableCell>{task.customer}</TableCell>
-                      <TableCell>{dayjs(task.dueDate).format('DD MMM YYYY')}</TableCell>
-                      <TableCell><PriorityChip priority={task.priority} /></TableCell>
-                      <TableCell>{task.product}</TableCell>
-                      <TableCell>
-                          <StatusChip status={task.status} />
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton size="small"><MailOutline fontSize="small" /></IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Card>
-      </Box>
-    </LocalizationProvider>
+              ) : (
+                filteredTasks.map((task) => (
+                  <TableRow key={task.ticketId} hover>
+                    <TableCell sx={{ fontWeight: 'bold' }}>#{task.ticketId}</TableCell>
+                    <TableCell>{task.customerName}</TableCell>
+                    <TableCell>{dayjs(task.createdAt).format('DD MMM YYYY')}</TableCell>
+                    <TableCell>{task.dueDate ? dayjs(task.dueDate).format('DD MMM YYYY') : '-'}</TableCell>
+                    <TableCell><PriorityChip priority={task.priority} /></TableCell>
+                    <TableCell>{task.productName}</TableCell>
+                    <TableCell><StatusChip status={task.status} /></TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Card>
+    </Box>
   );
 }
