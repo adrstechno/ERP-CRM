@@ -87,14 +87,12 @@ export default function ServiceVisitWorkflow() {
         setActiveVisit(active);
         setSelectedTicketId(active.ticketId);
 
-        // Pre-fill form from active visit
         setStartKm(active.startKm || "");
         setEndKm(active.endKm || "");
         setUsedParts(active.usedParts || "");
         setMissingPart(active.missingPart || "");
         setRemarks(active.remarks || "");
 
-        // Auto-open correct form
         if (active.visitStatus === "ON_SITE") {
           setShowNeedPartForm(false);
           setShowFixedForm(false);
@@ -138,7 +136,6 @@ export default function ServiceVisitWorkflow() {
 
   const isTicketLocked = !!activeVisit;
 
-  // Only ASSIGNED & NEED_PART tickets can start new visit
   const availableTickets = useMemo(() => {
     return allTickets.filter((t) => ["ASSIGNED", "NEED_PART"].includes(t.status));
   }, [allTickets]);
@@ -167,16 +164,18 @@ export default function ServiceVisitWorkflow() {
     setImageDialog({ open: false, url: "", title: "" });
 
   // === VALIDATIONS ===
+  const isValidKm = (value) => value !== "" && /^\d+$/.test(value) && Number(value) >= 0;
+
   const validateStartVisit = () => {
     if (!selectedTicketId) return "Please select a ticket";
-    if (!startKm) return "Start KM is required";
+    if (!isValidKm(startKm)) return "Please enter a valid positive Start KM";
     if (!startPhoto) return "Start KM Photo is required";
     return null;
   };
 
   const validateNeedPart = () => {
     if (!missingPart.trim()) return "Missing Part details are required";
-    if (!endKm) return "End KM is required for Need Part";
+    if (!isValidKm(endKm)) return "Please enter a valid positive End KM";
     if (!endPhoto) return "End KM Photo is required for Need Part";
     if (activeVisit?.startKm && Number(endKm) <= Number(activeVisit.startKm))
       return `End KM must be greater than Start KM (${activeVisit.startKm})`;
@@ -184,7 +183,7 @@ export default function ServiceVisitWorkflow() {
   };
 
   const validateMarkFixed = () => {
-    if (!endKm) return "End KM is required";
+    if (!isValidKm(endKm)) return "Please enter a valid positive End KM";
     if (!endPhoto) return "End KM Photo is required";
     if (activeVisit?.startKm && Number(endKm) <= Number(activeVisit.startKm))
       return `End KM must be greater than Start KM (${activeVisit.startKm})`;
@@ -327,9 +326,8 @@ export default function ServiceVisitWorkflow() {
     }
   };
 
-  // === RENDER ACTION BUTTONS (LIVE STATUS TRACKING) ===
+  // === RENDER ACTION BUTTONS ===
   const renderActionButtons = () => {
-    // No active visit → Start new
     if (!activeVisit) {
       return (
         <Box display="flex" flexDirection="column" gap={2}>
@@ -357,11 +355,24 @@ export default function ServiceVisitWorkflow() {
           <TextField
             label="Start KM Reading *"
             value={startKm}
-            onChange={(e) => setStartKm(e.target.value)}
-            type="number"
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "" || (/^\d+$/.test(val) && Number(val) >= 0)) {
+                setStartKm(val);
+              }
+            }}
+            onKeyDown={(e) => ["-", "+", "e", "E", "."].includes(e.key) && e.preventDefault()}
+            type="text"
+            inputMode="numeric"
             size="small"
             fullWidth
             required
+            error={!!startKm && !isValidKm(startKm)}
+            helperText={
+              !!startKm && !isValidKm(startKm)
+                ? "Please enter a valid positive number (e.g. 22331)"
+                : ""
+            }
           />
 
           <Box>
@@ -372,12 +383,23 @@ export default function ServiceVisitWorkflow() {
               onChange={(e) => setStartPhoto(e.target.files[0])}
               required
             />
+            {startPhoto && (
+              <Typography variant="caption" color="success.main">
+                {startPhoto.name}
+              </Typography>
+            )}
           </Box>
 
           <Button
             variant="contained"
             onClick={handleStartVisit}
-            disabled={isSubmitting || !selectedTicketId || !startKm || !startPhoto}
+            disabled={
+              isSubmitting ||
+              !selectedTicketId ||
+              !startKm ||
+              !startPhoto ||
+              !isValidKm(startKm)
+            }
             startIcon={<PlayArrow />}
             fullWidth
           >
@@ -387,7 +409,6 @@ export default function ServiceVisitWorkflow() {
       );
     }
 
-    // === LIVE RESUME FROM CURRENT STATUS ===
     switch (activeVisit.visitStatus) {
       case "EN_ROUTE":
         return (
@@ -459,7 +480,6 @@ export default function ServiceVisitWorkflow() {
               </Button>
             </Box>
 
-            {/* Need Part Form */}
             {showNeedPartForm && (
               <Paper elevation={0} sx={{ p: 2, border: 1, borderColor: "divider" }}>
                 <Typography variant="subtitle2" fontWeight={600} mb={2}>
@@ -469,11 +489,24 @@ export default function ServiceVisitWorkflow() {
                 <TextField
                   label="End KM Reading *"
                   value={endKm}
-                  onChange={(e) => setEndKm(e.target.value)}
-                  type="number"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "" || (/^\d+$/.test(val) && Number(val) >= 0)) {
+                      setEndKm(val);
+                    }
+                  }}
+                  onKeyDown={(e) => ["-", "+", "e", "E", "."].includes(e.key) && e.preventDefault()}
+                  type="text"
+                  inputMode="numeric"
                   size="small"
                   fullWidth
                   required
+                  error={!!endKm && !isValidKm(endKm)}
+                  helperText={
+                    !!endKm && !isValidKm(endKm)
+                      ? "Please enter a valid positive number (e.g. 22500)"
+                      : ""
+                  }
                   sx={{ mb: 2 }}
                 />
 
@@ -485,6 +518,11 @@ export default function ServiceVisitWorkflow() {
                     onChange={(e) => setEndPhoto(e.target.files[0])}
                     required
                   />
+                  {endPhoto && (
+                    <Typography variant="caption" color="success.main">
+                      {endPhoto.name}
+                    </Typography>
+                  )}
                 </Box>
 
                 <TextField
@@ -508,6 +546,7 @@ export default function ServiceVisitWorkflow() {
                     !endKm ||
                     !endPhoto ||
                     !missingPart.trim() ||
+                    !isValidKm(endKm) ||
                     (activeVisit.startKm && Number(endKm) <= Number(activeVisit.startKm))
                   }
                   fullWidth
@@ -515,7 +554,7 @@ export default function ServiceVisitWorkflow() {
                   Submit Need Part (Pause Visit)
                 </Button>
 
-                {activeVisit.startKm && Number(endKm) <= Number(activeVisit.startKm) && (
+                {activeVisit.startKm && endKm && Number(endKm) <= Number(activeVisit.startKm) && (
                   <Alert severity="error" sx={{ mt: 1 }}>
                     End KM must be greater than Start KM ({activeVisit.startKm})
                   </Alert>
@@ -523,7 +562,6 @@ export default function ServiceVisitWorkflow() {
               </Paper>
             )}
 
-            {/* Mark Fixed Form */}
             {showFixedForm && (
               <Paper elevation={0} sx={{ p: 2, border: 1, borderColor: "divider" }}>
                 <Typography variant="subtitle2" fontWeight={600} mb={2}>
@@ -533,11 +571,24 @@ export default function ServiceVisitWorkflow() {
                 <TextField
                   label="End KM Reading *"
                   value={endKm}
-                  onChange={(e) => setEndKm(e.target.value)}
-                  type="number"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "" || (/^\d+$/.test(val) && Number(val) >= 0)) {
+                      setEndKm(val);
+                    }
+                  }}
+                  onKeyDown={(e) => ["-", "+", "e", "E", "."].includes(e.key) && e.preventDefault()}
+                  type="text"
+                  inputMode="numeric"
                   size="small"
                   fullWidth
                   required
+                  error={!!endKm && !isValidKm(endKm)}
+                  helperText={
+                    !!endKm && !isValidKm(endKm)
+                      ? "Please enter a valid positive number (e.g. 22500)"
+                      : ""
+                  }
                   sx={{ mb: 2 }}
                 />
 
@@ -549,6 +600,11 @@ export default function ServiceVisitWorkflow() {
                     onChange={(e) => setEndPhoto(e.target.files[0])}
                     required
                   />
+                  {endPhoto && (
+                    <Typography variant="caption" color="success.main">
+                      {endPhoto.name}
+                    </Typography>
+                  )}
                 </Box>
 
                 <Button
@@ -559,6 +615,7 @@ export default function ServiceVisitWorkflow() {
                     isSubmitting ||
                     !endKm ||
                     !endPhoto ||
+                    !isValidKm(endKm) ||
                     (activeVisit.startKm && Number(endKm) <= Number(activeVisit.startKm))
                   }
                   fullWidth
@@ -566,7 +623,7 @@ export default function ServiceVisitWorkflow() {
                   Confirm Fixed
                 </Button>
 
-                {activeVisit.startKm && Number(endKm) <= Number(activeVisit.startKm) && (
+                {activeVisit.startKm && endKm && Number(endKm) <= Number(activeVisit.startKm) && (
                   <Alert severity="error" sx={{ mt: 1 }}>
                     End KM must be greater than Start KM ({activeVisit.startKm})
                   </Alert>
@@ -617,26 +674,28 @@ export default function ServiceVisitWorkflow() {
     );
   }
 
+  const displayTickets = allTickets.filter(t => 
+    !["OPEN", "NEW"].includes(t.status)
+  );
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" fontWeight={600} mb={3}>
         Service Visit Workflow
       </Typography>
 
-      {/* Active Workflow */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
           {activeVisit && (
             <Alert severity="info" icon={<PlayArrow />} sx={{ mb: 2 }}>
-              Active Visit: #{activeVisit.ticketId} -{" "}
-              <strong>{activeVisit.visitStatus}</strong>
+              Active Visit: #{activeVisit.ticketId} - <strong>{activeVisit.visitStatus}</strong>
             </Alert>
           )}
 
           <Stepper activeStep={currentStepIndex} alternativeLabel>
             {steps.map((label) => (
               <Step key={label}>
-                <StepLabel>{label}</StepLabel>
+                <StepLabel>{label.replace(/_/g, " ")}</StepLabel>
               </Step>
             ))}
           </Stepper>
@@ -653,7 +712,6 @@ export default function ServiceVisitWorkflow() {
         </CardContent>
       </Card>
 
-      {/* Visit History */}
       <Card>
         <CardContent>
           <Typography variant="h6" fontWeight={600} mb={2}>
@@ -661,10 +719,12 @@ export default function ServiceVisitWorkflow() {
           </Typography>
           <Divider sx={{ mb: 2 }} />
 
-          {allTickets.length === 0 ? (
-            <Typography color="text.secondary">No tickets assigned</Typography>
+          {displayTickets.length === 0 ? (
+            <Typography color="text.secondary">
+              No active or completed tickets to display
+            </Typography>
           ) : (
-            allTickets.map((ticket) => {
+            displayTickets.map((ticket) => {
               const ticketVisits = getTicketVisits(ticket.ticketId);
               const isExpanded = expandedTicketId === ticket.ticketId;
 
@@ -684,7 +744,7 @@ export default function ServiceVisitWorkflow() {
                       <Typography variant="h6" fontWeight={600}>
                         Ticket #{ticket.ticketId}
                         <Chip
-                          label={ticket.status}
+                          label={ticket.status.replace(/_/g, " ")}
                           size="small"
                           color={
                             ticket.status === "COMPLETED"
@@ -762,7 +822,7 @@ export default function ServiceVisitWorkflow() {
                                 )}
                               </Typography>
                               <Chip
-                                label={visit.visitStatus}
+                                label={visit.visitStatus.replace(/_/g, " ")}
                                 size="small"
                                 color={
                                   visit.visitStatus === "COMPLETED"
@@ -903,17 +963,6 @@ export default function ServiceVisitWorkflow() {
                                 <Typography variant="body2">{visit.remarks}</Typography>
                               </Box>
                             )}
-                            {visit.lastUpdatedBy && (
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                display="block"
-                                mt={1}
-                              >
-                                Updated by {visit.lastUpdatedBy} at{" "}
-                                {formatDate(visit.lastUpdatedAt)}
-                              </Typography>
-                            )}
                           </Paper>
                         );
                       })
@@ -926,7 +975,6 @@ export default function ServiceVisitWorkflow() {
         </CardContent>
       </Card>
 
-      {/* Image Dialog */}
       <Dialog open={imageDialog.open} onClose={closeImageDialog} maxWidth="md" fullWidth>
         <DialogTitle>
           {imageDialog.title}
