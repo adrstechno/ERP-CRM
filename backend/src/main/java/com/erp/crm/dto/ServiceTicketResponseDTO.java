@@ -24,6 +24,7 @@ public class ServiceTicketResponseDTO {
     private EntitlementType entitlementType;
     private Long saleId;
     private Long serviceEntitlementId;
+    private LocalDate createdAt;
 
 
     public static ServiceTicketResponseDTO fromEntity(ServiceTicket ticket) {
@@ -37,7 +38,7 @@ public class ServiceTicketResponseDTO {
         dto.setStatus(ticket.getServiceStatus());
         dto.setDueDate(ticket.getDueDate());
         dto.setEntitlementType(ticket.getEntitlementType());
-        
+        dto.setCreatedAt(ticket.getCreatedAt());        
         if (ticket.getSale() != null) {
             dto.setSaleId(ticket.getSale().getSaleId());
         }
