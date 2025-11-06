@@ -1098,22 +1098,22 @@ export default function SalesManagement() {
 
           <Divider />
 
-          <DialogActions sx={{ px: 4, py: 2.5, background: isDark ? "rgba(255,255,255,0.01)" : "#fafbfc" }}>
-            <Button
-              onClick={closeDetails}
-              variant="contained"
-              size="medium"
-              sx={{
-                px: 4,
-                fontWeight: 600,
-                textTransform: "none",
-                fontSize: "0.9rem"
-              }}
-            >
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
+            <DialogActions sx={{ px: 4, py: 2.5, background: isDark ? "rgba(255,255,255,0.01)" : "#fafbfc" }}>
+              <Button
+                onClick={closeDetails}
+                variant="contained"
+                size="medium"
+                sx={{
+                  px: 4,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  fontSize: "0.9rem"
+                }}
+              >
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
 
         {/* Create New Sale dialog - Invoice style with mini-cards */}
         <Dialog
@@ -1432,23 +1432,24 @@ export default function SalesManagement() {
               </Stack>
             </DialogContent>
 
-            <DialogActions sx={{ px: 4, py: 3 }}>
-              <Button onClick={closeCreateDialog} disabled={isSubmitting} sx={{ fontWeight: 600 }}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                form="new-sale-form"
-                variant="contained"
-                disabled={isSubmitting || Math.round(totalAmount) === 0 || !form.entityId}
-                sx={{ fontWeight: 600, px: 4 }}
-              >
-                {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Submit Sale"}
-              </Button>
-            </DialogActions>
-          </form>
-        </Dialog>
-      </Box>
-    </LocalizationProvider>
-  );
-}
+              <DialogActions sx={{ px: 4, py: 3 }}>
+                <Button onClick={closeCreateDialog} disabled={isSubmitting} sx={{ fontWeight: 600 }}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  form="new-sale-form"
+                  variant="contained"
+                  disabled={isSubmitting || hasStockError || Math.round(totalAmount) === 0 || !form.entityId}
+                  sx={{ fontWeight: 600, px: 4 }}
+                >
+                  {isSubmitting ? <CircularProgress size={20} color="inherit" /> : isAdmin ? "Create & Auto-Approve" : "Create (Pending)"}
+                </Button>
+              </DialogActions>
+            </form>
+          </Dialog>
+        </Box>
+      </LocalizationProvider>
+    );
+  }
+>>>>>>>>> Temporary merge branch 2
