@@ -108,7 +108,7 @@ public class ExpenseService {
     // Get all expenses (admin use)
     @Transactional(readOnly = true)
     public List<ExpenseResponseDTO> getAllExpenses() {
-        return expenseRepo.findAll()
+        return expenseRepo.findAllByOrderByExpenseIdDesc()
                 .stream()
                 .map(this::mapToDto)
                 .toList();
