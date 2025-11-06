@@ -249,7 +249,7 @@ public class ServiceVisitService {
                 .collect(Collectors.toList());
     }
 
-    // 9️⃣ MAPPERS + HELPERS
+    // MAPPERS + HELPERS
 
     private ServiceVisitResponseDTO toDTO(ServiceVisit visit) {
         return ServiceVisitResponseDTO.builder()
