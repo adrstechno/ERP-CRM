@@ -56,17 +56,17 @@ export default function SalesManagement() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
-const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-const openViewDialog = (sale) => {
-  setSelectedSale(sale);
-  setIsViewDialogOpen(true);
-};
+  const openViewDialog = (sale) => {
+    setSelectedSale(sale);
+    setIsViewDialogOpen(true);
+  };
 
-const closeViewDialog = () => {
-  setIsViewDialogOpen(false);
-  setSelectedSale(null);
-};
+  const closeViewDialog = () => {
+    setIsViewDialogOpen(false);
+    setSelectedSale(null);
+  };
 
 
   const [customers, setCustomers] = useState([]);
@@ -90,14 +90,19 @@ const closeViewDialog = () => {
   const fetchSales = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${VITE_API_BASE_URL}/sales/get-all-sales`, axiosConfig);
-      setSalesData(res.data);
+      const res = await axios.get(`${VITE_API_BASE_URL}/sales/marketer`, axiosConfig);
+
+      // Sort by ID descending (newest first)
+      const sortedSales = [...res.data].sort((a, b) => b.saleId - a.saleId);
+
+      setSalesData(sortedSales);
     } catch {
       toast.error("Failed to load sales");
     } finally {
       setLoading(false);
     }
   }, [axiosConfig]);
+
 
   const fetchDropdowns = useCallback(async () => {
     try {
@@ -281,9 +286,9 @@ const closeViewDialog = () => {
                             <Chip label={sale.saleStatus} color={sale.saleStatus === "APPROVED" ? "success" : "warning"} size="small" />
                           </TableCell>
                           <TableCell>
-                          <IconButton size="small" color="primary" onClick={() => openViewDialog(sale)}>
-  <VisibilityIcon fontSize="small" />
-</IconButton>
+                            <IconButton size="small" color="primary" onClick={() => openViewDialog(sale)}>
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
 
                           </TableCell>
                         </TableRow>
@@ -681,147 +686,147 @@ const closeViewDialog = () => {
           </form>
         </Dialog>
         {/* === VIEW SALE DIALOG === */}
-<Dialog
-  open={isViewDialogOpen}
-  onClose={closeViewDialog}
-  maxWidth="sm"
-  fullWidth
-  PaperProps={{ sx: { borderRadius: 3, overflow: "hidden" } }}
->
-  {selectedSale && (
-    <>
-      <DialogTitle
-        sx={{
-          py: 3,
-          px: 4,
-          background: sectionBg,
-          borderBottom: 1,
-          borderColor: isDark ? "#222" : "#ddd",
-        }}
-      >
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          Sale Details — #{selectedSale.saleId}
-        </Typography>
-      </DialogTitle>
+        <Dialog
+          open={isViewDialogOpen}
+          onClose={closeViewDialog}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 3, overflow: "hidden" } }}
+        >
+          {selectedSale && (
+            <>
+              <DialogTitle
+                sx={{
+                  py: 3,
+                  px: 4,
+                  background: sectionBg,
+                  borderBottom: 1,
+                  borderColor: isDark ? "#222" : "#ddd",
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  Sale Details — #{selectedSale.saleId}
+                </Typography>
+              </DialogTitle>
 
-      <DialogContent
-        dividers
-        sx={{
-          background: sectionBg,
-          py: 3,
-          px: 4,
-          "&::-webkit-scrollbar": { width: 6 },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: isDark ? "#444" : "#ccc",
-            borderRadius: 3,
-          },
-        }}
-      >
-        <Stack spacing={2}>
-          <Typography variant="subtitle2" color="text.secondary">
-            Date:{" "}
-            <strong>{dayjs(selectedSale.saleDate).format("DD MMM YYYY")}</strong>
-          </Typography>
-          <Typography variant="subtitle2" color="text.secondary">
-            Customer: <strong>{selectedSale.customerName}</strong>
-          </Typography>
-          <Typography variant="subtitle2" color="text.secondary">
-            Created By: <strong>{selectedSale.createdBy}</strong>
-          </Typography>
-          <Typography variant="subtitle2" color="text.secondary">
-            Status:{" "}
-            <Chip
-              label={selectedSale.saleStatus}
-              color={
-                selectedSale.saleStatus === "APPROVED" ? "success" : "warning"
-              }
-              size="small"
-            />
-          </Typography>
+              <DialogContent
+                dividers
+                sx={{
+                  background: sectionBg,
+                  py: 3,
+                  px: 4,
+                  "&::-webkit-scrollbar": { width: 6 },
+                  "&::-webkit-scrollbar-thumb": {
+                    backgroundColor: isDark ? "#444" : "#ccc",
+                    borderRadius: 3,
+                  },
+                }}
+              >
+                <Stack spacing={2}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Date:{" "}
+                    <strong>{dayjs(selectedSale.saleDate).format("DD MMM YYYY")}</strong>
+                  </Typography>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Customer: <strong>{selectedSale.customerName}</strong>
+                  </Typography>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Created By: <strong>{selectedSale.createdBy}</strong>
+                  </Typography>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Status:{" "}
+                    <Chip
+                      label={selectedSale.saleStatus}
+                      color={
+                        selectedSale.saleStatus === "APPROVED" ? "success" : "warning"
+                      }
+                      size="small"
+                    />
+                  </Typography>
 
-          <Divider sx={{ my: 2 }} />
+                  <Divider sx={{ my: 2 }} />
 
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            Sold Items
-          </Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    Sold Items
+                  </Typography>
 
-          {selectedSale.items && selectedSale.items.length > 0 ? (
-            <TableContainer
-              component={Paper}
-              sx={{
-                background: miniCardBg,
-                borderRadius: 2,
-                boxShadow: "none",
-              }}
-            >
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: "bold" }}>Product</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }} align="center">
-                      Qty
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }} align="right">
-                      Unit Price
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }} align="right">
-                      Subtotal
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {selectedSale.items.map((item, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>{item.productName}</TableCell>
-                      <TableCell align="center">{item.quantity}</TableCell>
-                      <TableCell align="right">
-                        ₹{item.perUnit?.toLocaleString("en-IN")}
-                      </TableCell>
-                      <TableCell align="right">
-                        ₹
-                        {(
-                          (item.quantity || 0) * (item.perUnit || 0)
-                        ).toLocaleString("en-IN")}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          ) : (
-            <Typography>No items found for this sale.</Typography>
+                  {selectedSale.items && selectedSale.items.length > 0 ? (
+                    <TableContainer
+                      component={Paper}
+                      sx={{
+                        background: miniCardBg,
+                        borderRadius: 2,
+                        boxShadow: "none",
+                      }}
+                    >
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: "bold" }}>Product</TableCell>
+                            <TableCell sx={{ fontWeight: "bold" }} align="center">
+                              Qty
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: "bold" }} align="right">
+                              Unit Price
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: "bold" }} align="right">
+                              Subtotal
+                            </TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {selectedSale.items.map((item, idx) => (
+                            <TableRow key={idx}>
+                              <TableCell>{item.productName}</TableCell>
+                              <TableCell align="center">{item.quantity}</TableCell>
+                              <TableCell align="right">
+                                ₹{item.perUnit?.toLocaleString("en-IN")}
+                              </TableCell>
+                              <TableCell align="right">
+                                ₹
+                                {(
+                                  (item.quantity || 0) * (item.perUnit || 0)
+                                ).toLocaleString("en-IN")}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  ) : (
+                    <Typography>No items found for this sale.</Typography>
+                  )}
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      Total:
+                    </Typography>
+                    <Typography
+                      variant="h5"
+                      sx={{ fontWeight: 800, color: theme.palette.primary.main }}
+                    >
+                      ₹{selectedSale.totalAmount.toLocaleString("en-IN")}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </DialogContent>
+
+              <DialogActions sx={{ px: 4, py: 2, background: sectionBg }}>
+                <Button onClick={closeViewDialog} variant="contained" sx={{ fontWeight: 600 }}>
+                  Close
+                </Button>
+              </DialogActions>
+            </>
           )}
-
-          <Divider sx={{ my: 2 }} />
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Total:
-            </Typography>
-            <Typography
-              variant="h5"
-              sx={{ fontWeight: 800, color: theme.palette.primary.main }}
-            >
-              ₹{selectedSale.totalAmount.toLocaleString("en-IN")}
-            </Typography>
-          </Box>
-        </Stack>
-      </DialogContent>
-
-      <DialogActions sx={{ px: 4, py: 2, background: sectionBg }}>
-        <Button onClick={closeViewDialog} variant="contained" sx={{ fontWeight: 600 }}>
-          Close
-        </Button>
-      </DialogActions>
-    </>
-  )}
-</Dialog>
+        </Dialog>
 
       </Box>
     </LocalizationProvider>
