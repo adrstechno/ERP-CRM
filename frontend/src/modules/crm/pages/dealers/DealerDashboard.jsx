@@ -1,51 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box, Grid, Card, CardContent, Typography, useTheme,
-    Stack, Divider, Skeleton
+    Stack, Divider, Skeleton, Chip
 } from '@mui/material';
 import {
     LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
-    BarChart, Bar, RadialBarChart, RadialBar
+    BarChart, Bar
 } from 'recharts';
-import KPI from '../../components/KPIs'; // Assuming KPI component is themed
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { VITE_API_BASE_URL } from "../../utils/State";
+import toast from 'react-hot-toast';
 
-// --- API Simulation ---
-const mockApiData = {
-    kpis: [
-        { title: "Allocated Stock", value: "7,000", change: "+1.01%", trend: "up" },
-        { title: "Stock Sold", value: "2,360", change: "-0.03%", trend: "down" },
-        // { title: "Revenue Generated", value: "₹70,00,000", change: "+1.01%", trend: "up" },
-        // { title: "Pending Payments", value: "₹36,00,000", change: "-0.03%", trend: "down" },
-    ],
-    salesOverview: [
-        { month: "Jan", sold: 4000, unsold: 2400 },
-        { month: "Feb", sold: 3000, unsold: 1398 },
-        { month: "Mar", sold: 2000, unsold: 9800 },
-        { month: "Apr", sold: 2780, unsold: 3908 },
-        { month: "May", sold: 1890, unsold: 4800 },
-    ],
-    stockPerformance: { total: 7000, sold: 2360 },
-    trafficByDevice: [
-        { name: "AC_01", value: 12000 },
-        { name: "AC_02", value: 18000 },
-        { name: "AC_03", value: 9000 },
-        { name: "AC_04", value: 25000 },
-        { name: "AC_05", value: 16000 },
-    ]
-};
-
-// --- Reusable Themed Components ---
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <Card sx={{ p: 1.5 }}>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>{label}</Typography>
-                {payload.map(pld => (
-                    <Typography key={pld.dataKey} sx={{ color: pld.stroke || pld.fill, fontWeight: 500 }}>
-                        {`${pld.name}: ${pld.value.toLocaleString('en-IN')}`}
+            <Card sx={{ p: 1.5, boxShadow: 3 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1, fontWeight: 'bold' }}>{label}</Typography>
+                {payload.map((pld, i) => (
+                    <Typography key={i} sx={{ color: pld.stroke || pld.fill, fontWeight: 500 }}>
+                        {`${pld.name}: ${pld.value.toLocaleString()} units`}
                     </Typography>
                 ))}
             </Card>
@@ -54,66 +29,161 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-// --- Main Dashboard Component ---
 export default function DealerDashboard() {
     const theme = useTheme();
     const [isLoading, setIsLoading] = useState(true);
+    const [dashboardData, setDashboardData] = useState(null);
 
-    // API-ready state
-    const [kpiData, setKpiData] = useState([]);
-    const [salesData, setSalesData] = useState([]);
-    const [stockData, setStockData] = useState(null);
-    const [trafficData, setTrafficData] = useState([]);
-
-    const fetchDashboardData = useCallback(async () => {
+    const fetchDealerDashboard = useCallback(async () => {
         setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setKpiData(mockApiData.kpis);
-        setSalesData(mockApiData.salesOverview);
-        setStockData(mockApiData.stockPerformance);
-        setTrafficData(mockApiData.trafficByDevice);
-        setIsLoading(false);
+        const token = localStorage.getItem("authKey");
+
+        try {
+            const response = await fetch(`${VITE_API_BASE_URL}/dashboard/dealer`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch dashboard data');
+
+            const result = await response.json();
+            if (result.success) {
+                setDashboardData(result.data);
+            } else {
+                throw new Error(result.message || 'Failed to load data');
+            }
+        } catch (err) {
+            console.error("API Error:", err);
+            toast.error("Failed to load dashboard data");
+        } finally {
+            setIsLoading(false);
+        }
     }, []);
 
     useEffect(() => {
-        fetchDashboardData();
-    }, [fetchDashboardData]);
+        fetchDealerDashboard();
+    }, [fetchDealerDashboard]);
 
-    const stockPerformanceChartData = stockData ? [{ name: 'Sold', value: stockData.sold, fill: theme.palette.primary.main }] : [];
+    if (!dashboardData && !isLoading) {
+        return (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+                <Typography variant="h6" color="text.secondary">No data available</Typography>
+            </Box>
+        );
+    }
+
+    // Correct field mapping based on API response
+    const {
+        stockApproved = 0,
+        stockRequested = 0,
+        stockRejected = 0,
+        totalRequests = 0,
+        monthlyTrends = []
+    } = dashboardData || {};
+
+    const approvedStock = stockApproved;
+    const rejectedStock = stockRejected;
+    const totalStock = totalRequests;
+
+    // Pending = Requested - (Approved + Rejected)
+    const pendingStock = Math.max(stockRequested - stockApproved - stockRejected, 0);
+
+    const monthlyTrend = monthlyTrends;
+
+    const barChartData = [
+        { name: "Approved", value: approvedStock, fill: theme.palette.success.main },
+        { name: "Pending", value: pendingStock, fill: theme.palette.warning.main },
+        { name: "Rejected", value: rejectedStock, fill: theme.palette.error.main },
+    ];
 
     return (
         <Box>
-            <Stack spacing={3}>
+            <Stack spacing={4}>
                 {/* KPI Cards */}
                 <Grid container spacing={3}>
                     {isLoading ? (
-                        Array.from(new Array(4)).map((_, idx) => (
-                            <Grid item xs={12} sm={6} md={3} key={idx}><Skeleton variant="rectangular" height={120} sx={{ borderRadius: 3 }} /></Grid>
-                        ))
+                        <>
+                            <Grid item xs={12} sm={6}><Skeleton variant="rectangular" height={140} sx={{ borderRadius: 3 }} /></Grid>
+                            <Grid item xs={12} sm={6}><Skeleton variant="rectangular" height={140} sx={{ borderRadius: 3 }} /></Grid>
+                        </>
                     ) : (
-                        kpiData.map((item, idx) => (
-                            <Grid item xs={12} sm={6} md={3} key={idx}>
-                                <KPI {...item} variant={["blue", "dark", "light", "dark"][idx % 4]} />
+                        <>
+                            <Grid item xs={12} sm={6}>
+                                <Card sx={{ height: '100%', bgcolor: 'primary.main', color: 'white' }}>
+                                    <CardContent>
+                                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                            <Box>
+                                                <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>Total Stock Requests</Typography>
+                                                <Typography variant="h4" fontWeight="bold" mt={1}>
+                                                    {totalStock.toLocaleString()}
+                                                </Typography>
+                                                <Chip
+                                                    icon={<PendingActionsIcon fontSize="small" />}
+                                                    label={`${pendingStock} Pending • ${rejectedStock} Rejected`}
+                                                    size="small"
+                                                    sx={{ mt: 1, bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+                                                />
+                                            </Box>
+                                            <InventoryIcon sx={{ fontSize: 56, opacity: 0.3 }} />
+                                        </Stack>
+                                    </CardContent>
+                                </Card>
                             </Grid>
-                        ))
+
+                            <Grid item xs={12} sm={6}>
+                                <Card sx={{ height: '100%', bgcolor: 'success.main', color: 'white' }}>
+                                    <CardContent>
+                                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                            <Box>
+                                                <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>Approved Stock</Typography>
+                                                <Typography variant="h4" fontWeight="bold" mt={1}>
+                                                    {approvedStock.toLocaleString()}
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ opacity: 0.8, mt: 1, display: 'block' }}>
+                                                    Ready for sale
+                                                </Typography>
+                                            </Box>
+                                            <CheckCircleOutlineIcon sx={{ fontSize: 56, opacity: 0.3 }} />
+                                        </Stack>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        </>
                     )}
                 </Grid>
 
-                {/* Sales Line Chart */}
+                {/* Monthly Trend Chart */}
                 <Card>
                     <CardContent>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }} mb={2}>Total Sales Overview</Typography>
-                        <Box sx={{ height: 300 }}>
-                            {isLoading ? <Skeleton variant="rectangular" height="100%" /> : (
+                        <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
+                            <InventoryIcon color="primary" />
+                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                Stock Request & Approval Trend (Last 6 Months)
+                            </Typography>
+                        </Stack>
+                        <Divider sx={{ mb: 3 }} />
+
+                        <Box sx={{ height: 350 }}>
+                            {isLoading ? (
+                                <Skeleton variant="rectangular" height="100%" />
+                            ) : monthlyTrend.length === 0 ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                                    <Typography color="text.secondary">No trend data available</Typography>
+                                </Box>
+                            ) : (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={salesData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                                        <XAxis dataKey="month" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }}/>
-                                        <YAxis stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }}/>
+                                    <LineChart data={monthlyTrend}>
+                                        <CartesianGrid strokeDasharray="4 4" stroke={theme.palette.divider} />
+                                        <XAxis dataKey="month" stroke={theme.palette.text.secondary} tick={{ fontSize: 13 }} />
+                                        <YAxis stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
                                         <Tooltip content={<CustomTooltip />} />
-                                        <Legend wrapperStyle={{fontSize: "14px"}}/>
-                                        <Line type="monotone" dataKey="sold" name="Stock Sold" stroke={theme.palette.primary.main} strokeWidth={3} dot={false} />
-                                        <Line type="monotone" dataKey="unsold" name="Stock Unsold" stroke={theme.palette.warning.main} strokeWidth={3} dot={false} />
+                                        <Legend />
+
+                                        <Line type="monotone" dataKey="requested" name="Requested" stroke={theme.palette.primary.main} strokeWidth={3} dot={{ r: 5 }} />
+                                        <Line type="monotone" dataKey="approved" name="Approved" stroke={theme.palette.success.main} strokeWidth={3} dot={{ r: 5 }} />
+                                        <Line type="monotone" dataKey="pending" name="Pending" stroke={theme.palette.warning.main} strokeWidth={2} strokeDasharray="5 5" />
                                     </LineChart>
                                 </ResponsiveContainer>
                             )}
@@ -121,67 +191,30 @@ export default function DealerDashboard() {
                     </CardContent>
                 </Card>
 
-                <Grid container spacing={3}>
-                    {/* Stock Performance */}
-                    <Grid item xs={12} lg={6}>
-                        <Card sx={{ height: '100%', width: 550 }}>
-                            <CardContent>
-                                <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
-                                    <InventoryIcon color="primary" />
-                                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Stock Performance</Typography>
-                                </Stack>
-                                <Divider sx={{ mb: 2 }} />
-                                {isLoading || !stockData ? <Skeleton variant="rectangular" height={300} /> : (
-                                    <Box sx={{ height: 300, position: 'relative' }}>
-                                        <ResponsiveContainer width="100%" height="100%">
-                                             <RadialBarChart innerRadius="80%" outerRadius="100%" data={stockPerformanceChartData} startAngle={90} endAngle={-270} barSize={25}>
-                                                <RadialBar background clockWise dataKey="value" cornerRadius={12} />
-                                            </RadialBarChart>
-                                        </ResponsiveContainer>
-                                        <Stack sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                                            <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main' }}>{`${((stockData.sold / stockData.total) * 100).toFixed(0)}%`}</Typography>
-                                            <Typography variant="body2" color="text.secondary">Sold vs Allocated</Typography>
-                                        </Stack>
-                                    </Box>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </Grid>
-
-                    {/* Top Selling Products */}
-                    <Grid item xs={12} lg={9}>
-                        <Card sx={{ height: '100%' , width: 550 }}>
-                            <CardContent>
-                                <Stack direction="row" spacing={1.5} alignItems="center" mb={2}>
-                                    <TrendingUpIcon color="primary" />
-                                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Top Selling Products</Typography>
-                                </Stack>
-                                <Divider sx={{ mb: 2 }} />
-                                <Box sx={{ height: 300 }}>
-                                {isLoading ? <Skeleton variant="rectangular" height="100%" /> : (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={trafficData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                            <defs>
-                                                <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
-                                                    <stop offset="0%" stopColor={theme.palette.primary.dark} stopOpacity={0.9}/>
-                                                    <stop offset="100%" stopColor={theme.palette.primary.light} stopOpacity={0.7}/>
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={theme.palette.divider}/>
-                                            <XAxis type="number" hide />
-                                            <YAxis dataKey="name" type="category" width={60} stroke={theme.palette.text.secondary} fontSize={12} />
-                                            <Tooltip content={<CustomTooltip />} cursor={{ fill: theme.palette.action.hover }}/>
-                                            <Bar dataKey="value" name="Units Sold" fill="url(#barGradient)" barSize={20} radius={[0, 10, 10, 0]}/>
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                )}
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                </Grid>
+                {/* Bar Chart */}
+                <Card>
+                    <CardContent>
+                        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                            Current Stock Status
+                        </Typography>
+                        <Box sx={{ height: 300 }}>
+                            {isLoading ? (
+                                <Skeleton variant="rectangular" height="100%" />
+                            ) : (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={barChartData}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Bar dataKey="value" radius={[8, 8, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            )}
+                        </Box>
+                    </CardContent>
+                </Card>
             </Stack>
         </Box>
     );
 }
-

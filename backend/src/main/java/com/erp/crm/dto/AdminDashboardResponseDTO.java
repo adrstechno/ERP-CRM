@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DashboardResponseDTO {
+public class AdminDashboardResponseDTO {
     private Double totalSales;
     private Double totalPayments;
     private Double outstandingPayments;

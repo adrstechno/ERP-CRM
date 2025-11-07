@@ -77,6 +77,8 @@ export default function ServiceVisitWorkflow() {
       ]);
 
       const tickets = ticketsRes.data || [];
+      console.log(tickets);
+      
       const visits = visitsRes.data || [];
 
       setAllTickets(tickets);

@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.erp.crm.config.ApiResponse;
-import com.erp.crm.dto.DashboardResponseDTO;
+import com.erp.crm.dto.AdminDashboardResponseDTO;
+import com.erp.crm.dto.DealerDashboardDTO;
+import com.erp.crm.dto.MarketerDashboardDTO;
+import com.erp.crm.dto.EngineerDashboardDTO;
 import com.erp.crm.services.DashboardService;
 
 @RestController
@@ -23,8 +26,8 @@ public class DashboardController {
         this.dashboardService = dashboardService;
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<DashboardResponseDTO>> getDashboard(
+    @GetMapping("/admin")
+    public ResponseEntity<ApiResponse<AdminDashboardResponseDTO>> getAdminDashboard(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(defaultValue = "5") int topProducts) {
@@ -32,7 +35,27 @@ public class DashboardController {
         LocalDate start = startDate != null ? startDate : LocalDate.now().withDayOfMonth(1);
         LocalDate end = endDate != null ? endDate : LocalDate.now();
 
-        DashboardResponseDTO dto = dashboardService.getDashboard(start, end, topProducts);
+        AdminDashboardResponseDTO dto = dashboardService.getDashboard(start, end, topProducts);
         return ResponseEntity.ok(new ApiResponse<>(true, "Dashboard data fetched", dto));
     }
+
+    @GetMapping("/marketer")
+    public ResponseEntity<ApiResponse<MarketerDashboardDTO>> getMarketerDashboard() {
+        MarketerDashboardDTO data = dashboardService.getMarketerDashboardSummary();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Dashboard Summary", data));
+    }
+
+    @GetMapping("/dealer")
+    public ResponseEntity<ApiResponse<DealerDashboardDTO>> getDealerDashboard() {
+        DealerDashboardDTO data = dashboardService.getDealerDashboardSummary();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Dashboard Summary", data));
+    }
+
+    // Engineer dashboard (uses authenticated user)
+    @GetMapping("/engineer")
+    public ResponseEntity<ApiResponse<EngineerDashboardDTO>> getEngineerDashboard() {
+        EngineerDashboardDTO dto = dashboardService.getEngineerDashboard();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Engineer dashboard", dto));
+    }
+
 }
