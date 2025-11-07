@@ -81,16 +81,18 @@ export default function MyExpenses() {
                 const result = response.data;
 
                 if (result.success && Array.isArray(result.data)) {
-                    const formattedData = result.data.map(item => ({
-                        id: item.expenseId,
-                        userName: item.userName,
-                        date: format(new Date(item.expenseDate), 'dd-MM-yyyy'),
-                        category: item.category.charAt(0).toUpperCase() + item.category.slice(1).toLowerCase(),
-                        amount: item.amount,
-                        receipt: item.invoiceUrl,
-                        remarks: item.remarks,
-                        status: item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase(),
-                    }));
+                    const formattedData = result.data
+                        .map(item => ({
+                            id: item.expenseId,
+                            userName: item.userName,
+                            date: format(new Date(item.expenseDate), 'dd-MM-yyyy'),
+                            category: item.category.charAt(0).toUpperCase() + item.category.slice(1).toLowerCase(),
+                            amount: item.amount,
+                            receipt: item.invoiceUrl,
+                            remarks: item.remarks,
+                            status: item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase(),
+                        }))
+                        .sort((a, b) => b.id - a.id); // Sort by expense ID descending (newest first)
                     setExpenses(formattedData);
                 } else {
                     console.error("API call was successful, but the data format is incorrect:", result);

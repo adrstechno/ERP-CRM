@@ -218,12 +218,27 @@ public class SaleService {
         return saleRepo.findAllByOrderBySaleIdDesc().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
-    public List<SaleResponseDTO> getSalesByMarketer(Long userId) {
-        User user = findUserById(userId);
-        return saleRepo.findAllByCreatedByUserId(user.getUserId()).stream()
-                .map(this::mapToDto)
-                .toList();
+public List<SaleResponseDTO> getSalesByMarketer() {
+    // Get the currently authenticated user (marketer)
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+    if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
+        throw new RuntimeException("Unauthorized: User not authenticated");
     }
+
+    String email = principal.getUsername();
+    User marketer = userRepo.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+    // Fetch all sales created by this marketer (sorted by newest first)
+    List<Sale> sales = saleRepo.findAllByCreatedByUserId(marketer.getUserId());
+
+    // Convert to DTO and return
+    return sales.stream()
+            .map(this::mapToDto)
+            .collect(Collectors.toList());
+}
+
 
     // Helper DTO mapping
     private SaleResponseDTO mapToDto(Sale sale) {

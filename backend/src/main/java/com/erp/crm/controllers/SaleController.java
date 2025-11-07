@@ -34,9 +34,9 @@ public class SaleController {
     }
 
     // Dealer-specific sales
-    @GetMapping("/marketer/{marketerId}")
-    public ResponseEntity<List<SaleResponseDTO>> getSalesByMarketer(@PathVariable Long marketerId) {
-        return ResponseEntity.ok(saleService.getSalesByMarketer(marketerId));
+    @GetMapping("/marketer")
+    public ResponseEntity<List<SaleResponseDTO>> getSalesByMarketer() {
+        return ResponseEntity.ok(saleService.getSalesByMarketer());
     }
 
     // Global update sale status
