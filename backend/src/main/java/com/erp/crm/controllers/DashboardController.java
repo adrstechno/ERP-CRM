@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.erp.crm.config.ApiResponse;
 import com.erp.crm.dto.AdminDashboardResponseDTO;
+import com.erp.crm.dto.DealerDashboardDTO;
 import com.erp.crm.dto.MarketerDashboardDTO;
+import com.erp.crm.dto.EngineerDashboardDTO;
 import com.erp.crm.services.DashboardService;
 
 @RestController
@@ -41,6 +43,19 @@ public class DashboardController {
     public ResponseEntity<ApiResponse<MarketerDashboardDTO>> getMarketerDashboard() {
         MarketerDashboardDTO data = dashboardService.getMarketerDashboardSummary();
         return ResponseEntity.ok(new ApiResponse<>(true, "Dashboard Summary", data));
+    }
+
+    @GetMapping("/dealer")
+    public ResponseEntity<ApiResponse<DealerDashboardDTO>> getDealerDashboard() {
+        DealerDashboardDTO data = dashboardService.getDealerDashboardSummary();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Dashboard Summary", data));
+    }
+
+    // Engineer dashboard (uses authenticated user)
+    @GetMapping("/engineer")
+    public ResponseEntity<ApiResponse<EngineerDashboardDTO>> getEngineerDashboard() {
+        EngineerDashboardDTO dto = dashboardService.getEngineerDashboard();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Engineer dashboard", dto));
     }
 
 }
