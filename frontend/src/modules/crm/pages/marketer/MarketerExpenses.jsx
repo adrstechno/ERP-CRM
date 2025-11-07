@@ -215,7 +215,6 @@ export default function MarketerExpenses() {
                   fullWidth
                   name="amount"
                   label="Amount"
-                  inputProps={{ min: 1 }}
                   type="number"
                   value={formData.amount}
                   onChange={handleChange}

@@ -14,7 +14,7 @@ import com.erp.crm.models.Sale;
 public interface SaleRepository extends JpaRepository<Sale, Long> {
 
     List<Sale> findAllByCreatedByUserId(Long userId);
-    List<Sale> findAllByOrderBySaleDateDesc();
+    List<Sale> findAllByOrderBySaleIdDesc();
 
     @Query("SELECT SUM(s.totalAmount) FROM Sale s WHERE s.saleDate BETWEEN :start AND :end")
     Double getTotalSales(LocalDate start, LocalDate end);

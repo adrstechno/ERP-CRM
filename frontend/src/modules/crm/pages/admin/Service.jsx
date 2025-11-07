@@ -33,13 +33,6 @@ const getPriorityChip = (priority) => {
     return <Chip label={priority} color={color} size="small" />;
 };
 
-const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-        return <Card sx={{ p: 1 }}><Typography variant="body2">{`${label}: ${payload[0].value} Tickets`}</Typography></Card>;
-    }
-    return null;
-};
-
 const TableSkeleton = ({ columns }) => Array.from(new Array(5)).map((_, i) => (
     <TableRow key={i}><TableCell colSpan={columns}><Skeleton animation="wave" /></TableCell></TableRow>
 ));
@@ -167,6 +160,7 @@ const VisitHistoryModal = ({ open, onClose, ticketId, visits = [] }) => {
 // --- Custom Hook ---
 const useServiceTickets = () => {
     const [tickets, setTickets] = useState([]);
+    const [rawTickets, setRawTickets] = useState([]); // Naya state: full DTO with createdAt
     const [visitsMap, setVisitsMap] = useState({});
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedTicketId, setSelectedTicketId] = useState(null);
@@ -204,22 +198,16 @@ const useServiceTickets = () => {
     const validateTicket = (t) => {
         const errors = {};
         const today = dayjs().startOf('day');
-
-        //  Past date restriction
         if (t.dueDate && dayjs(t.dueDate).isBefore(today)) {
             errors.dueDate = 'Due date cannot be a past date';
         }
-
-        //  Required field checks
         if (!t.saleId) errors.saleId = 'Sale ID is required';
         if (!t.productId) errors.productId = 'Product is required';
         if (!t.assignedEngineerId) errors.assignedEngineerId = 'Engineer is required';
         if (!t.priority) errors.priority = 'Priority is required';
         if (!t.dueDate) errors.dueDate = errors.dueDate || 'Due date is required';
-
         return errors;
     };
-
 
     const fetchTickets = useCallback(async () => {
         setIsLoading(true);
@@ -228,6 +216,9 @@ const useServiceTickets = () => {
             const response = await fetch(`${VITE_API_BASE_URL}/tickets/get-all`, axiosConfig);
             if (!response.ok) throw new Error('Failed to fetch tickets');
             const data = await response.json();
+
+            // Save full raw data for analytics
+            setRawTickets(data);
 
             const formatted = data.map(t => ({
                 id: t.ticketId,
@@ -356,28 +347,9 @@ const useServiceTickets = () => {
 
             if (!res.ok) throw new Error((await res.json()).message || 'Failed to create');
 
-            const createdTicket = await res.json();
-            const ticketId = createdTicket.ticketId;
-
             toast.success("Ticket created");
-
-            // AUTO APPROVE IF ADMIN/SUBADMIN
-            if (['ADMIN', 'SUBADMIN'].includes(userRole)) {
-                try {
-                    const approveRes = await fetch(`${VITE_API_BASE_URL}/tickets/${ticketId}/approve`, {
-                        method: 'PATCH',
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    if (approveRes.ok) {
-                        toast.success("Ticket auto-approved");
-                    }
-                } catch (err) {
-                    toast.warn("Auto-approve failed");
-                }
-            }
-
             handleCloseDialog();
-            fetchTickets();
+            fetchTickets(); // Refresh → graph auto update
         } catch (err) {
             toast.error(err.message || "Failed to create");
         } finally {
@@ -417,7 +389,7 @@ const useServiceTickets = () => {
     };
 
     return {
-        tickets, isLoading, error, openDialog, isSubmitting, newTicket,
+        tickets, rawTickets, isLoading, error, openDialog, isSubmitting, newTicket,
         engineers, sales, productsForSelectedSale, formErrors,
         modalOpen, selectedTicketId, visitsMap, userRole,
         openVisitModal, closeVisitModal,
@@ -430,7 +402,7 @@ const useServiceTickets = () => {
 export default function ServiceManagement() {
     const theme = useTheme();
     const {
-        tickets, isLoading, error, openDialog, isSubmitting, newTicket,
+        tickets, rawTickets, isLoading, error, openDialog, isSubmitting, newTicket,
         engineers, sales, productsForSelectedSale, formErrors,
         modalOpen, selectedTicketId, visitsMap, userRole,
         openVisitModal, closeVisitModal,
@@ -443,47 +415,54 @@ export default function ServiceManagement() {
     const [monthlyData, setMonthlyData] = useState([]);
     const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
-    // Fetch analytics data
+    // DYNAMIC GRAPH - Pure Frontend Calculation
     useEffect(() => {
-        const fetchAnalytics = async () => {
-            setAnalyticsLoading(true);
-            try {
-                const token = localStorage.getItem("authKey");
-                const config = { headers: { Authorization: `Bearer ${token}` } };
-                
-                const [statsRes, monthlyRes] = await Promise.all([
-                    fetch(`${VITE_API_BASE_URL}/tickets/statistics`, config),
-                    fetch(`${VITE_API_BASE_URL}/tickets/statistics/monthly`, config)
-                ]);
+        if (rawTickets.length === 0) {
+            setAnalyticsLoading(false);
+            return;
+        }
 
-                if (statsRes.ok && monthlyRes.ok) {
-                    const [statsData, monthlyStatsData] = await Promise.all([
-                        statsRes.json(),
-                        monthlyRes.json()
-                    ]);
-                    
-                    setTicketStats(statsData);
-                    
-                    // Format monthly data for chart
-                    const formattedMonthly = monthlyStatsData.map(item => ({
-                        month: new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'short' }),
-                        totalTickets: item.totalTickets,
-                        openTickets: item.openTickets,
-                        completedTickets: item.completedTickets,
-                        closedTickets: item.closedTickets
-                    }));
-                    setMonthlyData(formattedMonthly);
-                }
-            } catch (error) {
-                console.error('Failed to fetch analytics:', error);
-                toast.error('Failed to load analytics data');
-            } finally {
-                setAnalyticsLoading(false);
-            }
+        setAnalyticsLoading(true);
+        const now = dayjs();
+        const thisMonth = now.format('YYYY-MM');
+        const openStatuses = ['OPEN', 'PENDING', 'ASSIGNED', 'IN_PROGRESS', 'EN_ROUTE', 'ON_SITE'];
+
+        // KPI Stats
+        const stats = {
+            totalTickets: rawTickets.length,
+            openTickets: rawTickets.filter(t => openStatuses.includes(t.status)).length,
+            completedTickets: rawTickets.filter(t => t.status === 'COMPLETED').length,
+            thisMonthTickets: rawTickets.filter(t => t.createdAt?.startsWith(thisMonth)).length,
         };
+        setTicketStats(stats);
 
-        fetchAnalytics();
-    }, []);
+        // Monthly Data
+        const monthlyMap = new Map();
+        for (let i = 11; i >= 0; i--) {
+            const date = now.subtract(i, 'month');
+            const key = date.format('YYYY-MM');
+            const label = date.format('MMM \'YY');
+            monthlyMap.set(key, { month: label, totalTickets: 0, openTickets: 0, completedTickets: 0, closedTickets: 0 });
+        }
+
+        rawTickets.forEach(t => {
+            if (!t.createdAt) return;
+            const monthKey = t.createdAt.substring(0, 7);
+            if (monthlyMap.has(monthKey)) {
+                const d = monthlyMap.get(monthKey);
+                d.totalTickets++;
+                if (openStatuses.includes(t.status)) d.openTickets++;
+                if (t.status === 'COMPLETED') d.completedTickets++;
+                if (t.status === 'CLOSED') d.closedTickets++;
+            }
+        });
+
+        const sorted = Array.from(monthlyMap.values())
+            .sort((a, b) => dayjs(a.month + ' 01', 'MMM \'YY DD').isBefore(dayjs(b.month + ' 01', 'MMM \'YY DD')) ? -1 : 1);
+
+        setMonthlyData(sorted);
+        setAnalyticsLoading(false);
+    }, [rawTickets]);
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -502,38 +481,10 @@ export default function ServiceManagement() {
                             ))
                         ) : (
                             <>
-                                <Card>
-                                    <CardContent>
-                                        <Typography variant="body2" color="text.secondary">Total Tickets</Typography>
-                                        <Typography variant="h4" fontWeight="bold" color="primary.main">
-                                            {ticketStats.totalTickets || 0}
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardContent>
-                                        <Typography variant="body2" color="text.secondary">Open Tickets</Typography>
-                                        <Typography variant="h4" fontWeight="bold" color="warning.main">
-                                            {ticketStats.openTickets || 0}
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardContent>
-                                        <Typography variant="body2" color="text.secondary">Completed</Typography>
-                                        <Typography variant="h4" fontWeight="bold" color="success.main">
-                                            {ticketStats.completedTickets || 0}
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardContent>
-                                        <Typography variant="body2" color="text.secondary">This Month</Typography>
-                                        <Typography variant="h4" fontWeight="bold" color="info.main">
-                                            {ticketStats.thisMonthTickets || 0}
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
+                                <Card><CardContent><Typography variant="body2" color="text.secondary">Total Tickets</Typography><Typography variant="h4" fontWeight="bold" color="primary.main">{ticketStats.totalTickets || 0}</Typography></CardContent></Card>
+                                <Card><CardContent><Typography variant="body2" color="text.secondary">Open Tickets</Typography><Typography variant="h4" fontWeight="bold" color="warning.main">{ticketStats.openTickets || 0}</Typography></CardContent></Card>
+                                <Card><CardContent><Typography variant="body2" color="text.secondary">Completed</Typography><Typography variant="h4" fontWeight="bold" color="success.main">{ticketStats.completedTickets || 0}</Typography></CardContent></Card>
+                                <Card><CardContent><Typography variant="body2" color="text.secondary">This Month</Typography><Typography variant="h4" fontWeight="bold" color="info.main">{ticketStats.thisMonthTickets || 0}</Typography></CardContent></Card>
                             </>
                         )}
                     </Box>
@@ -618,54 +569,13 @@ export default function ServiceManagement() {
                                     <ResponsiveContainer width="100%" height="100%">
                                         <LineChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                             <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                                            <XAxis 
-                                                dataKey="month" 
-                                                stroke={theme.palette.text.secondary} 
-                                                tick={{ fontSize: 12 }} 
-                                            />
-                                            <YAxis 
-                                                stroke={theme.palette.text.secondary} 
-                                                tick={{ fontSize: 12 }} 
-                                            />
-                                            <RechartsTooltip 
-                                                contentStyle={{
-                                                    backgroundColor: theme.palette.background.paper,
-                                                    border: `1px solid ${theme.palette.divider}`,
-                                                    borderRadius: 4
-                                                }}
-                                            />
-                                            <Line 
-                                                type="monotone" 
-                                                dataKey="totalTickets" 
-                                                stroke={theme.palette.primary.main} 
-                                                strokeWidth={3} 
-                                                dot={{ r: 4 }} 
-                                                name="Total Tickets"
-                                            />
-                                            <Line 
-                                                type="monotone" 
-                                                dataKey="openTickets" 
-                                                stroke={theme.palette.warning.main} 
-                                                strokeWidth={2} 
-                                                dot={{ r: 3 }} 
-                                                name="Open Tickets"
-                                            />
-                                            <Line 
-                                                type="monotone" 
-                                                dataKey="completedTickets" 
-                                                stroke={theme.palette.success.main} 
-                                                strokeWidth={2} 
-                                                dot={{ r: 3 }} 
-                                                name="Completed"
-                                            />
-                                            <Line 
-                                                type="monotone" 
-                                                dataKey="closedTickets" 
-                                                stroke={theme.palette.info.main} 
-                                                strokeWidth={2} 
-                                                dot={{ r: 3 }} 
-                                                name="Closed"
-                                            />
+                                            <XAxis dataKey="month" stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
+                                            <YAxis stroke={theme.palette.text.secondary} tick={{ fontSize: 12 }} />
+                                            <RechartsTooltip contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, borderRadius: 4 }} />
+                                            <Line type="monotone" dataKey="totalTickets" stroke={theme.palette.primary.main} strokeWidth={3} dot={{ r: 4 }} name="Total" />
+                                            <Line type="monotone" dataKey="openTickets" stroke={theme.palette.warning.main} strokeWidth={2} dot={{ r: 3 }} name="Open" />
+                                            <Line type="monotone" dataKey="completedTickets" stroke={theme.palette.success.main} strokeWidth={2} dot={{ r: 3 }} name="Completed" />
+                                            <Line type="monotone" dataKey="closedTickets" stroke={theme.palette.info.main} strokeWidth={2} dot={{ r: 3 }} name="Closed" />
                                         </LineChart>
                                     </ResponsiveContainer>
                                 )}
@@ -740,7 +650,6 @@ export default function ServiceManagement() {
                     </DialogActions>
                 </Dialog>
 
-                {/* Visit History Modal */}
                 <VisitHistoryModal
                     open={modalOpen}
                     onClose={closeVisitModal}

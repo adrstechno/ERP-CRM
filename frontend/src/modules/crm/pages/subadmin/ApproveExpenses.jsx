@@ -2,16 +2,18 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
     Box, Card, CardContent, Typography,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Button, Stack, FormControl, Select, MenuItem, InputAdornment, TextField, Chip, Skeleton, InputLabel, Link
+    Button, Stack, FormControl, Select, MenuItem, InputAdornment, TextField, Chip, Skeleton, InputLabel, Link,
+    Dialog, DialogTitle, DialogContent, IconButton, CircularProgress
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import CloseIcon from '@mui/icons-material/Close';
 import { format } from 'date-fns';
 import axios from 'axios';
 import { VITE_API_BASE_URL } from '../../utils/State';
 
-// --- Helper Functions (No changes) ---
+// --- Helper Functions ---
 const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth();
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -37,6 +39,11 @@ export default function ApproveExpenses() {
     const [expenses, setExpenses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Modal States
+    const [openModal, setOpenModal] = useState(false);
+    const [modalImageUrl, setModalImageUrl] = useState('');
+    const [modalLoading, setModalLoading] = useState(false);
 
     const yearOptions = useMemo(() => generateYearOptions(), []);
     const monthOptions = useMemo(() => generateMonthOptions(year), [year]);
@@ -87,28 +94,33 @@ export default function ApproveExpenses() {
         fetchExpenses();
     }, [axiosConfig]);
 
-    // --- ## Updated Approval Logic ---
+    // Approval Logic
     const handleApprove = async (expenseId) => {
         const originalExpenses = [...expenses];
-        setExpenses(
-            expenses.map(exp =>
-                exp.id === expenseId ? { ...exp, status: 'Approved' } : exp
-            )
-        );
+        setExpenses(expenses.map(exp => exp.id === expenseId ? { ...exp, status: 'Approved' } : exp));
 
         try {
-            // **1. Construct the new URL with the query parameter**
             const API_URL = `${VITE_API_BASE_URL}/expense/${expenseId}/status?status=APPROVED`;
-            
-            // **2. Make the PATCH request with a `null` body**
-            // The second argument to axios.patch is the request body, which is not needed here.
             await axios.patch(API_URL, null, axiosConfig);
-
         } catch (error) {
             console.error("Error approving expense:", error);
             setExpenses(originalExpenses);
             alert("Failed to approve the expense. Please try again.");
         }
+    };
+
+    // Open Receipt Modal
+    const handleViewReceipt = (url) => {
+        if (!url) return;
+        setModalImageUrl(url);
+        setModalLoading(true);
+        setOpenModal(true);
+
+        // Preload image
+        const img = new Image();
+        img.src = url;
+        img.onload = () => setModalLoading(false);
+        img.onerror = () => setModalLoading(false);
     };
 
     const filteredExpenses = useMemo(() => {
@@ -132,13 +144,7 @@ export default function ApproveExpenses() {
         <Box>
             <Card sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
                 <CardContent>
-                    <Stack
-                        direction={{ xs: 'column', md: 'row' }}
-                        justifyContent="space-between"
-                        alignItems={{ xs: 'flex-start', md: 'center' }}
-                        spacing={2}
-                        mb={2}
-                    >
+                    <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} mb={2}>
                         <Stack direction="row" spacing={1.5} alignItems="center">
                             <ReceiptLongIcon color="primary" />
                             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Approve Expenses</Typography>
@@ -151,11 +157,7 @@ export default function ApproveExpenses() {
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <SearchIcon color="action" />
-                                        </InputAdornment>
-                                    ),
+                                    startAdornment: <InputAdornment position="start"><SearchIcon color="action" /></InputAdornment>,
                                 }}
                                 sx={{ width: { xs: '100%', sm: 300 } }}
                             />
@@ -174,6 +176,7 @@ export default function ApproveExpenses() {
                         </Stack>
                     </Stack>
                 </CardContent>
+
                 <TableContainer sx={{ flexGrow: 1, overflowY: 'auto' }}>
                     <Table stickyHeader size="medium">
                         <TableHead>
@@ -200,30 +203,24 @@ export default function ApproveExpenses() {
                                         <TableCell>₹{expense.amount.toLocaleString('en-IN')}</TableCell>
                                         <TableCell>
                                             {expense.receipt ? (
-                                                <Link href={expense.receipt} target="_blank" rel="noopener noreferrer" underline="always">
+                                                <Link
+                                                    component="button"
+                                                    variant="body2"
+                                                    onClick={() => handleViewReceipt(expense.receipt)}
+                                                    sx={{ color: 'primary.main', textDecoration: 'underline', cursor: 'pointer' }}
+                                                >
                                                     View
                                                 </Link>
                                             ) : 'N/A'}
                                         </TableCell>
-                                        <TableCell>{expense.remarks}</TableCell>
+                                        <TableCell>{expense.remarks || '-'}</TableCell>
                                         <TableCell>
                                             {expense.status === 'Pending' ? (
-                                                <Button
-                                                    variant="contained"
-                                                    size="small"
-                                                    onClick={() => handleApprove(expense.id)}
-                                                    color="primary"
-                                                >
+                                                <Button variant="contained" size="small" onClick={() => handleApprove(expense.id)} color="primary">
                                                     Approve
                                                 </Button>
                                             ) : (
-                                                <Chip
-                                                    label="Approved"
-                                                    color="success"
-                                                    size="small"
-                                                    icon={<CheckCircleIcon />}
-                                                    variant="outlined"
-                                                />
+                                                <Chip label="Approved" color="success" size="small" icon={<CheckCircleIcon />} variant="outlined" />
                                             )}
                                         </TableCell>
                                     </TableRow>
@@ -233,6 +230,37 @@ export default function ApproveExpenses() {
                     </Table>
                 </TableContainer>
             </Card>
+
+            {/* Receipt Modal */}
+            <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
+                <DialogTitle sx={{ bgcolor: 'background.paper', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    Expense Receipt
+                    <IconButton onClick={() => setOpenModal(false)} size="small">
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent sx={{ bgcolor: 'black', display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, minHeight: '70vh' }}>
+                    {modalLoading ? (
+                        <CircularProgress color="primary" />
+                    ) : (
+                        <Box
+                            component="img"
+                            src={modalImageUrl}
+                            alt="Expense Receipt"
+                            sx={{
+                                maxWidth: '100%',
+                                maxHeight: '80vh',
+                                objectFit: 'contain',
+                                borderRadius: 2,
+                                boxShadow: 3,
+                            }}
+                            onError={() => {
+                                setModalLoading(false);
+                            }}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
         </Box>
     );
 }

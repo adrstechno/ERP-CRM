@@ -9,4 +9,5 @@ import java.util.List;
 public interface ServiceReportRepository extends JpaRepository<ServiceReport, Long> {
     Optional<ServiceReport> findByTicket_Id(Long ticketId);
     List<ServiceReport> findAllByEngineer_UserId(Long userId);
-}
+    List<ServiceReport> findAllByOrderByReportId();
+    }

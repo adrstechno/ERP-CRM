@@ -42,7 +42,12 @@ public class SaleService {
             int quantity = item.getQuantity();
 
             if (product.getStock() < quantity) {
-                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+                throw new RuntimeException(
+                    String.format("Insufficient stock for product '%s'. Available: %d, Required: %d",
+                        product.getName(),
+                        product.getStock(),
+                        quantity)
+                );
             }
 
             product.setStock(product.getStock() - quantity);
@@ -54,16 +59,23 @@ public class SaleService {
     public SaleResponseDTO updateSaleStatus(Long saleId, Status status) {
         Sale sale = saleRepo.findById(saleId)
                 .orElseThrow(() -> new RuntimeException("Sale not found with id: " + saleId));
+        
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Status oldStatus = sale.getSaleStatus();
+        
         if (status == Status.APPROVED && auth != null && auth.getPrincipal() instanceof UserPrincipal principal) {
-            updateProductStock(sale); // Deduct stock
+            // Only deduct stock if transitioning from PENDING to APPROVED
+            // Admin-created sales already deducted stock during creation
+            if (oldStatus == Status.PENDING) {
+                updateProductStock(sale); // Deduct stock
+            }
+            
             String email = principal.getUsername();
             User admin = userRepo.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
             sale.setApprovedBy(admin);
         }
         
-        Status oldStatus = sale.getSaleStatus();
         sale.setSaleStatus(status);
         Sale savedSale = saleRepo.save(sale);
 
@@ -71,7 +83,6 @@ public class SaleService {
         if (oldStatus == Status.PENDING && status == Status.APPROVED) {
             generateInvoice(savedSale);
             createServiceEntitlements(savedSale);
-            // createServiceEntitlements(savedSale); // Create 2 free services
         }
 
         return mapToDto(savedSale);
@@ -103,7 +114,7 @@ public class SaleService {
         for (SaleItem item : sale.getSaleItems()) {
             ServiceEntitlement entitlement = new ServiceEntitlement();
             entitlement.setSale(sale);
-            entitlement.setProduct(item.getProduct()); // ✅ Set product
+            entitlement.setProduct(item.getProduct());
             entitlement.setEntitlementType(EntitlementType.FREE);
             entitlement.setTotalAllowed(2); // 2 free services per product
             entitlement.setUsedCount(0);
@@ -113,57 +124,89 @@ public class SaleService {
     }
 
     public SaleResponseDTO createSale(SaleRequestDTO dto) {
-        Sale sale = new Sale();
-        sale.setSaleDate(LocalDate.now());
-
+        // Get authenticated user
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UserPrincipal principal) {
-            String email = principal.getUsername();
-            User user = userRepo.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-
-            sale.setCreatedBy(user);
-
-            // Auto-approve if created by Admin
-            if (user.getRole().getName().equalsIgnoreCase("ADMIN")) {
-                sale.setSaleStatus(Status.APPROVED);
-            } else {
-                sale.setSaleStatus(Status.PENDING);
-            }
-        } else {
+        if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
             throw new RuntimeException("Unauthorized access: user context not found");
         }
 
-        sale.setTotalAmount(dto.getTotalAmount());
+        String email = principal.getUsername();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-        //  Customer check
-        if (dto.getCustomerId() != null) {
-            sale.setCustomer(customerRepo.findById(dto.getCustomerId())
-                    .orElseThrow(() -> new RuntimeException("Customer not found with id: " + dto.getCustomerId())));
-        } else {
+        // Check if user is admin
+        boolean isAdmin = user.getRole().getName().equalsIgnoreCase("ADMIN") || 
+                         user.getRole().getName().equalsIgnoreCase("SUBADMIN");
+
+        // Validate customer
+        if (dto.getCustomerId() == null) {
             throw new RuntimeException("customerId must be provided");
         }
 
-        //  Items check
-        if (dto.getItems() != null && !dto.getItems().isEmpty()) {
-            List<SaleItem> items = dto.getItems().stream().map(i -> {
-                SaleItem item = new SaleItem();
-                Product product = productRepo.findById(i.getProductId())
-                        .orElseThrow(() -> new RuntimeException("Product not found with id: " + i.getProductId()));
-                item.setSale(sale);
-                item.setProduct(product);
-                item.setQuantity(i.getQuantity());
-                double unitPrice = i.getQuantity() * product.getPrice();
-                item.setUnitPrice(unitPrice);
-                return item;
-            }).toList();
-            sale.setSaleItems(items);
-        } else {
+        Customer customer = customerRepo.findById(dto.getCustomerId())
+                .orElseThrow(() -> new RuntimeException("Customer not found with id: " + dto.getCustomerId()));
+
+        // Validate items exist
+        if (dto.getItems() == null || dto.getItems().isEmpty()) {
             throw new RuntimeException("Sale Items cannot be null. At least one product must be selected.");
         }
 
-        Sale saved = saleRepo.save(sale);
-        return mapToDto(saved);
+        // VALIDATE STOCK AVAILABILITY BEFORE CREATING SALE
+        for (SaleItemRequestDTO itemDto : dto.getItems()) {
+            Product product = productRepo.findById(itemDto.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + itemDto.getProductId()));
+
+            if (product.getStock() < itemDto.getQuantity()) {
+                throw new RuntimeException(
+                    String.format("Insufficient stock for product '%s'. Available: %d, Requested: %d",
+                        product.getName(),
+                        product.getStock(),
+                        itemDto.getQuantity())
+                );
+            }
+        }
+
+        // Create sale entity
+        Sale sale = new Sale();
+        sale.setSaleDate(LocalDate.now());
+        sale.setCreatedBy(user);
+        sale.setTotalAmount(dto.getTotalAmount());
+        sale.setCustomer(customer);
+
+        // Set status based on user role
+        if (isAdmin) {
+            sale.setSaleStatus(Status.APPROVED);
+            sale.setApprovedBy(user); // Admin approves their own sale
+        } else {
+            sale.setSaleStatus(Status.PENDING);
+        }
+
+        // Create sale items
+        List<SaleItem> items = dto.getItems().stream().map(i -> {
+            SaleItem item = new SaleItem();
+            Product product = productRepo.findById(i.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + i.getProductId()));
+            item.setSale(sale);
+            item.setProduct(product);
+            item.setQuantity(i.getQuantity());
+            double unitPrice = i.getQuantity() * product.getPrice();
+            item.setUnitPrice(unitPrice);
+            return item;
+        }).toList();
+        
+        sale.setSaleItems(items);
+
+        // Save sale
+        Sale savedSale = saleRepo.save(sale);
+
+        // If admin created, process immediately
+        if (isAdmin) {
+            updateProductStock(savedSale); // Deduct stock
+            generateInvoice(savedSale);     // Generate invoice
+            createServiceEntitlements(savedSale); // Create entitlements
+        }
+
+        return mapToDto(savedSale);
     }
 
     public SaleResponseDTO getSale(Long saleId) {
@@ -172,7 +215,7 @@ public class SaleService {
     }
 
     public List<SaleResponseDTO> getAllSales() {
-        return saleRepo.findAllByOrderBySaleDateDesc().stream().map(this::mapToDto).collect(Collectors.toList());
+        return saleRepo.findAllByOrderBySaleIdDesc().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
 public List<SaleResponseDTO> getSalesByMarketer() {
