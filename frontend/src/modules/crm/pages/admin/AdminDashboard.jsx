@@ -90,7 +90,7 @@ export default function AdminDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const dashboardResponse = await fetch(`${VITE_API_BASE_URL}/dashboard`, {
+      const dashboardResponse = await fetch(`${VITE_API_BASE_URL}/dashboard/admin`, {
         headers: axiosConfig.headers,
       });
       if (dashboardResponse.ok) {
