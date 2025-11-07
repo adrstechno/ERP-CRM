@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Box, Grid, Card, CardContent, Typography, useTheme,
     Stack, Divider, Skeleton, Table, TableBody, TableCell, TableContainer, TableRow
@@ -9,30 +9,10 @@ import {
 import KPI from '../../components/KPIs';
 import BuildIcon from '@mui/icons-material/Build';
 import EventNoteIcon from '@mui/icons-material/EventNote';
+import { VITE_API_BASE_URL } from '../../utils/State';
+import toast from 'react-hot-toast';
 
-// --- API Simulation ---
-const mockApiData = {
-    kpis: [
-        { title: "Assigned Tickets", value: "184", change: "+10%", trend: "up" },
-        { title: "Pending Tickets", value: "38", change: "-5%", trend: "down" },
-        { title: "Completed Tickets", value: "72", change: "+15%", trend: "up" },
-    ],
-    serviceBreakdown: {
-        total: 2364,
-        data: [
-            { name: "AC", value: 1100 },
-            { name: "AC Parts", value: 1200 },
-            { name: "Paid Service", value: 64 },
-        ],
-    },
-    recentServices: [
-        { id: 1, date: "Feb 10, 2024", cost: 2000, description: "AC General Service" },
-        { id: 2, date: "Feb 12, 2024", cost: 1500, description: "Filter Replacement" },
-        { id: 3, date: "Feb 15, 2024", cost: 1800, description: "Cooling Coil Repair" },
-        { id: 4, date: "Feb 20, 2024", cost: 950, description: "Thermostat Check" },
-        { id: 5, date: "Feb 28, 2024", cost: 2400, description: "Compressor Gas Refill" },
-    ]
-};
+// API: GET {VITE_API_BASE_URL}/dashboard/engineer
 
 // --- Main Dashboard Component ---
 export default function EngineerDashboard() {
@@ -43,16 +23,57 @@ export default function EngineerDashboard() {
     const [kpiData, setKpiData] = useState([]);
     const [serviceData, setServiceData] = useState(null);
     const [recentServices, setRecentServices] = useState([]);
+    const token = localStorage.getItem('authKey');
+    const axiosConfig = useMemo(() => ({ headers: { Authorization: `Bearer ${token}` } }), [token]);
 
     const fetchDashboardData = useCallback(async () => {
         setIsLoading(true);
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1500)); 
-        setKpiData(mockApiData.kpis);
-        setServiceData(mockApiData.serviceBreakdown);
-        setRecentServices(mockApiData.recentServices);
-        setIsLoading(false);
-    }, []);
+        try {
+            const res = await fetch(`${VITE_API_BASE_URL}/dashboard/engineer`, {
+                headers: axiosConfig.headers,
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Dashboard API error: ${res.status} ${text}`);
+            }
+
+            const json = await res.json();
+            if (!json.success || !json.data) {
+                throw new Error(json.message || 'Invalid dashboard response');
+            }
+
+            const data = json.data;
+            console.log(data);
+            
+
+            // Map KPI objects (title, value, change?, trend?) — ensure strings for value
+            const mappedKpis = (data.kpis || []).map(k => ({
+                title: k.title,
+                value: k.value != null ? String(k.value) : '0',
+                change: k.change || '',
+                trend: k.trend || 'neutral'
+            }));
+
+            // Service breakdown and recent services map directly
+            const mappedServiceBreakdown = data.serviceBreakdown || null;
+            const mappedRecents = (data.recentServices || []).map(r => ({
+                id: r.id,
+                date: r.date,
+                cost: r.cost,
+                description: r.description
+            }));
+
+            setKpiData(mappedKpis);
+            setServiceData(mappedServiceBreakdown);
+            setRecentServices(mappedRecents);
+        } catch (err) {
+            console.error('Failed to load engineer dashboard', err);
+            toast.error('Failed to load dashboard');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [axiosConfig]);
 
     useEffect(() => {
         fetchDashboardData();
