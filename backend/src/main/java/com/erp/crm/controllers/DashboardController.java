@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.erp.crm.config.ApiResponse;
-import com.erp.crm.dto.DashboardResponseDTO;
+import com.erp.crm.dto.AdminDashboardResponseDTO;
 import com.erp.crm.services.DashboardService;
 
 @RestController
@@ -24,7 +24,7 @@ public class DashboardController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<DashboardResponseDTO>> getDashboard(
+    public ResponseEntity<ApiResponse<AdminDashboardResponseDTO>> getDashboard(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(defaultValue = "5") int topProducts) {
@@ -32,7 +32,7 @@ public class DashboardController {
         LocalDate start = startDate != null ? startDate : LocalDate.now().withDayOfMonth(1);
         LocalDate end = endDate != null ? endDate : LocalDate.now();
 
-        DashboardResponseDTO dto = dashboardService.getDashboard(start, end, topProducts);
+        AdminDashboardResponseDTO dto = dashboardService.getDashboard(start, end, topProducts);
         return ResponseEntity.ok(new ApiResponse<>(true, "Dashboard data fetched", dto));
     }
 }
