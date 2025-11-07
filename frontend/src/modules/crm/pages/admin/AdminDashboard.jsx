@@ -302,7 +302,7 @@ export default function AdminDashboard() {
                   data={dashboardData.userStats}
                   cx="50%"
                   cy="50%"
-                  outerRadius={85}
+                  outerRadius={125}
                   dataKey="totalUsers"
                   nameKey="role"
                 >
