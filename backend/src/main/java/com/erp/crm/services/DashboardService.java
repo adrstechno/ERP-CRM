@@ -6,8 +6,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.erp.crm.dto.AdminDashboardResponseDTO;
 import com.erp.crm.dto.CategorySalesDTO;
-import com.erp.crm.dto.DashboardResponseDTO;
 import com.erp.crm.dto.ProductStatsDTO;
 import com.erp.crm.dto.UserStatsDTO;
 import com.erp.crm.repositories.ExpenseRepository;
@@ -31,8 +31,8 @@ public class DashboardService {
         this.userRepo = userRepo;
     }
 
-    public DashboardResponseDTO getDashboard(LocalDate start, LocalDate end, int topProductsLimit) {
-        DashboardResponseDTO dto = new DashboardResponseDTO();
+    public AdminDashboardResponseDTO getDashboard(LocalDate start, LocalDate end, int topProductsLimit) {
+        AdminDashboardResponseDTO dto = new AdminDashboardResponseDTO();
         dto.setTotalSales(saleRepo.getTotalSales(start, end));
         dto.setTotalPayments(paymentRepo.getTotalPayments(start, end));
         dto.setOutstandingPayments(paymentRepo.getOutstandingPayments(start, end));
